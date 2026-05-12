@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXPRESSION_EVALUATION.md</title>
+    
+<style>
+body {
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+    font-size: 16px;
+    line-height: 1.5;
+    word-wrap: break-word;
+    margin: 0 auto;
+    padding: 45px;
+    max-width: 980px;
+    color: #24292e;
+    background-color: #fff;
+}
+h1, h2, h3, h4, h5, h6 { margin-top: 24px; margin-bottom: 16px; font-weight: 600; line-height: 1.25; }
+h1 { font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: .3em; }
+h2 { font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: .3em; }
+h3 { font-size: 1.25em; }
+p, blockquote, ul, ol, dl, table, pre { margin-top: 0; margin-bottom: 16px; }
+a { color: #0366d6; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, tt { font-family: SFMono-Regular,Consolas,"Liberation Mono",Menlo,monospace; font-size: 85%; padding: .2em .4em; margin: 0; background-color: rgba(27,31,35,.05); border-radius: 3px; }
+pre { word-wrap: normal; font-size: 85%; line-height: 1.45; background-color: #f6f8fa; border-radius: 3px; padding: 16px; overflow: auto; }
+pre code { display: inline; max-width: auto; padding: 0; margin: 0; overflow: visible; line-height: inherit; word-wrap: normal; background-color: transparent; border: 0; }
+blockquote { padding: 0 1em; color: #6a737d; border-left: .25em solid #dfe2e5; }
+table { border-spacing: 0; border-collapse: collapse; width: 100%; }
+table th, table td { padding: 6px 13px; border: 1px solid #dfe2e5; font-weight: 600; }
+table tr { background-color: #fff; border-top: 1px solid #c6cbd1; }
+table tr:nth-child(2n) { background-color: #f6f8fa; }
+hr { height: .25em; padding: 0; margin: 24px 0; background-color: #e1e4e8; border: 0; }
+</style>
+
+</head>
+<body>
+    <h1 id="xml">XML 조건식 → 종목 평가 본체 동작 방식</h1>
+<blockquote>
+<p><code>XML_TEST/</code> 폴더의 4개 샘플 파일(<code>60일선4_20240611_2.xml</code>, <code>보컬눌림목4_20240611.xml</code>, <code>역매공파4_20240604.xml</code>, <code>오돌이4_20240815_순서변경.xml</code>)을 기준으로, XML 한 줄이 어떻게 메모리 객체로 변환되어 종목 데이터(<code>Constants.StockDay</code>)에 적용되는지 단계별로 추적한 문서.</p>
+</blockquote>
+<hr />
+<h2 id="0-tldr">0. TL;DR – 한 종목, 한 날짜에 일어나는 일</h2>
+<pre><code>XML 파일
+   │ ① XmlSerializer
+   ▼
+ExpressionRoot
+  └─ Expressions: List&lt;ExpressionMapper&gt;     ← 루트 식들 (AND 조합)
+        └─ Child: List&lt;ExpressionMapper&gt;     ← 그룹식의 자식들
+   │ ② DynamicExpression.BindExpression  → TreeView
+   │ ③ ExpressionExcutableBinder(재귀)
+   │       · Key 문자열 → 어셈블리 리플렉션으로 IExpression 구현체 매칭
+   │       · Activator.CreateInstance + SetParam(&lt;UIValue&gt;) + Init()
+   ▼
+List&lt;ExpressionExcutebleWrap&gt;                ← 실행 가능 트리
+   │ ④ for stock in Constants.StockDay
+   │     for date in [start..end]
+   │       ExpressionLoopCore(stock, date)
+   ▼
+   ┌──────────────────────────────────────────────────────────────┐
+   │  루트 식들을 순서대로 평가 (전부 true → 종목 추출)           │
+   │                                                              │
+   │  · IsGroup=false              → ICondition.Condition         │
+   │  · IConditionGroupOr           → 자식 중 하나만 true면 OK     │
+   │  · IGroupRangeIndex            → 범위 인덱스 그룹             │
+   │  · IGroupLine                  → 라인 그룹                    │
+   │  · 일반 그룹(IGetRange)        → 범위(Tick 리스트) 산출 →    │
+   │     자식 ISetRange에 주입 → 슬라이딩 윈도우로                │
+   │     IConditionGroup.ConditionGroupRange + 자식 ICondition    │
+   │                                                              │
+   │  · ISuccess(SUC/SIM_SUC/...)   → 위 평가 후 보유기간 수익률   │
+   │     백테스트로 성공/실패/구간 수익률 계산                     │
+   └──────────────────────────────────────────────────────────────┘
+</code></pre>
+<p>평가 본체 핵심 함수:
+- 트리 변환: <a href="Analysis/DynamicExpression.cs#L182-L235">Analysis/DynamicExpression.cs:182-235</a>
+- 종목 루프: <a href="Analysis/DynamicExpression.cs#L342-L385">Analysis/DynamicExpression.cs:342-385</a>
+- 조건 분기: <a href="Analysis/DynamicExpression.cs#L453-L499">Analysis/DynamicExpression.cs:453-499</a>
+- 비교 연산자: <a href="Common/Util.cs#L790-L814">Common/Util.cs:790-814</a>
+- v3 캔들 비교: <a href="Analysis/Expression/v3/Common/Util.cs#L100-L220">Analysis/Expression/v3/Common/Util.cs:100-220</a>
+- v3 값 추출(<code>GetTickValue</code>): <a href="Analysis/Expression/v3/Common/Extensions.cs#L267-L392">Analysis/Expression/v3/Common/Extensions.cs:267-392</a></p>
+<hr />
+<h2 id="1-xml">1. XML 스키마 표준형</h2>
+<p><code>XML_TEST/</code>의 모든 파일은 동일한 구조를 따른다.</p>
+<pre><code class="language-xml">&lt;ExpressionRoot&gt;
+  &lt;ExpressionName&gt;...&lt;/ExpressionName&gt;
+  &lt;ExpressionVersion&gt;1&lt;/ExpressionVersion&gt;
+  &lt;Expressions&gt;
+    &lt;ExpressionMapper&gt;           &lt;!-- 루트 식: 항상 AND로 묶임 --&gt;
+      &lt;Key&gt;PRC_COMP&lt;/Key&gt;        &lt;!-- 식 종류 (필수) --&gt;
+      &lt;Title&gt;가격단순&lt;/Title&gt;
+      &lt;IsAndOperator&gt;true&lt;/IsAndOperator&gt;
+      &lt;IsCondition&gt;true&lt;/IsCondition&gt;
+      &lt;IsGroup&gt;false&lt;/IsGroup&gt;
+      &lt;HasOutValues&gt;false&lt;/HasOutValues&gt;
+      &lt;Param&gt;
+        &lt;UIValue&gt;&lt;Key&gt;TickType&lt;/Key&gt;&lt;Value&gt;DAY&lt;/Value&gt;&lt;/UIValue&gt;
+        &lt;UIValue&gt;&lt;Key&gt;LeftTickType1&lt;/Key&gt;&lt;Value&gt;20MA&lt;/Value&gt;&lt;/UIValue&gt;
+        &lt;UIValue&gt;&lt;Key&gt;LeftRate1&lt;/Key&gt;&lt;Value&gt;1&lt;/Value&gt;&lt;/UIValue&gt;
+        &lt;UIValue&gt;&lt;Key&gt;Operator1&lt;/Key&gt;&lt;Value&gt;gt&lt;/Value&gt;&lt;/UIValue&gt;
+        &lt;UIValue&gt;&lt;Key&gt;RightTickType1&lt;/Key&gt;&lt;Value&gt;120MA&lt;/Value&gt;&lt;/UIValue&gt;
+        &lt;UIValue&gt;&lt;Key&gt;RightRate1&lt;/Key&gt;&lt;Value&gt;1&lt;/Value&gt;&lt;/UIValue&gt;
+        ...
+      &lt;/Param&gt;
+      &lt;Child&gt;
+        &lt;!-- 그룹식인 경우 자식 ExpressionMapper들이 여기에 --&gt;
+      &lt;/Child&gt;
+    &lt;/ExpressionMapper&gt;
+    ...
+  &lt;/Expressions&gt;
+&lt;/ExpressionRoot&gt;
+</code></pre>
+<p>핵심 포인트:
+- <strong><code>Key</code></strong> 가 곧 식별자. C# 측 <code>IExpression</code> 구현체의 <code>public string Key =&gt; "PRC_COMP"</code> 와 매칭된다.
+- <strong><code>Param</code></strong> 은 UI 컨트롤별로 정의된 <code>UIValue(Key, Value)</code> 리스트. 의미는 컨트롤마다 다르다.
+- <strong><code>Child</code></strong> 는 그룹식(<code>IsGroup=true</code>)에만 채워진다. 자식 자체도 <code>ExpressionMapper</code>이므로 임의 깊이 중첩 가능.
+- <strong><code>IsAndOperator</code></strong> 는 사실상 모두 <code>true</code>. 루트 레벨은 항상 AND, OR이 필요하면 <code>GRP_OR</code> 그룹식으로 묶는다.</p>
+<hr />
+<h2 id="2-4">2. 4개 샘플 파일 한눈에 보기</h2>
+<h3 id="21-604_20240611_2xml-10">2.1 <code>60일선4_20240611_2.xml</code> (10개 식)</h3>
+<table>
+<thead>
+<tr>
+<th>순서</th>
+<th>Key</th>
+<th>종류</th>
+<th>역할 요약</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>PRC_COMP</code></td>
+<td>가격단순 (단일)</td>
+<td>오늘 20MA &gt; 120MA</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>PRC_COMP_RANGE_MINMAX</code></td>
+<td>가격기간최고최저 (단일)</td>
+<td>199봉 ~ 0봉 사이 최고가 × 0.8 &lt; 최저가</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>PRC_COMP_RANGE</code></td>
+<td>가격기간 (단일)</td>
+<td>79봉 ~ 0봉 중 60MA &gt; 120MA 인 날이 80일 이상</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>OTH_60LINE_RANGE</code></td>
+<td><strong>그룹식 (장대양봉 기준일 탐색)</strong> ─ Child 7개 보유</td>
+<td>7~1봉 사이 일자별로 자식 7개 식이 모두 true인 "장대양봉" 일자 발견 → <code>stock.GroupDate1</code> 설정</td>
+</tr>
+<tr>
+<td>─ 4-1</td>
+<td><code>PRC_COMP</code></td>
+<td>자식</td>
+<td>close ≤ 전일 close × 1.03 AND high ≤ 전일 close × 1.05</td>
+</tr>
+<tr>
+<td>─ 4-2</td>
+<td><code>PRC_COMP</code></td>
+<td>자식</td>
+<td>high &lt; 120MA AND close &lt; open AND open &gt; 120MA</td>
+</tr>
+<tr>
+<td>─ 4-3</td>
+<td><code>PRC_COMP</code></td>
+<td>자식</td>
+<td>60MA &gt; 120MA AND 20MA &gt; 60MA</td>
+</tr>
+<tr>
+<td>─ 4-4</td>
+<td><code>VAL_COMP_CONST</code></td>
+<td>자식</td>
+<td>거래대금 ≤ 5억</td>
+</tr>
+<tr>
+<td>─ 4-5</td>
+<td><code>PRC_COMP_RANGE</code></td>
+<td>자식</td>
+<td>10~1봉 중 high &gt; 120MA 인 날이 10일 이상</td>
+</tr>
+<tr>
+<td>─ 4-6</td>
+<td><code>VAL_COMP_RANGE_AVG</code></td>
+<td>자식</td>
+<td>20~1봉 평균거래량 × 5 ≥ 당일 거래량</td>
+</tr>
+<tr>
+<td>─ 4-7</td>
+<td><code>VAL_COMP_RANGE_AVG_CONST</code></td>
+<td>자식</td>
+<td>20~1봉 평균거래량 ≤ 50000</td>
+</tr>
+<tr>
+<td>─ 4-8</td>
+<td><code>STS_STS</code></td>
+<td>자식</td>
+<td>10~0봉 사이 거래정지 종목 제외</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>OTH_60LINE_COMP</code></td>
+<td>단일</td>
+<td>꼬리저가 ≥ 60MA × 1.01 OR 꼬리저가 ≥ 20MA × 1.01 (<code>Except1</code> 적용 시 분기)</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>SIM_SUC</code></td>
+<td>성공식</td>
+<td>다음날 시가 매수, 20봉 보유, +5%/-5%, 분할매수 ON</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22-4_20240611xml">2.2 <code>보컬눌림목4_20240611.xml</code></h3>
+<p><code>PRC_COMP</code> 단일 비교식 다수 + 그룹식 + <code>SIM_SUC</code>. 어제·그제·그그제 봉의 close/open/high/low 관계를 비교해 "눌림목" 패턴을 찾는 구성.</p>
+<h3 id="23-4_20240604xml">2.3 <code>역매공파4_20240604.xml</code></h3>
+<p>키 종류: <code>PRC_COMP_RANGE</code>, <code>GRP_OR</code>(자식 PRC_COMP 2개), <code>PRC_COMP</code>, <code>IND_BOL</code>, <code>IND_BOL_RANGE</code>, <code>VAL_COMP_RANGE_AVG_CONST</code>, <code>GRP_LINE</code>(자식 BAND_LINE×2 + BAND_LINE_PRICE), <code>BAND_LINE_PRICE_COMP</code>, <code>SIM_SUC_LINE</code>. <strong>GRP_OR로 OR 조합, GRP_LINE으로 기준선(저항/지지) 산출 후 SUC_LINE으로 라인 도달 성공 판정.</strong></p>
+<h3 id="24-4_20240815_xml">2.4 <code>오돌이4_20240815_순서변경.xml</code></h3>
+<p>가장 길고 복잡. <code>IND_BOL_RANGE</code>/<code>CDL_COMP_CONST</code>(캔들 바디 비율 수치 비교) + <code>BAND_LINE_GROUP</code>(연속 라인 그룹) 등 다양한 키 사용. 식 순서를 의도적으로 변경한 버전(평가는 순서 의존이므로 성능 최적화).</p>
+<hr />
+<h2 id="3-xml-13">3. XML → 메모리 객체 변환 (1~3단계)</h2>
+<h3 id="31-1-xml">3.1 ① XML 역직렬화</h3>
+<p><code>DynamicExpression.BindExpression(path)</code> 내부에서 <code>XmlSerializer&lt;ExpressionRoot&gt;</code>로 파일을 읽어 <code>ExpressionRoot.Expressions: List&lt;ExpressionMapper&gt;</code> 를 얻는다.</p>
+<pre><code class="language-csharp">// 의사코드
+using var fs = File.OpenRead(path);
+var ser = new XmlSerializer(typeof(ExpressionRoot));
+ExpressionRoot root = (ExpressionRoot)ser.Deserialize(fs);
+</code></pre>
+<p><code>ExpressionMapper</code> 정의는 <a href="Common/ExpressionNode.cs#L66-L136">Common/ExpressionNode.cs:66-136</a>. <code>Param</code>은 <code>List&lt;UIValue&gt;</code>(키-값 쌍)로 보존된다. <code>Child</code>는 자기 자신 타입의 리스트라 트리 구조 그대로 매핑.</p>
+<blockquote>
+<p>XML의 오타 보정 한 줄: <code>Key.StartsWith("RPC")</code> 면 자동으로 <code>PRC_*</code>로 치환 (<a href="Common/ExpressionNode.cs#L122-L124">ExpressionNode.cs:122-124</a>).</p>
+</blockquote>
+<h3 id="32-2-treeview">3.2 ② TreeView 바인딩</h3>
+<p><code>ExpressionMapper.GetNode()</code>가 <code>ExpressionNode</code>(WinForms TreeNode 파생)를 반환하고, 재귀로 자식까지 모두 트리에 추가. 사용자가 보는 좌측 트리 = XML 트리.</p>
+<h3 id="33-3-expressionexcuteblewrap">3.3 ③ 실행 트리 빌드 — <code>ExpressionExcutebleWrap</code> 트리</h3>
+<p>이 단계가 <strong>XML과 실제 평가 코드를 잇는 핵심</strong>.</p>
+<pre><code class="language-csharp">// Analysis/DynamicExpression.cs:182-235
+private IExpression CloneExpression(ExpressionMapper map)
+{
+    var type = _expressions.First(a =&gt; a.Key == map.Key).GetType(); // ← Key로 타입 룩업
+    var exp  = (IExpression)CreateControl(type);                    // Activator.CreateInstance
+    exp.SetParam(map.Param);                                        // &lt;UIValue&gt; 리스트 → UI 컨트롤 값 세팅
+    exp.Init();                                                     // 컨트롤 값 → private 필드 캐싱
+    return exp;
+}
+
+public ExpressionExcutebleWrap ExpressionExcutableBinder(ExpressionNode node)
+{
+    var exp = new ExpressionExcutebleWrap { Expression = CloneExpression(node.Mapper) };
+    foreach (ExpressionNode child in node.Nodes)
+        exp.ChildExpression.Add(ExpressionExcutableBinder(child));   // 재귀
+    return exp;
+}
+</code></pre>
+<p><code>_expressions</code>는 어셈블리 리플렉션으로 한 번만 수집한 모든 <code>IExpression</code> 구현체 인스턴스 목록 (<a href="Analysis/DynamicExpression.cs#L64-L99">DynamicExpression.cs:64-99</a>).</p>
+<pre><code class="language-csharp">_expressions = (from t in assembly.GetTypes()
+                where typeof(IExpression).IsAssignableFrom(t) &amp;&amp; t.IsClass
+                select Activator.CreateInstance(t) as IExpression).ToList();
+</code></pre>
+<p>→ <strong>즉 <code>Key="PRC_COMP"</code>라는 문자열 한 개가 곧 <code>ucPrice</code> 클래스 인스턴스로 부활</strong>한다.
+(<a href="Analysis/Expression/v3/Price/ucPrice.cs#L24">Analysis/Expression/v3/Price/ucPrice.cs:24</a>)</p>
+<h3 id="34-setparam-init">3.4 SetParam → Init 의 의미</h3>
+<p>XML의 <code>&lt;UIValue&gt;&lt;Key&gt;LeftTickType1&lt;/Key&gt;&lt;Value&gt;20MA&lt;/Value&gt;&lt;/UIValue&gt;</code> 가 컨트롤 내부 <code>private string _leftType1 = "20MA"</code> 로 자리잡는 과정.</p>
+<pre><code class="language-csharp">// ucPrice.SetParam (값을 콤보박스에 다시 꽂아넣음)
+cboLeftTickType1.SetUIValue(param);    // cbo의 SelectedValue = &quot;20MA&quot;
+
+// ucPrice.Init (콤보박스 값을 필드로 추출)
+cboLeftTickType1.InitValue(ref _leftType1);   // _leftType1 = &quot;20MA&quot;
+</code></pre>
+<p>이렇게 컨트롤은 <strong>UI 입력기와 평가 객체 두 역할을 겸</strong>한다 (JOB 모드에서도 <code>using (var ui = new DynamicExpression()){...}</code> 로 인스턴스만 만들어 평가에 사용).</p>
+<hr />
+<h2 id="4-expressionloopcore">4. 평가 본체 — <code>ExpressionLoopCore</code></h2>
+<p><a href="Analysis/DynamicExpression.cs#L453-L499">Analysis/DynamicExpression.cs:453-499</a></p>
+<pre><code class="language-csharp">private bool ExpressionLoopCore(RoboStock stock, DateTime date)
+{
+    bool isTrue = false;
+    foreach (var exp in _expressionExcutable.Where(a =&gt; !(a.Expression is ISuccess)))
+    {
+        if (!exp.Expression.IsGroup)
+            isTrue = ((ICondition)exp.Expression).Condition(stock, date);                 // (A)
+        else if (exp.Expression is IConditionGroupOr)
+            isTrue = exp.ChildExpression.Any(c =&gt; ((ICondition)c.Expression).Condition(stock, date));  // (B)
+        else if (exp.Expression is IGroupRangeIndex)
+            isTrue = GetConditionGroupRangeIndex(stock, date, exp);                       // (C)
+        else if (exp.Expression is IGroupLine)
+            isTrue = GetConditionGroupLine(stock, date, null, exp);                       // (D)
+        else
+        {
+            var range = ((IGetRange)exp.Expression).GetRange(stock, date);                // (E)
+            foreach (var s in exp.ChildExpression.OfType&lt;ISetRange&gt;())
+                s.SetRange(stock, range, date);
+
+            foreach (var tick in range)
+            {
+                var rangeFowardMoving = range.Where(a =&gt; a.date &gt;= tick.date).ToList();
+                isTrue = ((IConditionGroup)exp.Expression)
+                            .ConditionGroupRange(stock, rangeFowardMoving, date, range.Count);
+                if (isTrue)
+                    isTrue = exp.ChildExpression.All(c =&gt;
+                        ((ICondition)c.Expression).Condition(stock, tick.date));
+                if (isTrue) break;
+            }
+        }
+        if (!isTrue) break;   // ← 루트는 AND. 하나라도 false면 즉시 종목 탈락
+    }
+    return isTrue;
+}
+</code></pre>
+<p>5가지 분기 의미를 4개 샘플 XML 식별로 매핑하면 다음과 같다.</p>
+<table>
+<thead>
+<tr>
+<th>분기</th>
+<th>인터페이스</th>
+<th>예시 XML 식</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(A) 단일</td>
+<td><code>ICondition</code></td>
+<td><code>PRC_COMP</code>, <code>PRC_COMP_RANGE</code>, <code>PRC_COMP_RANGE_MINMAX</code>, <code>VAL_COMP_CONST</code>, <code>VAL_COMP_RANGE_AVG</code>, <code>STS_STS</code>, <code>OTH_60LINE_COMP</code>, <code>IND_BOL</code>, <code>IND_BOL_RANGE</code>, <code>BAND_LINE_PRICE_COMP</code>, <code>SIM_GAP</code>, <code>CDL_COMP_CONST</code></td>
+</tr>
+<tr>
+<td>(B) OR</td>
+<td><code>IConditionGroupOr</code></td>
+<td><code>GRP_OR</code> (역매공파)</td>
+</tr>
+<tr>
+<td>(C) 인덱스 그룹</td>
+<td><code>IGroupRangeIndex</code></td>
+<td>(현재 v3에서 <code>OTH_60LINE_RANGE</code>는 일반 그룹)</td>
+</tr>
+<tr>
+<td>(D) 라인 그룹</td>
+<td><code>IGroupLine</code></td>
+<td><code>GRP_LINE</code> (역매공파, 오돌이)</td>
+</tr>
+<tr>
+<td>(E) 일반 그룹</td>
+<td><code>IConditionGroup</code>+<code>IGetRange</code></td>
+<td><code>OTH_60LINE_RANGE</code> (60일선)</td>
+</tr>
+</tbody>
+</table>
+<p>루트 레벨은 항상 <strong>AND</strong> — 한 식이라도 false면 종목 탈락 (<a href="Analysis/DynamicExpression.cs#L499">line 499</a> <code>if(!isTrue) break;</code>).</p>
+<hr />
+<h2 id="5-a">5. 단일 조건 평가 — (A) 분기 상세</h2>
+<p>샘플 1번째 식인 <code>PRC_COMP</code> (60일선4 첫 식: 20MA &gt; 120MA) 으로 실행 흐름을 따라간다.</p>
+<h3 id="51">5.1 컨트롤 진입점</h3>
+<p><a href="Analysis/Expression/v3/Price/ucPrice.cs#L168-L205">Analysis/Expression/v3/Price/ucPrice.cs:168-205</a></p>
+<pre><code class="language-csharp">public bool Condition(RoboStock stock, DateTime date)
+{
+    if (_tickType == &quot;DAY&quot;)
+        return Util.ConditionCompareTick3(
+            stock, date,
+            _leftTick1, _leftType1, _leftRate1, _rightTick1, _rightType1, _rightRate1, _op1,
+            _leftTick2, _leftType2, _leftRate2, _rightTick2, _rightType2, _rightRate2, _op2,
+            _leftTick3, _leftType3, _leftRate3, _rightTick3, _rightType3, _rightRate3, _op3);
+    // 분봉도 동일 패턴
+}
+</code></pre>
+<p>3쌍의 비교가 모두 AND로 묶이는 구조. 각 쌍은:</p>
+<pre><code>(LeftTick 봉의 LeftTickType 값) × LeftRate    [OP]    (RightTick 봉의 RightTickType 값) × RightRate
+</code></pre>
+<h3 id="52">5.2 핵심 비교 헬퍼</h3>
+<p><a href="Analysis/Expression/v3/Common/Util.cs#L100-L113">Analysis/Expression/v3/Common/Util.cs:100-113</a></p>
+<pre><code class="language-csharp">public static bool ConditionCompareTick3(...)
+{
+    if (!ConditionCompareTick1(stock, date, _l1,_lt1,_lr1, _r1,_rt1,_rr1, _op1)) return false;
+    if (!ConditionCompareTick1(stock, date, _l2,_lt2,_lr2, _r2,_rt2,_rr2, _op2)) return false;
+    if (!ConditionCompareTick1(stock, date, _l3,_lt3,_lr3, _r3,_rt3,_rr3, _op3)) return false;
+    return true;
+}
+</code></pre>
+<p><a href="Analysis/Expression/v3/Common/Util.cs#L331-L352">Analysis/Expression/v3/Common/Util.cs:331-352</a> <code>CheckCondition</code>:</p>
+<pre><code class="language-csharp">private static bool CheckCondition(RoboStock stock, DateTime date, int leftTickCount, string leftType, double leftRate,
+                                   int rightTickCount, string rightType, double rightRate, string op)
+{
+    if (string.IsNullOrEmpty(leftType) || string.IsNullOrEmpty(rightType)) return true; // 미사용 슬롯은 통과
+
+    var leftTick  = stock.ticks.Tick(date, leftTickCount);   // ← N봉 전 일봉 객체
+    var rightTick = stock.ticks.Tick(date, rightTickCount);
+    if (leftTick == null || rightTick == null) return false;
+
+    var lv = leftTick.GetTickValue(leftType);                // ← 문자열 &quot;20MA&quot;를 실제 숫자로
+    var rv = rightTick.GetTickValue(rightType);
+    return App.Common.Util.Compare(lv * leftRate, rv * rightRate, op);
+}
+</code></pre>
+<h3 id="53-gettickvalue">5.3 <code>GetTickValue</code> — 문자열 → 시세값</h3>
+<p><a href="Analysis/Expression/v3/Common/Extensions.cs#L267-L392">Analysis/Expression/v3/Common/Extensions.cs:267-392</a> (일부)</p>
+<table>
+<thead>
+<tr>
+<th>문자열</th>
+<th>반환값</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"close"</code>, <code>"open"</code>, <code>"high"</code>, <code>"low"</code></td>
+<td>OHLC</td>
+<td></td>
+</tr>
+<tr>
+<td><code>"3MA" ~ "448MA"</code></td>
+<td>단순 이동평균</td>
+<td>DataLoad 시 사전 계산됨</td>
+</tr>
+<tr>
+<td><code>"5EMA" ~ "448EMA"</code></td>
+<td>지수 이동평균</td>
+<td>마찬가지 사전 계산</td>
+</tr>
+<tr>
+<td><code>"거래량"</code></td>
+<td>volume</td>
+<td></td>
+</tr>
+<tr>
+<td><code>"거래대금"</code></td>
+<td>value (없으면 close × volume)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>"유동주식수"</code></td>
+<td>abscnt × 1000</td>
+<td></td>
+</tr>
+<tr>
+<td><code>"체결강도"</code></td>
+<td>chdegree</td>
+<td></td>
+</tr>
+<tr>
+<td><code>"시가총액"</code></td>
+<td>marketcap</td>
+<td></td>
+</tr>
+<tr>
+<td><code>"바디고가"</code>/<code>"바디저가"</code></td>
+<td>양·음봉별 max/min(open,close)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>"바디길이"</code>/<code>"바디비율"</code></td>
+<td><code>tick.GetBodyLength/Rate()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"코스피종가"</code> 등</td>
+<td><code>Constants.RoboIndex</code>에서 코스피/코스닥 지수 값</td>
+<td>code "001"/"101"</td>
+</tr>
+</tbody>
+</table>
+<p>→ XML에 적힌 <code>LeftTickType1=20MA</code> 같은 단순 문자열은, <strong>종목 한 개에 대해 미리 캐싱된 캔들 객체의 한 필드</strong>를 가져오는 키로 동작한다.</p>
+<h3 id="54">5.4 비교 연산자</h3>
+<p><a href="Common/Util.cs#L790-L814">Common/Util.cs:790-814</a></p>
+<table>
+<thead>
+<tr>
+<th>op</th>
+<th>의미</th>
+<th>코드</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gt</code></td>
+<td>left <strong>&lt;</strong> right (좌가 작다)</td>
+<td><code>return left &lt; right;</code></td>
+</tr>
+<tr>
+<td><code>gte</code>, <code>이상</code></td>
+<td><code>left &lt;= right</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>eq</code></td>
+<td><code>left == right</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>lt</code></td>
+<td><code>left &gt; right</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>lte</code>, <code>이하</code></td>
+<td><code>left &gt;= right</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>주의: 변수명이 <code>left</code>, <code>right</code>인데 실제로는 비교 방향이 반전돼 있다. UI 라벨 기준이라 그렇게 만든 것. XML의 <code>Operator=gt</code> ⇒ "왼쪽이 오른쪽보다 작다" 로 동작.</p>
+</blockquote>
+<h3 id="55-60">5.5 60일선 첫 식 한 줄 전개</h3>
+<pre><code>LeftTick1=0  LeftTickType1=&quot;20MA&quot;  LeftRate1=1
+Operator1=&quot;gt&quot;
+RightTick1=0 RightTickType1=&quot;120MA&quot; RightRate1=1
+</code></pre>
+<p>⇒ <code>tick(0).MA20 * 1 &lt; tick(0).MA120 * 1</code> ⇒ <strong>20MA &lt; 120MA</strong>.
+<em>(라벨에 "20MA &gt; 120MA"로 보였더라도 실제 op=gt 의미는 위와 같음. 실 동작은 코드 확인 필수.)</em></p>
+<p>빈 슬롯(<code>LeftTickType2=""</code>)은 <code>CheckCondition</code> 에서 <code>string.IsNullOrEmpty</code> 통과 처리 → 무시.</p>
+<hr />
+<h2 id="6-range-prc_comp_range-60-3">6. 기간(Range) 조건 — <code>PRC_COMP_RANGE</code> (60일선 3번째 식)</h2>
+<p><a href="Analysis/Expression/v3/Price/ucPriceRange.cs#L189-L222">Analysis/Expression/v3/Price/ucPriceRange.cs:189-222</a></p>
+<p>XML 파라미터:</p>
+<pre><code>FromTick=79 ToTick=0 Count=80 OpCount=이상 Continue=False
+LeftTickType1=60MA Operator1=gt RightTickType1=120MA
+</code></pre>
+<pre><code class="language-csharp">public bool Condition(RoboStock stock, DateTime date) {
+    return Util.ConditionCompareTick3LoopCount(
+        stock, date, fromTick:79, toTick:0,
+        count:80, opCount:&quot;이상&quot;, isContinue:false,
+        ..., op1:&quot;gt&quot;, ...);
+}
+</code></pre>
+<p><a href="Analysis/Expression/v3/Common/Util.cs#L170-L220">Analysis/Expression/v3/Common/Util.cs:170-220</a>:</p>
+<pre><code class="language-csharp">var ticks = stock.ticks.Ticks(date, fromTick, toTick);    // 79봉 전 ~ 당일까지
+int cnt = 0;
+foreach (var tick in ticks) {
+    bool ok = ConditionCompareTick3(stock, tick.date, ...);   // 그 날에 대해 단일 비교
+    if (ok) cnt++;
+    else if (isContinue) break;     // &quot;연속&quot; 옵션이면 한 번 깨지면 종료
+
+    if (opCount == &quot;이상&quot; &amp;&amp; cnt &gt;= count) return true;    // 80일 이상이면 즉시 true
+}
+return App.Common.Util.Compare(count, cnt, opCount);
+</code></pre>
+<p>→ "최근 80봉 중 (60MA&lt;120MA) 인 날이 80일 이상 (=정배열 깨진 적 없음)" 로 작동.</p>
+<p><code>Continue=False</code> 라서 연속이 아니어도 누적 카운트만 만족하면 OK. 80봉 안에서 80일을 채워야 하므로 사실상 <strong>모든 봉</strong>.</p>
+<hr />
+<h2 id="7-prc_comp_range_minmax-60-2">7. 기간 최고/최저 — <code>PRC_COMP_RANGE_MINMAX</code> (60일선 2번째)</h2>
+<p><a href="Analysis/Expression/v3/Common/Util.cs#L354-L378">Analysis/Expression/v3/Common/Util.cs:354-378</a></p>
+<p>XML:</p>
+<pre><code>FromTick=199 ToTick=0
+LeftMinMax1=최고 LeftTickType1=high LeftRate1=0.8 Operator1=lt
+RightMinMax1=최저 RightTickType1=low  RightRate1=1
+</code></pre>
+<pre><code class="language-csharp">var ticks = stock.ticks.Ticks(date, 199, 0);
+double lv = ticks.Max(a =&gt; a.GetTickValue(&quot;high&quot;));   // 200봉 최고가
+double rv = ticks.Min(a =&gt; a.GetTickValue(&quot;low&quot;));    // 200봉 최저가
+return Util.Compare(lv * 0.8, rv * 1, &quot;lt&quot;);          // 최고가 × 0.8 &gt; 최저가
+</code></pre>
+<p>→ "최근 200봉 박스 폭이 일정 수준 미만" 같은 횡보 조건.</p>
+<hr />
+<h2 id="8-val_comp_range_avg">8. 거래량/거래대금 평균 — <code>VAL_COMP_RANGE_AVG</code></h2>
+<p><a href="Analysis/Expression/v3/Value/ucValueRangeAvg.cs#L115-L156">Analysis/Expression/v3/Value/ucValueRangeAvg.cs:115-156</a></p>
+<p>XML (60일선 그룹 자식 6번):</p>
+<pre><code>FromTick=20 ToTick=1
+LeftTickType1=거래량 LeftRate1=5 Operator1=gte RightTick1=0 RightTickType1=거래량 RightRate1=1
+</code></pre>
+<pre><code class="language-csharp">var ticks = stock.ticks.Ticks(date, 20, 1);
+double lv = ticks.Average(a =&gt; a.volume);            // 20~1봉 평균 거래량
+double rv = stock.ticks.Tick(date, 0).volume;        // 당일 거래량
+return Util.Compare(lv * 5, rv * 1, &quot;gte&quot;);          // 평균거래량 × 5 ≤ 당일거래량
+</code></pre>
+<p>→ "당일 거래량이 직전 20봉 평균의 5배 이상". <code>ExceptMin/ExceptMax</code> 옵션을 켜면 평균 계산 시 최소/최고 봉 한 개를 제외.</p>
+<hr />
+<h2 id="9-sts_sts">9. 특이종목 제외 — <code>STS_STS</code></h2>
+<p><a href="Analysis/Expression/v3/Status/ucStatus.cs#L92-L113">Analysis/Expression/v3/Status/ucStatus.cs:92-113</a></p>
+<p>XML: <code>FromTick=10 ToTick=0 Stop=True</code></p>
+<pre><code class="language-csharp">var ticks = stock.ticks.Ticks(date, 10, 0);
+if (_isStop &amp;&amp; ticks.Any(a =&gt; a.stop))     return false; // 거래정지 봉 있으면 탈락
+if (_isWarning &amp;&amp; ticks.Any(a =&gt; a.warning)) return false;
+...
+return true;
+</code></pre>
+<p>→ 단순 플래그 검사. <code>Tick.stop/arouse/warning/danger/ChangeSign</code> 필드는 데이터 적재 시 종목 마스터에서 채워진다.</p>
+<hr />
+<h2 id="10-e-oth_60line_range-60-4">10. 그룹식 (E 분기) — <code>OTH_60LINE_RANGE</code> (60일선 4번째)</h2>
+<p>이 그룹식이 <strong>60일선4 전략의 핵심</strong>. XML 파라미터:</p>
+<pre><code>From=7  To=1  ColumnName=그룹일자  Skip=True SkipTicks=0  Except1=True
+Child = [PRC_COMP × 3, VAL_COMP_CONST, PRC_COMP_RANGE, VAL_COMP_RANGE_AVG, VAL_COMP_RANGE_AVG_CONST, STS_STS]
+</code></pre>
+<h3 id="101-ucgrouprange-v3-other">10.1 구현 (<code>ucGroupRange</code>, v3 Other)</h3>
+<p><a href="Analysis/Expression/v3/Other/ucGroupRange.cs">Analysis/Expression/v3/Other/ucGroupRange.cs</a></p>
+<pre><code class="language-csharp">public bool IsGroup =&gt; true;  // → ExpressionLoopCore가 (E) 분기로 진입
+
+public IList&lt;Tick&gt; GetRange(RoboStock stock, DateTime date) {
+    _rangeTicks = stock.ticks.Ticks(date, 7, 1).ToList();    // 7봉 전 ~ 1봉 전 (7일)
+    return _rangeTicks;
+}
+
+public bool ConditionGroupRange(RoboStock stock,
+                                IList&lt;Tick&gt; rangeForwardMove, DateTime today, int rangeOriCount) {
+    var flag = rangeForwardMove.First().date;         // ← 슬라이딩 윈도우의 시작 일자
+    stock.GroupDate1 = flag;                          // 등급 산정 등에 활용
+    // ... 종가 연속 상승 검사, 외국인 매도 연속 검사, Except1 플래그 세팅 등
+    return true;
+}
+</code></pre>
+<h3 id="102-expressionloopcore-e">10.2 ExpressionLoopCore의 (E) 분기 흐름 적용</h3>
+<pre><code>range = GetRange(stock, today)                        // 7봉 윈도우
+foreach tick in range (즉, 7봉 전부터 하루씩 앞으로):
+    rangeFowardMoving = range[tick..end]             // 슬라이딩 윈도우 축소
+    if !ConditionGroupRange(stock, rangeFowardMoving, today, 7) continue
+    // 자식 7개 ICondition을 동일 tick.date로 평가 (AND)
+    if 모든 자식 true:
+        ✓ 매칭. break (더 이상 일자 이동 X)
+</code></pre>
+<p>→ <strong>"7~1봉 전 사이에서 자식 식들이 모두 true가 되는 일자를 찾으면 = 장대양봉 후보일"</strong>. 발견되면 그 일자가 <code>stock.GroupDate1</code>에 저장되고, 이후 5번 식(<code>OTH_60LINE_COMP</code>)의 <code>Except1</code> 등이 이 정보를 활용.</p>
+<h3 id="103">10.3 자식들이 보는 시간</h3>
+<ul>
+<li>자식 <code>PRC_COMP</code>(4-1, 4-2, 4-3) 등 <code>LeftTick1=0</code> 으로 적힌 비교는 <strong>부모가 결정한 <code>tick.date</code> 시점</strong>을 기준으로 평가된다 (loop core가 <code>Condition(stock, tick.date)</code> 로 호출).</li>
+<li><code>VAL_COMP_RANGE_AVG</code>(4-6) 의 <code>FromTick=20 ToTick=1</code> 도 마찬가지로 <code>tick.date</code> 기준 20봉 전~1봉 전 평균.</li>
+<li><code>STS_STS</code>(4-8) 도 <code>tick.date</code> 기준 10~0봉 거래정지 검사.</li>
+</ul>
+<p>즉 <strong>그룹식은 자식 식들의 "오늘"의 정의를 옮겨준다</strong>. 이것이 부모-자식 분리의 핵심 가치.</p>
+<h3 id="104-except1">10.4 <code>Except1</code> 사이드 채널</h3>
+<p><code>ucGroupRange.ConditionGroupRange</code> 끝부분:</p>
+<pre><code class="language-csharp">if (_isExcept1 &amp;&amp; next != null &amp;&amp; next.high &lt; next.MA60 &amp;&amp; next.low &gt; next.MA20)
+    stock.Except1 = true;
+else
+    stock.Except1 = false;
+</code></pre>
+<p>이 <code>stock.Except1</code> 플래그를 5번째 식 <code>OTH_60LINE_COMP</code>(<code>ucCandleComp</code>)이 읽어 분기:</p>
+<pre><code class="language-csharp">// ucCandleComp.Condition
+if (stock.Except1)
+    result = tick.low &lt;= tick.MA20 * 1.01;   // 예외 룰
+</code></pre>
+<p>→ 그룹식이 <strong>자식 외부의 다른 루트 식에도 컨텍스트를 전달</strong>할 수 있다. 평가가 단순 트리 AND가 아니라 사이드 이펙트(<code>stock.GroupDate1</code>, <code>stock.Except1</code>, <code>stock.Lines[i]</code> 등)로도 연결되는 점이 이 시스템의 특징.</p>
+<hr />
+<h2 id="11-or-grp_or">11. OR 그룹 — <code>GRP_OR</code> (역매공파)</h2>
+<p><a href="Analysis/Expression/v3/Group/ucGroupOr.cs">Analysis/Expression/v3/Group/ucGroupOr.cs</a>는 <strong>로직이 비어 있다</strong> (<code>Param/Init</code> 모두 no-op).</p>
+<p>대신 <code>ExpressionLoopCore</code>의 (B) 분기가 직접 처리:</p>
+<pre><code class="language-csharp">else if (exp.Expression is IConditionGroupOr) {
+    foreach (var child in exp.ChildExpression) {
+        isTrue = ((ICondition)child.Expression).Condition(stock, date);
+        if (isTrue) break;
+    }
+}
+</code></pre>
+<p>→ 자식들 중 <strong>하나라도 true면 OR 통과</strong>. 모두 false면 그룹 자체가 false → 종목 탈락.</p>
+<hr />
+<h2 id="12-line-grp_line-band_line">12. 기준선(Line) 그룹 — <code>GRP_LINE</code> + <code>BAND_LINE</code> (역매공파, 오돌이)</h2>
+<h3 id="121-grp_line">12.1 부모 <code>GRP_LINE</code></h3>
+<p><a href="Analysis/Expression/v3/Group/ucGroupLine.cs">Analysis/Expression/v3/Group/ucGroupLine.cs</a></p>
+<pre><code class="language-csharp">public int GetLineIndex(RoboStock stock) {
+    if (stock.Lines == null) stock.Lines = new Dictionary&lt;int, Line&gt;();
+    stock.Lines[_lineIndex] = new Line();   // ← 라인 슬롯 초기화
+    return _lineIndex;
+}
+</code></pre>
+<h3 id="122-expressionloopcore-d">12.2 ExpressionLoopCore의 (D) 분기</h3>
+<p><a href="Analysis/DynamicExpression.cs#L430-L451">Analysis/DynamicExpression.cs:430-451</a></p>
+<pre><code class="language-csharp">private bool GetConditionGroupLine(...) {
+    var index = ((IGroupLine)wrap.Expression).GetLineIndex(stock);  // 라인 슬롯 번호
+    foreach (var childWrap in wrap.ChildExpression) {
+        if (childWrap.Expression is ICondition c)
+            isTrue = c.Condition(stock, date);
+        else if (childWrap.Expression is IConditionGroupLine cg)
+            isTrue = cg.Condition(stock, date, index);              // ← 라인 인덱스 전달
+        if (!isTrue) break;
+    }
+    return isTrue;
+}
+</code></pre>
+<h3 id="123-band_line-ucline-v3-band">12.3 자식 <code>BAND_LINE</code> (<code>ucLine</code>, v3 Band)</h3>
+<p><a href="Analysis/Expression/v3/Band/ucLine.cs#L107-L205">Analysis/Expression/v3/Band/ucLine.cs:107-205</a></p>
+<pre><code class="language-csharp">public bool Condition(RoboStock stock, DateTime date, int lineIndex) {
+    var ticks = stock.ticks.Ticks(date, _from, _to);
+    var conditionTicks = ticks.Where(a =&gt; 양봉/음봉 필터);   // _colorType 검사
+    // 첫번째값/최저/최고/최저일/최고일 모드별로 가격 라인 산출
+    ...
+    if (_lineKey == &quot;하단&quot;) {
+        stock.Lines[lineIndex].Low = _line;
+        stock.Lines[lineIndex].LowDate = _lineDate;
+    } else {
+        stock.Lines[lineIndex].High = _line;
+        stock.Lines[lineIndex].HighDate = _lineDate;
+    }
+    return true;
+}
+</code></pre>
+<p>→ <strong>자식이 평가 결과로 가격 라인 값을 <code>stock.Lines[index]</code>에 기록</strong>. 이후 <code>BAND_LINE_PRICE</code>/<code>SIM_SUC_LINE</code> 같은 다른 식이 이 값을 사용한다 (사이드 채널 이용).</p>
+<hr />
+<h2 id="13-sim_suc-60">13. 성공 판정 — <code>SIM_SUC</code> (60일선 마지막)</h2>
+<p><a href="Analysis/Expression/v3/Simulation/ucSucess.cs#L124-L302">Analysis/Expression/v3/Simulation/ucSucess.cs:124-302</a></p>
+<p><code>ISuccess</code>를 구현하므로 <code>ExpressionLoopCore</code>의 본 루프에서는 <strong>제외</strong>되고 (<a href="Analysis/DynamicExpression.cs#L457">line 457</a>: <code>Where(a=&gt;!(a.Expression is ISuccess))</code>), 종목이 매칭된 후 <strong>백테스트용 수익률 산정</strong>에 사용된다.</p>
+<p>XML 파라미터:</p>
+<pre><code>Range=20 SkipRange=10 BuyOpen=True
+SuccessRate=5 FailRateConst=True FailRate=5 FailTick=10
+SecondBuy=False ...
+</code></pre>
+<pre><code class="language-csharp">public SuccessResult Condition(RoboStock stock, DateTime date) {
+    if (!SetPriceConditionSkip(stock, date)) return SuccessResult.Skip;  // 그룹일~검색일 사이 가격조건 위배 시 skip
+    if (이미 10봉 내에 동일종목 검색 이력 있으면) return Skip;            // 중복 시그널 제거
+
+    var buyStartTick = stock.ticks.TickForward(date, _buyTick);   // 다음날
+    var days = stock.ticks.WhereGteTake(buyStartTick.date, 20);    // 보유 20봉
+
+    double buy = days.First().open;                                // 다음날 시가 매수
+    foreach (var day in days) {
+        double successRate = (day.high - buy) / buy * 100;
+        if (successRate &gt;= 5) return Success;                      // +5% 도달
+        if (분할매수 조건 충족) {                                   // 60MA/20MA 근접 시 종가 분할매수
+            SecondBuyCheck(...);                                   // 평단 기준 재계산
+            break;
+        }
+        if (failRate ≤ -5) return Fail;                            // -5% 손절
+    }
+}
+</code></pre>
+<p><code>SetPriceConditionSkip</code> (<a href="Analysis/Expression/v3/Simulation/ucSucess.cs#L387-L422">line 387-422</a>)는 <code>ExpressionGroups.currentExpression</code>(전역 식 트리)에서 <code>IsPrice=true</code> 인 식을 찾아, 그룹일과 검색일 <strong>사이</strong>의 모든 봉에 그 가격조건이 적용되면 신호를 무효화 — 즉 "양봉 이후 매수 진입 전에 이미 비슷한 신호가 떴으면 오늘 신호는 의미 없다"는 중복 제거 룰.</p>
+<p>이 결과는 <a href="Analysis/DynamicExpression.cs#L279-L298">DynamicExpression.cs:279-298</a>에서 동적 컬럼(<code>1구간_20봉</code>, <code>1구간_20봉_성공</code> 등)으로 결과 DataTable에 기록된다.</p>
+<hr />
+<h2 id="14-robostock">14. 종목 데이터(<code>RoboStock</code>) 와의 연결</h2>
+<p>평가 본체가 의존하는 데이터는 모두 <strong>메모리에 사전 적재</strong>된다.</p>
+<pre><code>Common.Util.DataLoadAsync(date)
+  ├─ 종목 마스터 + 일봉 → Constants.StockDay   (List&lt;RoboStock&gt;)
+  │     · stock.ticks  : Tick[] (OHLCV + MA3~448 + EMA5~448 + 투자자별 + chdegree + marketcap …)
+  │     · stock.ticks_1M / ticks_5M : 분봉
+  ├─ 지수(StockIndex) → Constants.RoboIndex    (코스피/코스닥 + MA)
+  └─ 영업일 캐시 → Constants.MarketOpenDateAll
+</code></pre>
+<p>조건식의 모든 <code>GetTickValue("...")</code> 호출은 위 캐시된 객체의 한 필드를 읽는 것으로 끝난다 → 평가 부담 거의 없음.</p>
+<p>평가 도중 발생하는 <strong>사이드 이펙트</strong> (RoboStock에 누적되는 컨텍스트):</p>
+<table>
+<thead>
+<tr>
+<th>필드</th>
+<th>누가 채우나</th>
+<th>누가 사용하나</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>stock.GroupDate1</code></td>
+<td><code>OTH_60LINE_RANGE</code> (<code>ucGroupRange</code>)</td>
+<td><code>SIM_SUC.SetPriceConditionSkip</code>, 등급 산정 등</td>
+</tr>
+<tr>
+<td><code>stock.Except1</code></td>
+<td><code>OTH_60LINE_RANGE</code></td>
+<td><code>OTH_60LINE_COMP</code></td>
+</tr>
+<tr>
+<td><code>stock.Lines[i]</code></td>
+<td><code>BAND_LINE</code> (<code>ucLine</code>)</td>
+<td><code>BAND_LINE_PRICE_COMP</code>, <code>SIM_SUC_LINE</code>, <code>RoboStock.StopLossPoint</code></td>
+</tr>
+<tr>
+<td><code>stock.Boxs[]</code></td>
+<td><code>BAND_BOX</code> 류</td>
+<td>박스 비교 식들</td>
+</tr>
+<tr>
+<td><code>stock.GroupIndexDays[]</code></td>
+<td><code>IGroupRangeIndex</code> 류</td>
+<td>자식 IConditionGroupIndex</td>
+</tr>
+</tbody>
+</table>
+<p>이런 사이드 채널 덕에 식 간 결합이 가능하고, 동시에 식 순서가 의미를 갖는다 (오돌이 XML이 "순서변경" 버전을 둔 이유).</p>
+<hr />
+<h2 id="15-4">15. 4개 샘플의 한 줄 요약</h2>
+<table>
+<thead>
+<tr>
+<th>파일</th>
+<th>전략 한 줄</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>60일선4_20240611_2.xml</code></td>
+<td>"장기 정배열·박스 횡보 종목에서, 최근 7~1봉 사이 60MA 위 거래량 폭발한 장대양봉이 발생한 후, 오늘 꼬리저가가 60MA 또는 20MA 위 1% 안쪽인 눌림목에 진입 (다음날 시가, 20봉 보유, ±5% 익절/손절, 분할매수 ON)"</td>
+</tr>
+<tr>
+<td><code>보컬눌림목4_20240611.xml</code></td>
+<td>"최근 3봉 동안 음봉이 7% 이상 강한 하락 후 오늘 양봉 전환 신호"</td>
+</tr>
+<tr>
+<td><code>역매공파4_20240604.xml</code></td>
+<td>"볼린저밴드 하단 + 직전 양봉 라인 지지에서 OR 가격 패턴 만족 시, BAND_LINE으로 잡은 라인 도달까지를 성공 기준으로 백테스트"</td>
+</tr>
+<tr>
+<td><code>오돌이4_20240815_순서변경.xml</code></td>
+<td>"볼린저밴드 + 캔들 바디 비율 + 연속 라인 그룹 조합으로 다중 패턴 검출, 식 순서 변경으로 평가 성능 최적화"</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="16-xml-1">16. 평가 본체 다이어그램 (XML 1식부터 결과까지)</h2>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│ XML 파일                                                        │
+│   &lt;ExpressionMapper Key=&quot;PRC_COMP&quot;&gt;                             │
+│     &lt;Param&gt;...UIValue 22개...&lt;/Param&gt;                           │
+│   &lt;/ExpressionMapper&gt;                                           │
+└────────────────────┬────────────────────────────────────────────┘
+                     │ XmlSerializer
+                     ▼
+            ExpressionRoot/ExpressionMapper 트리
+                     │ ExpressionMapper.GetNode()
+                     ▼
+            tvMyExpression (TreeNode)
+                     │ ExpressionExcutableBinder()
+                     │   _expressions.First(a =&gt; a.Key == &quot;PRC_COMP&quot;)  ─── 어셈블리 리플렉션
+                     │   Activator.CreateInstance(typeof(ucPrice))
+                     │   ucPrice.SetParam(map.Param)
+                     │   ucPrice.Init() → _leftType1=&quot;20MA&quot;, _op1=&quot;gt&quot; ...
+                     ▼
+            ExpressionExcutebleWrap { Expression: ucPrice 인스턴스 }
+                     │
+   ┌─────────────────┴─────────────────┐
+   │ for stock in Constants.StockDay   │ ← DataLoadAsync로 사전 적재
+   │   for date in [start..end]        │
+   │     ExpressionLoopCore(stock,date)│
+   └─────────────────┬─────────────────┘
+                     │
+                     │ exp.Expression.IsGroup == false →
+                     │   ((ICondition)ucPrice).Condition(stock, date)
+                     ▼
+            ucPrice.Condition
+              └─ Util.ConditionCompareTick3
+                   └─ CheckCondition × 3
+                        ├─ stock.ticks.Tick(date, leftTick)    ← 봉 객체
+                        ├─ leftTick.GetTickValue(&quot;20MA&quot;)       ← 사전계산된 MA20 필드 반환
+                        └─ Util.Compare(lv*lr, rv*rr, &quot;gt&quot;)    ← left&lt;right 검사
+                     │
+                     ▼
+                   true / false
+                     │
+                     │ 루트 식 모두 true → stocks.Add(new RoboStock(...))
+                     ▼
+            DataTable (그리드/CSV) + ISuccess 백테스트 (구간 수익률)
+</code></pre>
+<hr />
+<h2 id="17-expressionexcuteblewrap">17. 부록 — <code>ExpressionExcutebleWrap</code> 단일 노드 메모리 형상</h2>
+<p><code>OTH_60LINE_RANGE</code> 그룹식 1개를 예로 들면:</p>
+<pre><code>ExpressionExcutebleWrap
+├─ Expression: ucGroupRange
+│    Key=&quot;OTH_60LINE_RANGE&quot;
+│    _from=7, _to=1, _isExcept1=true, ...
+│    IGetRange + IConditionGroup 구현
+│
+└─ ChildExpression: List&lt;ExpressionExcutebleWrap&gt;
+   ├─ { Expression: ucPrice           Key=&quot;PRC_COMP&quot;,          ICondition }
+   ├─ { Expression: ucPrice           Key=&quot;PRC_COMP&quot;,          ICondition }
+   ├─ { Expression: ucPrice           Key=&quot;PRC_COMP&quot;,          ICondition }
+   ├─ { Expression: ucValueConst      Key=&quot;VAL_COMP_CONST&quot;,    ICondition }
+   ├─ { Expression: ucPriceRange      Key=&quot;PRC_COMP_RANGE&quot;,    ICondition }
+   ├─ { Expression: ucValueRangeAvg   Key=&quot;VAL_COMP_RANGE_AVG&quot;,ICondition }
+   ├─ { Expression: ucValueRangeAvgConst Key=&quot;VAL_COMP_RANGE_AVG_CONST&quot;, ICondition }
+   └─ { Expression: ucStatus          Key=&quot;STS_STS&quot;,           ICondition }
+</code></pre>
+<p>이 노드 한 개가 <code>ExpressionLoopCore</code>의 (E) 분기에서 다음과 같이 처리된다.</p>
+<pre><code>range = ucGroupRange.GetRange(stock, today)        // 7봉 슬라이스
+for tick in range:
+    if !ucGroupRange.ConditionGroupRange(stock, range[tick..], today, 7): continue
+    if !ucPrice#1.Condition(stock, tick.date): continue
+    if !ucPrice#2.Condition(stock, tick.date): continue
+    if !ucPrice#3.Condition(stock, tick.date): continue
+    if !ucValueConst.Condition(stock, tick.date): continue
+    if !ucPriceRange.Condition(stock, tick.date): continue
+    if !ucValueRangeAvg.Condition(stock, tick.date): continue
+    if !ucValueRangeAvgConst.Condition(stock, tick.date): continue
+    if !ucStatus.Condition(stock, tick.date): continue
+    // 모두 true → 그 tick.date 가 &quot;장대양봉 일자&quot; → stock.GroupDate1 저장하고 break
+</code></pre>
+<hr />
+<h2 id="18">18. 결론</h2>
+<p>평가 본체는 다음 <strong>두 축</strong>으로 작동한다:</p>
+<ol>
+<li><strong>Key 문자열 디스패치</strong> — XML의 <code>&lt;Key&gt;...&lt;/Key&gt;</code> 가 곧 어셈블리 내 <code>IExpression</code> 구현체 한 클래스로 매핑되고, 그 클래스의 <code>Condition(stock, date, ...)</code> 메서드 호출이 평가 단위.</li>
+<li><strong>인터페이스 기반 분기</strong> — <code>ExpressionLoopCore</code>가 구현 인터페이스(<code>ICondition</code> / <code>IConditionGroup</code> / <code>IConditionGroupOr</code> / <code>IGroupRangeIndex</code> / <code>IGroupLine</code>)를 보고 호출 시그니처와 자식 처리 방식을 결정. 그룹식은 자식의 평가 시점(일자)을 결정하고, 사이드 채널(<code>stock.GroupDate1</code>, <code>stock.Lines</code>, <code>stock.Except1</code> 등)을 통해 다른 식과 컨텍스트를 공유.</li>
+</ol>
+<p>따라서 <strong>새로운 조건식을 추가하려면</strong>:
+1. <code>IExpression</code> + (<code>ICondition</code> 등 적절한 평가 인터페이스)를 구현하는 UserControl을 만들고,
+2. <code>Key</code> 속성에 고유 문자열을 부여하고,
+3. <code>ExpressionGroups.ExpressionSort</code> 에 등록하면</p>
+<p>리플렉션이 자동으로 잡아주고 XML 직렬화도 그대로 동작한다. 평가 엔진(<code>ExpressionLoopCore</code>) 자체를 수정할 필요가 없는 <strong>개방-폐쇄 원칙</strong>으로 설계되어 있다.</p>
+</body>
+</html>

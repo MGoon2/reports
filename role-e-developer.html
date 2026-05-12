@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>finup AWS 인프라 — 백엔드/프런트 개발자용</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --panel-2: #334155;
+    --ink: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --warn: #fbbf24;
+    --danger: #f87171;
+    --ok: #4ade80;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.55; margin: 0; }
+  body { max-width: 1280px; margin: 0 auto; padding: 24px 32px 64px; }
+  h1 { font-size: 28px; margin: 0 0 4px; }
+  h2 { font-size: 20px; margin: 32px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--panel-2); }
+  h3 { font-size: 16px; margin: 20px 0 8px; color: var(--accent); }
+  h4 { font-size: 14px; margin: 12px 0 6px; color: var(--ok); }
+  p { margin: 8px 0; }
+  code, .mono { font-family: var(--mono); font-size: 13px; background: var(--panel); padding: 1px 6px; border-radius: 4px; color: #f1f5f9; }
+  pre { background: var(--panel); padding: 12px 16px; border-radius: 6px; overflow-x: auto; font-family: var(--mono); font-size: 13px; }
+  a { color: var(--accent); }
+  .meta { color: var(--muted); font-size: 13px; }
+  .banner { background: linear-gradient(90deg, #1e3a8a33, #0f766e33); border: 1px solid var(--panel-2); border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--panel-2); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  tr:hover td { background: var(--panel); }
+  .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; font-weight: 600; white-space: nowrap; }
+  .t-legacy { background: #7c2d1226; color: #fca5a5; border: 1px solid #7c2d1266; }
+  .t-new { background: #05966922; color: #6ee7b7; border: 1px solid #05966966; }
+  .t-shared { background: #0369a122; color: #7dd3fc; border: 1px solid #0369a166; }
+  .t-unknown { background: #9ca3af22; color: #d1d5db; border: 1px solid #9ca3af66; }
+  .callout { background: #78350f22; border-left: 3px solid var(--warn); padding: 10px 14px; margin: 10px 0; border-radius: 4px; }
+  .callout.info { background: #0369a122; border-left-color: var(--accent); }
+  .callout.ok { background: #04663622; border-left-color: var(--ok); }
+  ul, ol { padding-left: 22px; }
+  li { margin: 4px 0; }
+  nav.toc { background: var(--panel); border: 1px solid var(--panel-2); border-radius: 6px; padding: 12px 18px; margin: 16px 0; }
+  nav.toc ol { margin: 4px 0; padding-left: 22px; }
+  nav.toc a { text-decoration: none; }
+  details { margin: 6px 0; }
+  summary { cursor: pointer; padding: 6px 0; font-weight: 600; }
+  .flow { background: var(--panel); border: 1px solid var(--panel-2); border-radius: 6px; padding: 14px 18px; font-family: var(--mono); font-size: 13px; white-space: pre; overflow-x: auto; line-height: 1.4; }
+  .svc-card { background: var(--panel); border: 1px solid var(--panel-2); border-radius: 6px; padding: 12px 16px; margin: 8px 0; }
+  .svc-card h4 { margin-top: 0; }
+  .svc-meta { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .pill { display: inline-block; background: var(--panel-2); padding: 1px 8px; border-radius: 8px; font-size: 11px; margin-right: 4px; font-family: var(--mono); }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+  footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--panel-2); color: var(--muted); font-size: 12px; }
+  @media print { body { background: white; color: black; max-width: 100%; } .banner, .svc-card, pre, code, .flow { background: #f5f5f5 !important; color: black !important; border-color: #ccc; } }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <h1>finup AWS 인프라 — 백엔드/프런트 개발자용</h1>
+  <p class="meta">
+    <strong>대상</strong>: Spring Boot / React 개발자, 신규 합류자 ·
+    <strong>계정</strong> <code>326539043145</code> ·
+    <strong>리전</strong> <code>ap-northeast-2</code> ·
+    <strong>기준일</strong> 2026-04-19
+  </p>
+  <p class="meta">"내 서비스가 인프라 어디에 붙어 있고, 어떻게 배포되고, 어떻게 디버깅하나"에 초점. 전체 리소스 목록은 <code>../00-overview.md</code> 이하 참조.</p>
+</div>
+
+<nav class="toc">
+  <strong>목차</strong>
+  <ol>
+    <li><a href="#repo">레포 & 브랜치</a></li>
+    <li><a href="#flow">배포 파이프라인 흐름</a></li>
+    <li><a href="#services">서비스 맵 (서비스 → 인프라)</a></li>
+    <li><a href="#hosts">호스트 / 포트 레퍼런스</a></li>
+    <li><a href="#deps">의존 인프라 (DB / Cache / S3 / MSK)</a></li>
+    <li><a href="#config">설정 / 환경변수 위치</a></li>
+    <li><a href="#access">접속 · 로그 · 배포 방법</a></li>
+    <li><a href="#faq">자주 묻는 질문</a></li>
+  </ol>
+</nav>
+
+<h2 id="repo">1. 레포 & 브랜치</h2>
+
+<table>
+  <tr><th>레포</th><th>스택</th><th>브랜치 → 환경</th></tr>
+  <tr><td><code>java/</code></td><td>Spring Boot (JDK, Gradle/Maven) + Docker</td><td><code>develop</code> → dev, <code>main</code> → prod</td></tr>
+  <tr><td><code>frontend/</code></td><td>Node.js + React (SSR)</td><td><code>develop</code> → dev, <code>main</code> → prod</td></tr>
+</table>
+
+<p class="meta"><code>bin/</code>, <code>checklists/</code>, <code>cs/</code>, <code>common-core/</code>, <code>summary/</code>, <code>summary2/</code>, <code>frontend2/</code>, <code>java2/</code> 는 분석/스크립트/레거시 자료. 현재 개발 대상 아님.</p>
+
+<h2 id="flow">2. 배포 파이프라인 흐름</h2>
+
+<div class="flow">GitHub (java/, frontend/)
+   │
+   │ push develop   ─→ dev 빌드
+   │ push main      ─→ prod 빌드
+   ▼
+Jenkins (EC2 jenkins + agents) ─── Nexus(EC2) : 의존성 캐시
+   │
+   │ docker build
+   ▼
+ECR : 326539043145.dkr.ecr.ap-northeast-2.amazonaws.com/finup/&lt;service&gt;
+   │
+   │ image tag = &lt;env&gt;-&lt;git-shortsha&gt;-&lt;build-num&gt;   예: dev-6d02661e-147
+   │ docker pull (대상 EC2가 Jenkins SSM 명령으로 pull &amp; restart)
+   ▼
+EC2 (dev 서비스별 1대 / prod 서비스 묶음 HA) ─→ ALB ─→ 사용자
+</div>
+
+<div class="callout info">
+  <strong>배포 규칙</strong>
+  <ul>
+    <li>prod 이미지는 대부분 <strong>IMMUTABLE</strong> — 같은 태그로 덮어쓸 수 없음. 롤백은 <strong>이전 태그로 재실행</strong>.</li>
+    <li>dev/prod 포트는 동일(Spring Boot 808x, React 300x). 환경 차이는 ALB 앞단에서 호스트로 구분.</li>
+    <li>Docker 이미지 크기: Spring Boot ≈ 270MB, React SSR ≈ 580MB.</li>
+  </ul>
+</div>
+
+<h2 id="services">3. 서비스 맵 (서비스 → 인프라)</h2>
+
+<p class="meta">각 서비스의 dev/prod 접속 URL, EC2, ECR, 포트를 한눈에 보는 지도. prod가 비어 있으면 아직 배포되지 않았거나 호스트 확인 필요.</p>
+
+<h3>3.1 공용 / Admin / Chat</h3>
+
+<div class="svc-card">
+  <h4>general (사이트 메인)</h4>
+  <div class="svc-meta"><span class="pill">3000</span><span class="pill">8080</span><span class="tag t-new">신규</span></div>
+  <table>
+    <tr><th>레이어</th><th>dev</th><th>prod</th></tr>
+    <tr><td>Front(React)</td><td><code>front-general-dev</code> (i-09480daa7896b5865) · <a href="https://general.internal.finup.co.kr">general.internal.finup.co.kr</a></td><td><code>finup-front1/2</code></td></tr>
+    <tr><td>API(Spring)</td><td>(<code>api-general-dev</code> 인스턴스 미확인¹) · <a href="https://api-general.internal.finup.co.kr">api-general.internal.finup.co.kr</a></td><td>(ALB rule 없음²)</td></tr>
+    <tr><td>ECR</td><td colspan="2"><code>finup/front-general</code>, (api-general 레포 없음 — general용 API가 finup/api-finance 등과 통합되었는지 확인 필요)</td></tr>
+  </table>
+</div>
+
+<div class="svc-card">
+  <h4>admin</h4>
+  <div class="svc-meta"><span class="pill">3006</span><span class="pill">8086</span><span class="tag t-new">신규</span></div>
+  <table>
+    <tr><th>레이어</th><th>dev</th><th>prod</th></tr>
+    <tr><td>Front</td><td><code>front-admin-dev</code> (i-08ceb957029251c54) · <a href="https://admin.internal.finup.co.kr">admin.internal.finup.co.kr</a></td><td>(TG-front-admin-prod — 호스트 미확인²)</td></tr>
+    <tr><td>API</td><td><code>api-admin-dev</code> (i-0559ee054a5d4c062) · <a href="https://api-admin.internal.finup.co.kr">api-admin.internal.finup.co.kr</a></td><td><a href="https://api-admin.finup.co.kr">api-admin.finup.co.kr</a> → TG-api-admin-prod</td></tr>
+    <tr><td>ECR</td><td colspan="2"><code>finup/front-admin</code>, <code>finup/api-admin</code></td></tr>
+  </table>
+</div>
+
+<div class="svc-card">
+  <h4>chat · freechat</h4>
+  <div class="svc-meta"><span class="pill">3005</span><span class="pill">8083</span><span class="tag t-new">신규</span></div>
+  <table>
+    <tr><th>레이어</th><th>dev</th><th>prod</th></tr>
+    <tr><td>Front(freechat)</td><td><code>front-freechat-dev</code> (i-0675db5c0b7f4e6e0) · <a href="https://freechat.internal.finup.co.kr">freechat.internal.finup.co.kr</a></td><td>TG-front-freechat-prod (호스트 미확인²)</td></tr>
+    <tr><td>API(chat)</td><td><code>api-chat-dev</code> (i-06cf307058fb18cf2) · <a href="https://api-chat.internal.finup.co.kr">api-chat.internal.finup.co.kr</a></td><td><a href="https://api-chat.finup.co.kr">api-chat.finup.co.kr</a> → TG-api-chat-prod</td></tr>
+    <tr><td>ECR</td><td colspan="2"><code>finup/front-freechat</code>, <code>finup/api-chat</code></td></tr>
+  </table>
+</div>
+
+<div class="svc-card">
+  <h4>company</h4>
+  <div class="svc-meta"><span class="pill">3004</span><span class="pill">8085</span><span class="tag t-new">신규</span></div>
+  <table>
+    <tr><th>레이어</th><th>dev</th><th>prod</th></tr>
+    <tr><td>Front</td><td><code>front-company-dev</code> (i-034f2589b07041665) · <a href="https://company.internal.finup.co.kr">company.internal.finup.co.kr</a></td><td><code>finup-biz-front1/2</code> (추정)</td></tr>
+    <tr><td>API</td><td>(api-company-dev 인스턴스 — Listener rule만 존재) · <a href="https://api-company.internal.finup.co.kr">api-company.internal.finup.co.kr</a></td><td><code>finup-biz-api1/2</code> (추정)</td></tr>
+    <tr><td>ECR</td><td colspan="2"><code>finup/front-company</code> (api-company 레포 미확인¹)</td></tr>
+  </table>
+</div>
+
+<h3>3.2 금융/증권</h3>
+
+<div class="svc-card">
+  <h4>stock (주식)</h4>
+  <div class="svc-meta"><span class="pill">3001</span><span class="pill">8081</span><span class="tag t-new">신규</span></div>
+  <table>
+    <tr><th>레이어</th><th>dev</th><th>prod</th></tr>
+    <tr><td>Front</td><td><code>front-stock-dev</code> (i-03497e4dd04cdd88c) · <a href="https://stock.internal.finup.co.kr">stock.internal.finup.co.kr</a></td><td><code>finup-front1/2</code></td></tr>
+    <tr><td>API</td><td><code>api-stock-dev</code> (i-0464f359a6ad35cb3) · <a href="https://api-stock.internal.finup.co.kr">api-stock.internal.finup.co.kr</a></td><td><a href="https://api-stock.finup.co.kr">api-stock.finup.co.kr</a> → TG-api-stock-prod</td></tr>
+    <tr><td>ECR</td><td colspan="2"><code>finup/front-stock</code>, <code>finup/api-stock</code></td></tr>
+  </table>
+</div>
+
+<div class="svc-card">
+  <h4>finance (금융)</h4>
+  <div class="svc-meta"><span class="pill">3002</span><span class="pill">8082</span><span class="tag t-new">신규</span></div>
+  <table>
+    <tr><th>레이어</th><th>dev</th><th>prod</th></tr>
+    <tr><td>Front</td><td><code>front-finance-dev</code> (i-0ab3bf3e8a5737584) · <a href="https://finance.internal.finup.co.kr">finance.internal.finup.co.kr</a></td><td><code>finup-front1/2</code></td></tr>
+    <tr><td>API</td><td><code>api-finance-dev</code> (i-099f1e5b9787a4fec) · <a href="https://api-finance.internal.finup.co.kr">api-finance.internal.finup.co.kr</a></td><td><a href="https://api-finance.finup.co.kr">api-finance.finup.co.kr</a> → TG-api-finance-prod</td></tr>
+    <tr><td>ECR</td><td colspan="2"><code>finup/front-finance</code>, <code>finup/api-finance</code></td></tr>
+  </table>
+</div>
+
+<div class="svc-card">
+  <h4>mentor</h4>
+  <div class="svc-meta"><span class="pill">3003</span><span class="pill">8083</span><span class="tag t-new">신규</span></div>
+  <table>
+    <tr><th>레이어</th><th>dev</th><th>prod</th></tr>
+    <tr><td>Front</td><td><code>front-mentor-dev</code> (i-061fcd6bdf48137a8) · <a href="https://mentor.internal.finup.co.kr">mentor.internal.finup.co.kr</a></td><td><code>finup-front1/2</code></td></tr>
+    <tr><td>API</td><td><code>api-mentor-dev</code> (i-0c82d190a36eed53d) · <a href="https://api-mentor.internal.finup.co.kr">api-mentor.internal.finup.co.kr</a></td><td><a href="https://api-mentor.finup.co.kr">api-mentor.finup.co.kr</a> → TG-api-mentor-prod</td></tr>
+    <tr><td>ECR</td><td colspan="2"><code>finup/front-mentor</code>, <code>finup/api-mentor</code></td></tr>
+  </table>
+</div>
+
+<h3>3.3 모바일 웹 (mweb)</h3>
+
+<div class="two-col">
+  <div class="svc-card">
+    <h4>mweb-general</h4>
+    <div class="svc-meta"><span class="pill">3007</span><span class="tag t-new">신규</span></div>
+    <ul>
+      <li>dev EC2: <code>front-mweb-general-dev</code> (i-06a5106c32592ac39)</li>
+      <li>dev URL: <a href="https://m-general.internal.finup.co.kr">m-general.internal.finup.co.kr</a></li>
+      <li>ECR: <code>finup/front-mweb-general</code></li>
+      <li>prod: TG-front-mweb-general-prod</li>
+    </ul>
+  </div>
+  <div class="svc-card">
+    <h4>mweb-stock</h4>
+    <div class="svc-meta"><span class="pill">3008</span><span class="tag t-new">신규</span></div>
+    <ul>
+      <li>dev EC2: <code>front-mweb-stock-dev</code> (i-0824c2e211feb26b0)</li>
+      <li>dev URL: <a href="https://m-stock.internal.finup.co.kr">m-stock.internal.finup.co.kr</a></li>
+      <li>ECR: <code>finup/front-mweb-stock</code></li>
+      <li>prod: TG-front-mweb-stock-prod</li>
+    </ul>
+  </div>
+  <div class="svc-card">
+    <h4>mweb-finance</h4>
+    <div class="svc-meta"><span class="pill">3009</span><span class="tag t-new">신규</span></div>
+    <ul>
+      <li>dev EC2: <code>front-mweb-finance-dev</code> (i-0a36000824da20a31)</li>
+      <li>dev URL: <a href="https://m-finance.internal.finup.co.kr">m-finance.internal.finup.co.kr</a></li>
+      <li>ECR: <code>finup/front-mweb-finance</code></li>
+      <li>prod: TG-front-mweb-finance-prod</li>
+    </ul>
+  </div>
+</div>
+
+<h3>3.4 데이터 / 수집 / 알림</h3>
+
+<div class="svc-card">
+  <h4>stockdata (주가 데이터)</h4>
+  <div class="svc-meta"><span class="pill">3010</span><span class="pill">8084 core</span><span class="pill">8087 realtime</span><span class="pill">8081 stockauth</span><span class="tag t-new">신규</span></div>
+  <table>
+    <tr><th>서비스</th><th>dev EC2</th><th>prod</th><th>dev 호스트</th></tr>
+    <tr><td>front</td><td><code>front-stockdata-dev</code> (i-09a4e167a59b2952d)</td><td>TG-front-stockdata-prod</td><td><a href="https://stockdata.internal.finup.co.kr">stockdata.internal.finup.co.kr</a></td></tr>
+    <tr><td>core</td><td><code>stockdata-core-dev</code> (i-0df579972ed089f6d)</td><td><code>finup-stockdata-core1</code> · <a href="https://api-stockdata.finup.co.kr">api-stockdata.finup.co.kr</a></td><td><a href="https://api-stockdata.internal.finup.co.kr">api-stockdata.internal.finup.co.kr</a></td></tr>
+    <tr><td>realtime</td><td><code>stockdata-realtime-dev</code> (i-06e3b1a1b4edf1396)</td><td><code>finup-stockdata-realtime1</code> · <a href="https://api-realtime.finup.co.kr">api-realtime.finup.co.kr</a></td><td><a href="https://api-realtime.internal.finup.co.kr">api-realtime.internal.finup.co.kr</a></td></tr>
+    <tr><td>admin</td><td><code>stockdata-admin-dev</code> (i-0108490e8792955fd)</td><td><code>finup-stockdata-admin1</code></td><td>—</td></tr>
+    <tr><td>ECR</td><td colspan="3"><code>finup/front-stockdata</code>, <code>finup/stockdata-core</code>, <code>finup/stockdata-realtime</code>, <code>finup/stockdata-admin</code>, <code>finup/stockdata-batch</code></td></tr>
+  </table>
+</div>
+
+<div class="svc-card">
+  <h4>radar</h4>
+  <div class="svc-meta"><span class="pill">8088</span><span class="tag t-new">신규</span></div>
+  <ul>
+    <li>dev EC2(API만): <code>api-radar-dev</code> (i-0c0210f2dfe0e84f0) · <a href="https://api-radar.internal.finup.co.kr">api-radar.internal.finup.co.kr</a></li>
+    <li>prod: <code>finup-api-radar1/2</code> (별도 HA) · <a href="https://api-radar.finup.co.kr">api-radar.finup.co.kr</a> → TG-api-radar-prod</li>
+    <li>ECR: <code>finup/api-radar</code></li>
+  </ul>
+</div>
+
+<div class="svc-card">
+  <h4>collectdata (수집 파이프라인)</h4>
+  <div class="svc-meta"><span class="tag t-new">신규</span></div>
+  <ul>
+    <li>dev EC2: <code>api-collectdata-dev</code> (i-0d9989b26a885f411, collectdata-private 서브넷)</li>
+    <li>prod: <code>finup-api-collectdata1</code></li>
+    <li>ECR: <code>finup/api-collectdata</code>, <code>finup/collector-orchestrator</code>, <code>finup/collector-news-worker</code>, <code>finup/collector-rss-worker</code>, <code>finup/morpheme-processor</code></li>
+    <li>연동: MSK <code>FinUpLog</code> (확인 필요¹), News/Mongo 레거시 (있으면)</li>
+  </ul>
+</div>
+
+<div class="svc-card">
+  <h4>news / logbot / pushapp</h4>
+  <div class="svc-meta"><span class="pill">8089 logbot</span><span class="pill">8095 news</span><span class="pill">8083 push</span><span class="tag t-new">신규</span></div>
+  <ul>
+    <li>news: <a href="https://api-news.internal.finup.co.kr">api-news.internal.finup.co.kr</a> → TG-api-news-dev (전용 EC2 없음 — finup-api 통합 가능성 확인 필요¹)</li>
+    <li>logbot: <a href="https://logbot.internal.finup.co.kr">logbot.internal.finup.co.kr</a> → TG-logbot-dev, ECR <code>finup/logbot</code></li>
+    <li>pushapp: <a href="https://pushapp.internal.finup.co.kr">pushapp.internal.finup.co.kr</a> → TG-pushapp-dev, ECR <code>finup/pushapp</code></li>
+  </ul>
+</div>
+
+<p class="meta">¹ 특정 dev EC2 인스턴스 이름이 Listener rule에는 있으나 compute 태그에는 없는 경우 — 한 인스턴스에서 여러 서비스가 돌거나 배포 전일 수 있음. 코드 레포 / Jenkins 잡 확인 필요.<br>² <code>alb-internal-api</code> 의 prod API host rule 8개 중 front 서비스 호스트는 없음 (해당 ALB는 API 전용). Front prod 트래픽은 <code>ELBMainExternal</code> 또는 CloudFront 경유로 추정 — 리스너 rule 상세 확인 필요.</p>
+
+<h2 id="hosts">4. 호스트 / 포트 레퍼런스</h2>
+
+<h3>4.1 dev 내부 호스트 (VPN 필수)</h3>
+<p>모두 <code>alb-internal-finup</code> ALB로 라우팅. 목록:</p>
+<details open><summary>28개 펼치기</summary>
+<table>
+  <tr><th>Host</th><th>→ TG</th><th>포트</th></tr>
+  <tr><td>git.internal.finup.co.kr</td><td>TG-git</td><td>3000</td></tr>
+  <tr><td>jenkins.internal.finup.co.kr</td><td>TG-jenkins</td><td>8080</td></tr>
+  <tr><td>nexus.internal.finup.co.kr</td><td>TG-nexus</td><td>8081</td></tr>
+  <tr><td>general.internal.finup.co.kr</td><td>TG-front-general-dev</td><td>3000</td></tr>
+  <tr><td>api-general.internal.finup.co.kr</td><td>TG-api-general-dev</td><td>8080</td></tr>
+  <tr><td>stock.internal.finup.co.kr</td><td>TG-front-stock-dev-p3001</td><td>3001</td></tr>
+  <tr><td>api-stock.internal.finup.co.kr</td><td>TG-api-stock-dev</td><td>8081</td></tr>
+  <tr><td>company.internal.finup.co.kr</td><td>TG-front-company-dev-p3004</td><td>3004</td></tr>
+  <tr><td>api-company.internal.finup.co.kr</td><td>TG-api-company-dev</td><td>8085</td></tr>
+  <tr><td>finance.internal.finup.co.kr</td><td>TG-front-finance-dev-p3002</td><td>3002</td></tr>
+  <tr><td>api-finance.internal.finup.co.kr</td><td>TG-api-finance-dev</td><td>8082</td></tr>
+  <tr><td>mentor.internal.finup.co.kr</td><td>TG-front-mentor-dev-p3003</td><td>3003</td></tr>
+  <tr><td>api-mentor.internal.finup.co.kr</td><td>TG-api-mentor-dev</td><td>8083</td></tr>
+  <tr><td>admin.internal.finup.co.kr</td><td>TG-front-admin-dev-p3006</td><td>3006</td></tr>
+  <tr><td>api-admin.internal.finup.co.kr</td><td>TG-api-admin-dev</td><td>8086</td></tr>
+  <tr><td>freechat.internal.finup.co.kr</td><td>TG-front-freechat-dev-p3005</td><td>3005</td></tr>
+  <tr><td>api-chat.internal.finup.co.kr</td><td>TG-api-chat-dev</td><td>8083</td></tr>
+  <tr><td>api-radar.internal.finup.co.kr</td><td>TG-api-radar-dev</td><td>8088</td></tr>
+  <tr><td>api-news.internal.finup.co.kr</td><td>TG-api-news-dev</td><td>8095</td></tr>
+  <tr><td>stockdata.internal.finup.co.kr</td><td>TG-front-stockdata-dev-p3010</td><td>3010</td></tr>
+  <tr><td>api-stockdata.internal.finup.co.kr</td><td>TG-stockdata-core-dev</td><td>8084</td></tr>
+  <tr><td>api-realtime.internal.finup.co.kr</td><td>TG-stockdata-realtime-dev</td><td>8087</td></tr>
+  <tr><td>m-general.internal.finup.co.kr</td><td>TG-front-mweb-general-dev-p3007</td><td>3007</td></tr>
+  <tr><td>m-stock.internal.finup.co.kr</td><td>TG-front-mweb-stock-dev-p3008</td><td>3008</td></tr>
+  <tr><td>m-finance.internal.finup.co.kr</td><td>TG-front-mweb-finance-dev-p3009</td><td>3009</td></tr>
+  <tr><td>logbot.internal.finup.co.kr</td><td>TG-logbot-dev</td><td>8089</td></tr>
+  <tr><td>pushapp.internal.finup.co.kr</td><td>TG-pushapp-dev</td><td>8083</td></tr>
+</table>
+</details>
+
+<h3>4.2 prod API 호스트</h3>
+<p><code>alb-internal-api</code> ALB 라우팅. 8개:</p>
+<table>
+  <tr><th>Host</th><th>→ TG</th></tr>
+  <tr><td>api-admin.finup.co.kr</td><td>TG-api-admin-prod</td></tr>
+  <tr><td>api-mentor.finup.co.kr</td><td>TG-api-mentor-prod</td></tr>
+  <tr><td>api-finance.finup.co.kr</td><td>TG-api-finance-prod</td></tr>
+  <tr><td>api-stock.finup.co.kr</td><td>TG-api-stock-prod</td></tr>
+  <tr><td>api-chat.finup.co.kr</td><td>TG-api-chat-prod</td></tr>
+  <tr><td>api-radar.finup.co.kr</td><td>TG-api-radar-prod</td></tr>
+  <tr><td>api-stockdata.finup.co.kr</td><td>TG-stockdata-core-prod</td></tr>
+  <tr><td>api-realtime.finup.co.kr</td><td>TG-stockdata-realtime-prod</td></tr>
+</table>
+
+<h3>4.3 포트 규칙</h3>
+<ul>
+  <li>Spring Boot API: <code>808x</code> (8080~8089, 8095) · Health: <code>/actuator/health</code></li>
+  <li>React Node SSR: <code>300x</code> (3000~3010) · Health: <code>/</code> 또는 <code>/api/health</code></li>
+</ul>
+
+<h2 id="deps">5. 의존 인프라</h2>
+
+<h3>5.1 DB</h3>
+<table>
+  <tr><th>종류</th><th>이름</th><th>엔드포인트</th><th>사용 서비스 (추정)</th></tr>
+  <tr><td>RDS SQL Server (<span class="tag t-legacy">레거시</span>)</td><td>maindb</td><td><code>maindb.cddfbcymycsb.ap-northeast-2.rds.amazonaws.com,1412</code></td><td>레거시 + 전환 중 신규 서비스 일부 (확인 필요)</td></tr>
+  <tr><td>RDS SQL Server</td><td>predb</td><td><code>predb.cddfbcymycsb...,1412</code></td><td>스테이징</td></tr>
+  <tr><td>EC2 PostgreSQL (<span class="tag t-new">신규</span>)</td><td>Stockdata-PG</td><td>10.0.208.94 (self-host)</td><td>stockdata-core / stockdata-realtime 등</td></tr>
+</table>
+
+<div class="callout">
+  <strong>포트 유의</strong>: SQL Server가 기본 1433이 아니라 <strong>1412</strong>. 접속 문자열 확인.
+</div>
+
+<h3>5.2 Cache</h3>
+<table>
+  <tr><th>엔진</th><th>RG</th><th>용도 추정</th><th>Primary Endpoint</th></tr>
+  <tr><td>Redis 5.0 (<span class="tag t-legacy">레거시</span>)</td><td>finup</td><td>메인 캐시</td><td><code>finup.wbwqse.ng.0001.apn2.cache.amazonaws.com</code></td></tr>
+  <tr><td>Redis 5.0</td><td>stockdata</td><td>주가 캐시</td><td><code>stockdata.wbwqse.ng.0001.apn2.cache.amazonaws.com</code></td></tr>
+  <tr><td>Redis 7.0</td><td>stockdatapubsub</td><td>주가 Pub/Sub</td><td><code>stockdatapubsub.wbwqse.ng.0001.apn2.cache.amazonaws.com</code></td></tr>
+  <tr><td>Valkey 8.2 (<span class="tag t-new">신규</span>)</td><td>stockdata-valkey-prod / -dev</td><td>stockdata 전환본</td><td><code>master.stockdata-valkey-{prod,dev}.wbwqse.apn2.cache.amazonaws.com</code></td></tr>
+  <tr><td>Valkey 8.2</td><td>stockdatapubsub-valkey-prod / -dev</td><td>stockdatapubsub 전환본</td><td><code>master.stockdatapubsub-valkey-{prod,dev}.wbwqse.apn2.cache.amazonaws.com</code></td></tr>
+</table>
+
+<h3>5.3 S3 (파일 업로드 / CDN)</h3>
+<table>
+  <tr><th>버킷</th><th>용도</th><th>CDN</th></tr>
+  <tr><td><code>finup-files-prod-326539043145-ap-northeast-2-an</code></td><td>prod 이미지/파일</td><td>img.finup.co.kr</td></tr>
+  <tr><td><code>finup-dev</code></td><td>dev 이미지/파일</td><td>img.internal.finup.co.kr</td></tr>
+  <tr><td><code>finup-public-resource</code></td><td>공용 정적 리소스</td><td>cdn.internal.finup.co.kr</td></tr>
+  <tr><td><code>finup-hiddenfiles-prod-...</code></td><td>prod 비공개</td><td>—</td></tr>
+  <tr><td><code>finup-hidden-dev-...</code></td><td>dev 비공개</td><td>—</td></tr>
+</table>
+
+<h3>5.4 MSK (Kafka)</h3>
+<ul>
+  <li>클러스터: <code>FinUpLog</code> · Kafka <strong>3.9.x</strong> · 3 brokers (kafka.m5.large)</li>
+  <li>Bootstrap 조회: <code>aws kafka get-bootstrap-brokers --cluster-arn arn:aws:kafka:ap-northeast-2:326539043145:cluster/FinUpLog/b24740d9-d67e-4636-935e-1b58bd3da740-3 --region ap-northeast-2</code></li>
+  <li><strong>인증 없음, PLAINTEXT</strong> — TLS/SASL 미적용 (현재). Producer/Consumer는 FinupVPC 내부에서만 접근 가능</li>
+  <li>신규 Spring Boot 사용 여부 확인 필요 (spring-kafka/kafka-clients 의존성)</li>
+</ul>
+
+<h2 id="config">6. 설정 / 환경변수 위치</h2>
+
+<div class="callout">
+  <strong>현 시점 확인 필요</strong><br>
+  DB/캐시/외부 API 비밀은 AWS Secrets Manager / SSM Parameter Store 에 <strong>등록되어 있지 않음</strong>. 따라서 다음 중 하나로 추정:
+  <ul>
+    <li>Spring Boot: <code>application-{env}.yml</code>, 환경변수(도커 run 시 <code>-e</code>), 또는 Jenkins credentials 주입</li>
+    <li>React SSR: <code>.env.{env}</code>, 빌드 시 주입, 또는 PM2/pm2.config 환경변수</li>
+  </ul>
+  정확한 위치는 레포 <code>java/</code>, <code>frontend/</code> 의 빌드/Docker 파일과 Jenkinsfile 확인 필요.
+</div>
+
+<p>예외적으로 Secrets/SSM에 있는 것:</p>
+<ul>
+  <li>SSM <code>finup-monitor-telegram-chat</code> / <code>finup-monitor-telegram-token</code> — 운영 알림용</li>
+  <li>Secrets Manager: DataSync가 생성한 것만 있음 (앱 비밀 없음)</li>
+</ul>
+
+<h2 id="access">7. 접속 · 로그 · 배포 방법</h2>
+
+<h3>7.1 dev 서비스 접속 (브라우저)</h3>
+<ol>
+  <li>사내 VPN 접속</li>
+  <li>호스트 접근: <code>https://&lt;service&gt;.internal.finup.co.kr</code> (위 4.1 참조)</li>
+  <li>TLS는 ACM <code>*.internal.finup.co.kr</code> (만료 2027-02-16) 사용</li>
+</ol>
+
+<h3>7.2 EC2 접속 (SSM, SSH 키 불필요)</h3>
+<pre>aws ssm start-session --target &lt;INSTANCE_ID&gt; --region ap-northeast-2
+
+# 접속 후 공통 진단
+sudo docker ps
+sudo docker logs -f --tail 200 &lt;container&gt;
+sudo docker exec -it &lt;container&gt; /bin/sh
+df -h
+free -m</pre>
+
+<h3>7.3 로그 확인</h3>
+<div class="callout">
+  CloudWatch Logs에 <strong>애플리케이션 로그가 없음</strong>. EC2에 SSM 접속 후 직접 확인해야 함.
+</div>
+
+<pre># Spring Boot: Docker 표준출력 + /var/log/app 또는 /workspace/logs 확인
+sudo docker logs -f --tail 500 api-stock
+sudo tail -f /var/log/&lt;service&gt;/*.log
+
+# React Node SSR
+sudo docker logs -f front-stock
+
+# Jenkins 빌드 로그
+# Jenkins 콘솔 → Job → Build → Console Output</pre>
+
+<h3>7.4 배포 (정상 경로)</h3>
+<ol>
+  <li><code>develop</code> 또는 <code>main</code> 브랜치에 push</li>
+  <li>Jenkins 해당 Job이 자동 트리거 (또는 수동 빌드)</li>
+  <li>빌드 성공 → ECR push → Jenkins SSM 명령으로 대상 EC2에서 pull &amp; run</li>
+  <li>ALB Target Health 가 healthy로 돌아오는지 확인</li>
+</ol>
+
+<h3>7.5 롤백 (이전 이미지로)</h3>
+<pre># 1) 이전 태그 목록 조회
+aws ecr describe-images --repository-name finup/api-stock --region ap-northeast-2 \
+  --query 'sort_by(imageDetails, &amp;imagePushedAt)[-10:].{tag:imageTags, pushed:imagePushedAt}' \
+  --output table
+
+# 2) 대상 EC2에 SSM 접속 후
+PREV_TAG=prod-XXXXXXXX-N
+docker pull 326539043145.dkr.ecr.ap-northeast-2.amazonaws.com/finup/api-stock:$PREV_TAG
+docker stop api-stock &amp;&amp; docker rm api-stock
+docker run -d --name api-stock -p 8081:8081 \
+  -e SPRING_PROFILES_ACTIVE=prod \
+  -e &lt;그 외 환경변수&gt; \
+  326539043145.dkr.ecr.ap-northeast-2.amazonaws.com/finup/api-stock:$PREV_TAG
+
+# 3) Target Group health 확인
+aws elbv2 describe-target-health --target-group-arn &lt;TG_ARN&gt; --region ap-northeast-2</pre>
+
+<h3>7.6 로컬 → dev 환경 디버깅</h3>
+<ul>
+  <li>DB: VPN 접속 후 SQL Server 클라이언트로 <code>maindb/predb</code> 직접 접근</li>
+  <li>Redis/Valkey: VPN 접속 후 <code>redis-cli -h &lt;primary-endpoint&gt;</code> (포트 기본 6379)</li>
+  <li>API 목킹: dev ALB 호스트를 그대로 사용 가능 (`api-stock.internal.finup.co.kr`)</li>
+  <li>로컬에서 dev Kafka 사용: MSK가 Private — 로컬 직접 연결 불가. SSM 포트포워딩 또는 점프 호스트 필요</li>
+</ul>
+
+<h2 id="faq">8. 자주 묻는 질문</h2>
+
+<details>
+<summary>Q. 내 Spring Boot 서비스의 prod는 어디에 배포돼요?</summary>
+<p>A. 서비스 묶음에 따라 다릅니다. <code>api-stock/finance/mentor/chat/admin</code> 은 <code>finup-api1/2</code> 또는 <code>finup-biz-api1/2</code> (biz 서비스인지 확인 필요), <code>radar</code>는 별도 <code>finup-api-radar1/2</code>, <code>stockdata-core/realtime/admin</code> 은 각각 전용 EC2(<code>finup-stockdata-*1</code>) — 3.4절 참조. 정확한 매핑은 Jenkins 배포 Job의 target host 리스트에서 확인 가능.</p>
+</details>
+
+<details>
+<summary>Q. 왜 prod ALB(alb-internal-api)는 API 호스트만 있어요? Front는?</summary>
+<p>A. <code>alb-internal-api</code>는 내부 API 라우팅 전용. Prod user-facing 트래픽(<code>www.finup.co.kr</code>, <code>stock.finup.co.kr</code> 등)은 현재 <strong>레거시 <code>ELBMainExternal</code> ALB 또는 CloudFront</strong> 를 경유하는 것으로 추정 — ELBMainExternal 리스너 Rule 상세 조사 필요.</p>
+</details>
+
+<details>
+<summary>Q. 포트 8083이 api-chat / api-mentor / pushapp 에 중복돼요?</summary>
+<p>A. 각각 <strong>다른 EC2</strong>에서 독립적으로 기동하므로 충돌 없음. ALB Target Group은 포트+인스턴스 매핑이라 같은 포트도 인스턴스별로 분리됩니다. 단, 한 EC2에서 여러 서비스를 같은 포트로 올리지는 못함.</p>
+</details>
+
+<details>
+<summary>Q. Valkey와 Redis 둘 다 있는데 뭘 써야 해요?</summary>
+<p>A. 신규 서비스는 Valkey (RG <code>*-valkey-prod</code>, <code>*-valkey-dev</code>). 레거시는 Redis RG (<code>finup</code>, <code>stockdata</code>, <code>stockdatapubsub</code>). 현재 <code>stockdata</code> 계열은 Valkey 전환 완료, <code>finup</code> Redis는 Valkey 대응본 미존재 — 전환 계획 확인 필요.</p>
+</details>
+
+<details>
+<summary>Q. Docker 이미지 빌드 실패 시 Nexus를 확인해야 하나요?</summary>
+<p>A. 예. Maven/Gradle 의존성은 Nexus(EC2) 미러에서 받습니다. Jenkins 빌드 에러가 <code>could not resolve</code> 또는 <code>401</code> 관련이면 Nexus (<a href="https://nexus.internal.finup.co.kr">nexus.internal.finup.co.kr</a>) 상태 확인.</p>
+</details>
+
+<details>
+<summary>Q. CloudWatch에 내 서비스 로그가 안 보여요.</summary>
+<p>A. 현재 애플리케이션 로그는 CloudWatch Logs로 전송되지 않습니다. SSM 접속 후 <code>docker logs</code> 로 확인. 중앙 집중이 필요하면 인프라 팀에 CloudWatch Agent/Fluent Bit 설정 요청.</p>
+</details>
+
+<details>
+<summary>Q. DB 비밀번호는 어디서 가져와요?</summary>
+<p>A. AWS Secrets Manager / SSM에 없습니다. Jenkins credentials 또는 팀 내 공유 설정 확인. 정확한 주입 경로는 <code>Dockerfile</code> / <code>docker run</code> 명령의 <code>-e</code> 또는 <code>--env-file</code> 인자를 따라가면 됩니다.</p>
+</details>
+
+<footer>
+  finup 인프라 문서 · 대상: 백엔드/프런트 개발자 · 2026-04-19 작성 · 계정 326539043145 · <code>ap-northeast-2</code>
+</footer>
+
+</body>
+</html>

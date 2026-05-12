@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoneyFlow_Template_Test 데이터 소스 분석</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; margin: 40px; line-height: 1.6; }
+        h1 { color: #333; border-bottom: 3px solid #007bff; padding-bottom: 10px; }
+        h2 { color: #555; margin-top: 30px; border-left: 5px solid #007bff; padding-left: 10px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; vertical-align: top; }
+        th { background-color: #f8f9fa; font-weight: bold; }
+        .placeholder { font-family: monospace; background: #f4f4f4; padding: 2px 6px; }
+        .source { color: #007bff; font-weight: bold; }
+        .method { font-family: monospace; background: #e8f4ff; padding: 2px 6px; }
+        .sql { font-family: monospace; background: #fff3cd; padding: 2px 6px; }
+        .api { font-family: monospace; background: #d4edda; padding: 2px 6px; }
+    </style>
+</head>
+<body>
+    <h1>MoneyFlow_Template_Test 데이터 소스 분석</h1>
+    <p><strong>파일:</strong> api-admin/src/main/resources/templates/report/MoneyFlow_Template_Test.html<br>
+    <strong>서비스:</strong> FinanceDailyReportService.java</p>
+
+    <h2>1. 시장 마감 현황</h2>
+    <table>
+        <tr>
+            <th>Replace 문자열</th>
+            <th>데이터 소스</th>
+            <th>조회 메서드</th>
+            <th>설명</th>
+        </tr>
+        <tr>
+            <td><span class="placeholder">[KOSPI-END]</span></td>
+            <td><span class="source">MSSQL</span> T_MarketIndicator<br><span class="source">PG</span> shared.market_index_day<br><span class="source">PG</span> crawler.market_indicator</td>
+            <td><span class="method">fetchMarketIndicatorByDate("KoreaIndexEnd")</span><br><span class="method">replaceEveningIndexFromPg()</span><br><span class="method">replaceEveningSupplyFromCrawlerMarketIndicator()</span></td>
+            <td>KOSPI 종가 지수 (index_code='001')</td>
+        </tr>
+        <tr>
+            <td><span class="placeholder">[KOSDAQ-END]</span></td>
+            <td><span class="source">MSSQL</span> T_MarketIndicator<br><span class="source">PG</span> shared.market_index_day<br><span class="source">PG</span> crawler.market_indicator</td>
+            <td><span class="method">fetchMarketIndicatorByDate("KoreaIndexEnd")</span><br><span class="method">replaceEveningIndexFromPg()</span><br><span class="method">replaceEveningSupplyFromCrawlerMarketIndicator()</span></td>
+            <td>KOSDAQ 종가 지수 (index_code='101')</td>
+        </tr>
+        <tr>
+            <td><span class="placeholder">[FUTURE-END]</span></td>
+            <td><span class="source">MSSQL</span> T_MarketIndicator<br><span class="source">PG</span> shared.market_index_day<br><span class="source">PG</span> crawler.market_indicator</td>
+            <td><span class="method">fetchMarketIndicatorByDate("KoreaIndexEnd")</span><br><span class="method">replaceEveningIndexFromPg()</span><br><span class="method">replaceEveningSupplyFromCrawlerMarketIndicator()</span></td>
+            <td>연결 선물 지수 종가 (index_code='FUTURE')</td>
+        </tr>
+    </table>
+
+    <h2>2. 시장 등락 현황</h2>
+    <table>
+        <tr>
+            <th>Replace 문자열</th>
+            <th>데이터 소스</th>
+            <th>조회 메서드</th>
+            <th>설명</th>
+        </tr>
+        <tr>
+            <td><span class="placeholder">[KOSPI-RISE-END]</span><br><span class="placeholder">[KOSDAQ-RISE-END]</span></td>
+            <td><span class="source">MSSQL</span> T_MarketIndicator (code='KOSPI-RISE-END' 등)<br><span class="source">PG</span> shared.stock_day 집계</td>
+            <td><span class="method">fetchMarketIndicatorByDate("KoreaIndexEnd")</span><br><span class="method">replaceEveningRiseFallFromPg()</span></td>
+            <td>상승 종목 수 (PG: diff > 0)</td>
+        </tr>
+        <tr>
+            <td><span class="placeholder">[KOSPI-FALL-END]</span><br><span class="placeholder">[KOSDAQ-FALL-END]</span></td>
+            <td><span class="source">MSSQL</span> T_MarketIndicator (code='KOSPI-FALL-END' 등)<br><span class="source">PG</span> shared.stock_day 집계</td>
+            <td><span class="method">fetchMarketIndicatorByDate("KoreaIndexEnd")</span><br><span class="method">replaceEveningRiseFallFromPg()</span></td>
+            <td>하락 종목 수 (PG: diff < 0)</td>
+        </tr>
+        <tr>
+            <td><span class="placeholder">[KOSPI-UPPER-END]</span><br><span class="placeholder">[KOSDAQ-UPPER-END]</span></td>
+            <td><span class="source">MSSQL</span> T_MarketIndicator (code='KOSPI-UPPER-END' 등)<br><span class="source">PG</span> shared.stock_day 집계</td>
+            <td><span class="method">fetchMarketIndicatorByDate("KoreaIndexEnd")</span><br><span class="method">replaceEveningRiseFallFromPg()</span></td>
+            <td>상한가 종목 수 (PG: diff >= 29.0)</td>
+        </tr>
+        <tr>
+            <td><span class="placeholder">[KOSPI-LOWER-END]</span><br><span class="placeholder">[KOSDAQ-LOWER-END]</span></td>
+            <td><span class="source">MSSQL</span> T_MarketIndicator (code='KOSPI-LOWER-END' 등)<br><span class="source">PG</span> shared.stock_day 집계</td>
+            <td><span class="method">fetchMarketIndicatorByDate("KoreaIndexEnd")</span><br><span class="method">replaceEveningRiseFallFromPg()</span></td>
+            <td>하한가 종목 수 (PG: diff <= -29.0)</td>
+        </tr>
+    </table>
+
+    <h2>3. 시장 수급 현황</h2>
+    <table>
+        <tr>
+            <th>Replace 문자열</th>
+            <th>데이터 소스</th>
+            <th>조회 메서드</th>
+            <th>설명</th>
+        </tr>
+        <tr>
+            <td><span class="placeholder">[KOSPI-PRIV-END]</span><br><span class="placeholder">[KOSDAQ-PRIV-END]</span><br><span class="placeholder">[FUTURE-PRIV-END]</span></td>
+            <td><span class="source">MSSQL</span> T_MarketIndicator (code='KOSPI-PRIV-END' 등)<br><span class="source">PG</span> crawler.market_indicator (group_code='KoreaIndexEnd')<<br><span class="source">PG</span> shared.stock_day (KOSPI/KOSDAQ)<br><span class="source">PG</span> shared.market_index_day (FUTURE)</td>
+            <td><span class="method">fetchMarketIndicatorByDate("KoreaIndexEnd")</span><br><span class="method">replaceEveningSupplyFromCrawlerMarketIndicator()</span><br><span class="method">replaceEveningSupplyFromPg()</span></td>
+            <td>개인 수급 (단위: 억원)</td>
+        </tr>
+        <tr>
+            <td><span class="placeholder">[KOSPI-FORE-END]</span><br><span class="placeholder">[KOSDAQ-FORE-END]</span><br><span class="placeholder">[FUTURE-FORE-END]</span></td>
+            <td><span class="source">MSSQL</span> T_MarketIndicator (code='KOSPI-FORE-END' 등)<br><span class="source">PG</span> crawler.market_indicator (group_code='KoreaIndexEnd')<<br><span class="source">PG</span> shared.stock_day (KOSPI/KOSDAQ)<br><span class="source">PG</span> shared.market_index_day (FUTURE)</td>
+            <td><span class="method">fetchMarketIndicatorByDate("KoreaIndexEnd")</span><br><span class="method">replaceEveningSupplyFromCrawlerMarketIndicator()</span><br><span class="method">replaceEveningSupplyFromPg()</span></td>
+            <td>외국인 수급 (단위: 억원)</td>
+        </tr>
+        <tr>
+            <td><span class="placeholder">[KOSPI-INST-END]</span><br><span class="placeholder">[KOSDAQ-INST-END]</span><br><span class="placeholder">[FUTURE-INST-END]</span></td>
+            <td><span class="source">MSSQL</span> T_MarketIndicator (code='KOSPI-INST-END' 등)<br><span class="source">PG</span> crawler.market_indicator (group_code='KoreaIndexEnd')<<br><span class="source">PG</span> shared.stock_day (KOSPI/KOSDAQ)<br><span class="source">PG</span> shared.market_index_day (FUTURE)</td>
+            <td><span class="method">fetchMarketIndicatorByDate("KoreaIndexEnd")</span><br><span class="method">replaceEveningSupplyFromCrawlerMarketIndicator()</span><br><span class="method">replaceEveningSupplyFromPg()</span></td>
+            <td>기관 수급 (단위: 억원)</td>
+        </tr>
+    </table>
+
+    <h2>4. 테마록 차트 이미지</h2>
+    <table>
+        <tr>
+            <th>Replace 문자열</th>
+            <th>데이터 소스</th>
+            <th>조회 메서드</th>
+            <th>설명</th>
+        </tr>
+        <tr>
+            <td><span class="placeholder">[THEMELOG-CHART]</span></td>
+            <td><span class="source">로컬 생성</span> (날짜 + "_themelog")</td>
+            <td><span class="method">replaceMarketDataPlaceholders()</span></td>
+            <td>테마록 차트 이미지 파일명 (예: 20260428_themelog)</td>
+        </tr>
+    </table>
+
+    <h2>5. 특징 테마</h2>
+    <table>
+        <tr>
+            <th>Replace 문자열</th>
+            <th>데이터 소스</th>
+            <th>조회 메서드</th>
+            <th>설명</th>
+        </tr>
+        <tr>
+            <td><span class="placeholder">[THEME]</span></td>
+            <td><span class="source">API</span> api-radar POST /themelog/top-themes</td>
+            <td><span class="method">replaceThemePlaceholders()</span><br><span class="method">loadThemeRows()</span></td>
+            <td>특징 테마 TOP 8 (테마명 + 관련종목 TOP 6)<br>파라미터: captureIdx=10, top=8</td>
+        </tr>
+    </table>
+
+    <h2>6. 상한가/하한가 종목</h2>
+    <table>
+        <tr>
+            <th>Replace 문자열</th>
+            <th>데이터 소스</th>
+            <th>조회 메서드</th>
+            <th>설명</th>
+        </tr>
+        <tr>
+            <td><span class="placeholder">[STOCK-UPPER]</span></td>
+            <td><span class="source">MSSQL</span> StockData.dbo.USP_StockExpressionResult_List_Report</td>
+            <td><span class="method">replaceUpperLowerPlaceholders()</span></td>
+            <td>상한가 종목 리스트 (ExpressionIdx=8)<br>SP 파라미터: date, GroupIdx=2</td>
+        </tr>
+        <tr>
+            <td><span class="placeholder">[STOCK-LOWER]</span></td>
+            <td><span class="source">MSSQL</span> StockData.dbo.USP_StockExpressionResult_List_Report</td>
+            <td><span class="method">replaceUpperLowerPlaceholders()</span></td>
+            <td>하한가 종목 리스트 (ExpressionIdx=9)<br>SP 파라미터: date, GroupIdx=2</td>
+        </tr>
+    </table>
+
+    <h2>7. 특징 뉴스 정리</h2>
+    <table>
+        <tr>
+            <th>Replace 문자열</th>
+            <th>데이터 소스</th>
+            <th>조회 메서드</th>
+            <th>설명</th>
+        </tr>
+        <tr>
+            <td><span class="placeholder">[NEWS-LIST]</span></td>
+            <td><span class="source">MSSQL</span> StockData.dbo.USP_NewsRelation_List_Report</td>
+            <td><span class="method">replaceNewsPlaceholders()</span></td>
+            <td>특징 뉴스 정리 (종목명 + 등락률 + 거래대금 + 뉴스 제목 링크)<br>SP 파라미터: date</td>
+        </tr>
+    </table>
+
+    <h2>데이터 소스 우선순위</h2>
+    <p><strong>시장 지수/등락/수급 데이터:</strong></p>
+    <ol>
+        <li>MSSQL T_MarketIndicator (USP_MarketIndicator_List_Admin SP)</li>
+        <li>PG crawler.market_indicator (group_code='KoreaIndexEnd')</li>
+        <li>PG shared.market_index_day / shared.stock_day (폴백)</li>
+    </ol>
+
+    <p><strong>특징 테마:</strong></p>
+    <ol>
+        <li>api-radar API (POST /themelog/top-themes)</li>
+    </ol>
+
+    <p><strong>상한가/하한가/뉴스:</strong></p>
+    <ol>
+        <li>MSSQL Stored Procedure (USP_StockExpressionResult_List_Report, USP_NewsRelation_List_Report)</li>
+    </ol>
+
+    <h2>데이터베이스 쿼리 상세</h2>
+    
+    <h3>MSSQL Stored Procedures</h3>
+    <ul>
+        <li><span class="sql">USP_MarketIndicator_List_Admin</span> - 마켓 지표 조회 (group_code, start_date, end_date)</li>
+        <li><span class="sql">USP_StockExpressionResult_List_Report</span> - 상한가/하한가 종목 조회 (date, GroupIdx=2)</li>
+        <li><span class="sql">USP_NewsRelation_List_Report</span> - 특징 뉴스 조회 (date)</li>
+    </ul>
+
+    <h3>PostgreSQL Tables</h3>
+    <ul>
+        <li><span class="sql">shared.market_index_day</span> - 시장 지수 일별 데이터 (index_code, date, close, diff)</li>
+        <li><span class="sql">shared.stock_day</span> - 종목 일별 데이터 (shcode, date, diff, individual_val, registered_val, institutions_val)</li>
+        <li><span class="sql">crawler.market_indicator</span> - 크롤링 마켓 지표 (date, code, group_code, price)</li>
+    </ul>
+
+    <h3>API Endpoints</h3>
+    <ul>
+        <li><span class="api">POST {radarApiUrl}/themelog/top-themes</span> - 테마로그 랭킹 TOP 8 조회<br>
+        요청: {"captureIdx":10,"top":8}<br>
+        응답: [{"keyword":"테마명","relationStocks":[...]}]</li>
+    </ul>
+
+    <h2>참고</h2>
+    <p><strong>템플릿 타입:</strong> 3 (이브닝 브레이크)<br>
+    <strong>기준 날짜:</strong> 당일 (templateType=3인 경우)<br>
+    <strong>데이터 라우팅:</strong> DataSourceRoutingConfig를 통한 듀얼라우팅 (MSSQL/PG)</p>
+
+</body>
+</html>

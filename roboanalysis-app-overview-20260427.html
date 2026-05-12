@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>FinUp.StockData.RoboAnalysis.App — 구성/기능 보고서 (2026-04-27 작성, 2026-04-28 갱신)</title>
+<style>
+  :root{
+    --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb;
+    --accent:#38bdf8; --good:#22c55e; --warn:#f59e0b; --bad:#ef4444; --info:#a78bfa;
+    --border:#1f2937; --code-bg:#0b1220;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+  .wrap{max-width:1180px;margin:0 auto;padding:32px 28px 80px}
+  h1{font-size:26px;margin:0 0 6px;color:#fff}
+  h2{margin:36px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border);color:#fff;font-size:20px}
+  h3{margin:24px 0 8px;color:#fff;font-size:16px}
+  h4{margin:16px 0 6px;color:var(--accent);font-size:14px}
+  p,li{color:var(--text)}
+  small,.muted{color:var(--muted)}
+  code{background:var(--code-bg);padding:2px 6px;border-radius:4px;color:#e2e8f0;font:12.5px Consolas,Menlo,monospace}
+  pre{background:var(--code-bg);padding:14px 16px;border-radius:8px;border:1px solid var(--border);overflow:auto}
+  pre code{background:transparent;padding:0}
+  table{width:100%;border-collapse:collapse;margin:8px 0 16px;font-size:13px}
+  th,td{border:1px solid var(--border);padding:8px 10px;vertical-align:top;text-align:left}
+  th{background:#0b1220;color:#fff;font-weight:600}
+  tr:nth-child(even) td{background:rgba(255,255,255,0.02)}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin:12px 0}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;margin-right:4px}
+  .b-good{background:rgba(34,197,94,.15);color:var(--good);border:1px solid rgba(34,197,94,.4)}
+  .b-warn{background:rgba(245,158,11,.15);color:var(--warn);border:1px solid rgba(245,158,11,.4)}
+  .b-bad{background:rgba(239,68,68,.15);color:var(--bad);border:1px solid rgba(239,68,68,.4)}
+  .b-info{background:rgba(167,139,250,.15);color:var(--info);border:1px solid rgba(167,139,250,.4)}
+  .b-accent{background:rgba(56,189,248,.15);color:var(--accent);border:1px solid rgba(56,189,248,.4)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+  .kv{display:grid;grid-template-columns:140px 1fr;gap:6px 14px}
+  .kv dt{color:var(--muted)}
+  .kv dd{margin:0}
+  hr{border:none;border-top:1px solid var(--border);margin:24px 0}
+  .toc a{color:var(--accent);text-decoration:none;display:block;padding:2px 0}
+  .toc a:hover{text-decoration:underline}
+  .legend span{margin-right:10px}
+  .ref{color:var(--muted);font-size:12px}
+  .callout{border-left:4px solid var(--warn);background:rgba(245,158,11,0.06);padding:10px 14px;margin:10px 0;border-radius:0 8px 8px 0}
+  .callout.bad{border-color:var(--bad);background:rgba(239,68,68,0.06)}
+  .callout.good{border-color:var(--good);background:rgba(34,197,94,0.06)}
+  .callout.info{border-color:var(--info);background:rgba(167,139,250,0.06)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>FinUp.StockData.RoboAnalysis.App — 구성 / 기능 보고서</h1>
+  <p class="muted">
+    작성일: 2026-04-27 (KST), 갱신: 2026-04-28 — §5.4 Kafka stale 확인, §8 호스트 식별 진행 결과 반영<br>
+    코드 root: <code>C:\Users\sedong\workspace\legacy\cs\FinUp.StockData.RoboAnalysis.App</code>
+    · 대상 솔루션: .NET Framework 4.7 / WinForms / x64 / WinExe
+  </p>
+</header>
+
+<div class="panel">
+  <h3 style="margin-top:0">한 줄 요약</h3>
+  <p>
+    <code>FinUp.StockData.RoboAnalysis.App</code> 은
+    <b>9 가지 모드(<code>UIType</code>)를 한 바이너리로 멀티플렉싱하는 윈도우 데스크탑 앱</b>이다.
+    같은 EXE 가 <code>App.config</code> 의 <code>UIType</code> 값에 따라 일일 배치(JOB), 실시간 시그널(MR/MS/MST),
+    검색식 차트 캡처(EXP), 백테스트 시뮬레이션(SIM), 디자이너 UI(UI/UR/PRO) 중 하나로 부팅된다.
+    따라서 “이 앱이 운영에서 무엇을 하느냐”는 <b>어느 호스트가 어떤 <code>UIType</code> 으로 떠 있느냐</b> 의 문제로 환원된다.
+  </p>
+</div>
+
+<nav class="panel toc">
+  <b>목차</b>
+  <a href="#sec1">1. 프로젝트 빌드/구조</a>
+  <a href="#sec2">2. UIType 9 가지 모드 — 같은 EXE, 다른 인격</a>
+  <a href="#sec3">3. Job 카탈로그 (8 개)</a>
+  <a href="#sec4">4. 실행 흐름 — JOB / Realtime / SIM</a>
+  <a href="#sec5">5. 외부 시스템 의존성 매트릭스</a>
+  <a href="#sec6">6. Util / Common 레이어</a>
+  <a href="#sec7">7. Java 측 이관 현황 (stockdata-admin)</a>
+  <a href="#sec8">8. 운영 호스트 식별 — 현재 막힌 지점</a>
+  <a href="#sec9">9. 다음 단계 (디버깅 플레이북)</a>
+</nav>
+
+<h2 id="sec1">1. 프로젝트 빌드 / 구조</h2>
+
+<div class="grid">
+  <div class="panel">
+    <h4 style="margin-top:0">빌드 메타</h4>
+    <dl class="kv">
+      <dt>OutputType</dt><dd><code>WinExe</code> (윈도우 데스크탑)</dd>
+      <dt>TargetFramework</dt><dd><code>.NET Framework 4.7</code></dd>
+      <dt>PlatformTarget</dt><dd><code>x64</code> (Debug)</dd>
+      <dt>RootNamespace</dt><dd><code>FinUp.StockData.RoboAnalysis.App</code></dd>
+      <dt>진입점</dt><dd><code>Program.cs:15 Main()</code></dd>
+    </dl>
+    <p class="ref">참고: <code>FinUp.StockData.RoboAnalysis.App.csproj:8-11</code></p>
+  </div>
+
+  <div class="panel">
+    <h4 style="margin-top:0">NuGet 패키지</h4>
+    <ul>
+      <li><code>CefSharp.OffScreen 107.1.120</code> — 헤드리스 크롬, 차트 캡처</li>
+      <li><code>MongoDB.Driver 2.7.2</code> — 분봉/실시간 컬렉션</li>
+      <li><code>StackExchange.Redis 2.0.513</code> — pub/sub + sorted set</li>
+      <li><code>Newtonsoft.Json 12.0.1</code></li>
+    </ul>
+  </div>
+
+  <div class="panel">
+    <h4 style="margin-top:0">의존 sibling 프로젝트 (11)</h4>
+    <ul>
+      <li><code>FinUp.Core</code> / <code>Core.Data</code> / <code>Core.Diagnostics</code> / <code>Core.Fundamentals</code> / <code>Core.Log</code> / <code>Core.Redis</code></li>
+      <li><code>FinUp.StockData.Biz</code> / <code>Biz.Redis</code> / <code>Fundamentals</code> / <code>Log</code> / <code>Model</code></li>
+    </ul>
+    <p class="ref">참고: <code>csproj:721-766</code></p>
+  </div>
+</div>
+
+<h3>디렉토리 레이아웃</h3>
+<pre><code>FinUp.StockData.RoboAnalysis.App/
+├── Program.cs               ← UIType 분기 (9 갈래)
+├── App.config               ← Redis/MongoDB/SQL/HTTP 모든 외부 엔드포인트
+├── Scheduler.cs             ← UIType=JOB  일일 로보 배치 메인
+├── SchedulerTest.cs         ← UIType=SIM  날짜범위 시뮬레이션 (현재 .config 의 default)
+├── SchedulerExpression.cs   ← UIType=EXP  검색식 차트 캡처 배치
+├── ProfitTest.cs            ← UIType=PRO  수익률 테스트 폼
+├── DebugFailExpression.cs   ← 검색 실패 디버그
+├── Job/
+│   ├── JobBase.cs / JobBaseAsync.cs   ← 공통 라이프사이클 + OperationTermHistory 기록
+│   ├── RoboAdvisor.cs       ← 일일 로보 검색식 실행 / 추천 / 카톡 발송
+│   ├── RecommandResult.cs   ← 추천종목 N일 수익률 갱신
+│   ├── StockExpressions.cs  ← 검색식 결과 차트 캡처 + 테마 매핑
+│   ├── Mars.cs              ← US 1 분봉 실시간 검색식 (5 분 주기)
+│   ├── MarsTicker.cs        ← Ticker 일봉 실시간 검색식 (30 초 주기)
+│   ├── MockTrade.cs         ← 분봉/일봉 캐시 갱신 + 모의투자 신호
+│   ├── AnalysisStock.cs     ← 종목 기술분석 메타 (이격률/거래량 등)
+│   └── AnalysisGemini.cs    ← Google Gemini API 종목 요약
+├── Analysis/
+│   ├── DynamicExpression*.cs    ← UIType=UI 검색식 디자이너
+│   ├── Report.cs / DebugSuccessDist.cs
+│   ├── Realtime/
+│   │   ├── RealtimeScheduler.cs        ← UIType=MR  모의투자 실시간
+│   │   ├── RealtimeSchedulerMars.cs    ← UIType=MS  US 실시간
+│   │   ├── RealtimeSchedulerMarsTicker.cs ← UIType=MST Ticker 실시간
+│   │   ├── RealtimeDebuger.cs          ← UIType=UR
+│   │   └── MarsDebuger.cs
+│   └── Expression/v3/   ← 100+ UserControl, 검색식 빌딩 블록 (Band/Candle/Group/Index/Indicator/Other/Price/Simulation/Status/Value/Vp/Finance)
+├── Common/
+│   ├── Util.cs / Util.Robo.cs / Util.Minute.cs / Util.Ticker.cs / Util.Capture.cs
+│   ├── Constants.cs / Types.cs / Types.Mongo.cs
+│   ├── Extensions.cs / Extensions.Robo.cs / Extensions.ind.cs / Extensions.min.cs / Extensions.min.ind.cs
+│   ├── ExpressionGroups.cs / ExpressionNode.cs / IExpression.cs
+│   └── LoadedDataSave.cs
+├── Sql/
+│   ├── Biz.cs / Biz.StockInssa.cs       ← 동적 쿼리 + SP 호출
+│   └── Types.cs / Types.StockInssa.cs   ← DTO
+└── WrapperImpersonationContext.cs        ← UNC(\\10.0.0.12\Files) 권한 임퍼소네이션
+</code></pre>
+
+<h2 id="sec2">2. UIType 9 가지 모드 — 같은 EXE, 다른 인격</h2>
+
+<p><code>Program.cs</code> 의 <code>Main()</code> 은 <code>App.config</code> 의 <code>&lt;add key="UIType" value="..."&gt;</code> 값으로 단 하나의 Form 을 띄운다. 즉 한 빌드에서 <b>9 가지 운영 인격</b>이 가능.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>UIType</th><th>진입 Form</th><th>분류</th><th>역할</th><th>핵심 Job</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="badge b-accent">JOB</span></td>
+      <td><code>Scheduler</code></td>
+      <td>일일 배치</td>
+      <td>장 종료 후 로보 검색식 실행 → 추천 종목 산출 → 카카오 채팅 발송 → 수익률 추적</td>
+      <td>RoboAdvisor + RecommandResult + StockExpressions</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-warn">SIM</span></td>
+      <td><code>SchedulerTest</code></td>
+      <td>시뮬레이션</td>
+      <td>사용자 입력 날짜 범위로 과거 일자별 로보 시뮬 (백테스트)</td>
+      <td>RoboAdvisor + RecommandResult</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-accent">EXP</span></td>
+      <td><code>SchedulerExpression</code></td>
+      <td>차트 캡처 배치</td>
+      <td>검색식 결과 종목의 차트를 CefSharp 로 PNG 캡처, 테마 매핑 후 SP 저장</td>
+      <td>StockExpressions</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-info">UI</span></td>
+      <td><code>DynamicExpression</code></td>
+      <td>디자이너</td>
+      <td>검색식을 UserControl 트리로 시각 편집하는 메인 디자이너 UI</td>
+      <td>(IExpression 동적 로드)</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-accent">MR</span></td>
+      <td><code>RealtimeScheduler</code></td>
+      <td>실시간</td>
+      <td>모의투자 실시간 — 분봉 갱신 (1 분 주기) → 식 평가 → 신호 publish</td>
+      <td>MockTrade</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-accent">MS</span></td>
+      <td><code>RealtimeSchedulerMars</code></td>
+      <td>실시간</td>
+      <td><b>US 종목</b> 실시간 1 분봉 검색식 (5 분 주기) + 차트 캡처</td>
+      <td>Mars</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-accent">MST</span></td>
+      <td><code>RealtimeSchedulerMarsTicker</code></td>
+      <td>실시간</td>
+      <td>US Ticker 일봉 기반 실시간 검색식 (30 초 주기)</td>
+      <td>MarsTicker</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-info">UR</span></td>
+      <td><code>RealtimeDebuger</code></td>
+      <td>디버그</td>
+      <td>실시간 UI 디버그 — 검색식 + 분봉 시각 검증</td>
+      <td>MockTrade (수동)</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-info">PRO</span></td>
+      <td><code>ProfitTest</code></td>
+      <td>분석 도구</td>
+      <td>특정 검색식의 수익률 백테스트 폼</td>
+      <td>(직접 로직)</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <b>주의 — App.config 의 <code>UIType=SIM</code> 은 “현재 운영 모드” 를 뜻하지 않는다.</b><br>
+  레포에 체크인된 <code>App.config</code> 는 마지막 개발자 설정일 뿐이다. 운영 머신은 동일 EXE 를 다른
+  <code>App.config</code> 로 띄울 수 있고, 실제로 <span class="badge b-accent">JOB</span>(일일 배치) 또는
+  <span class="badge b-accent">MR/MS/MST</span>(실시간) 가 별도 머신에서 동시에 떠 있을 가능성이 높다.
+  운영 호스트별로 어떤 모드인지 확인이 필요하다(§8).
+</div>
+
+<h2 id="sec3">3. Job 카탈로그 (8 개)</h2>
+
+<h3>3.1 공통 베이스</h3>
+<table>
+  <thead><tr><th>클래스</th><th>역할</th><th>핵심 메서드</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>JobBase</code><br><span class="ref">Job/JobBase.cs:8-87</span></td>
+      <td>동기 잡 베이스. 시작/종료 시 MSSQL <code>USP_OperationTermHistoryInsert</code> 로 실행 이력 기록 (alive watchdog)</td>
+      <td><code>InsertOperationTermHistoryStart()</code> :50, <code>InsertOperationTermHistoryEnd()</code> :63, <code>WriteLog()</code> :32</td>
+    </tr>
+    <tr>
+      <td><code>JobBaseAsync</code><br><span class="ref">Job/JobBaseAsync.cs:11-70</span></td>
+      <td>비동기 잡 베이스. <code>CancellationToken</code> 기반 안전 종료 + 예외 격리</td>
+      <td><code>RunAsync()</code> :39, abstract <code>ExecuteAsync()</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>3.2 일일 배치 Job</h3>
+<div class="grid">
+
+  <div class="panel">
+    <h4 style="margin-top:0">RoboAdvisor <span class="badge b-accent">JOB / SIM</span></h4>
+    <p>로보 검색식 실행 → 추천 종목 산출 → MSSQL 저장 → Gemini 요약 → 카카오 채팅 발송.</p>
+    <dl class="kv">
+      <dt>트리거</dt><dd>장 종료 + 35 분 (≈16:35 KST), <code>Scheduler.cs</code> 에서 호출</dd>
+      <dt>입력</dt><dd>MSSQL <code>FeatureRobo</code>, <code>Constants.StockDay</code> (메모리 캐시된 일봉)</dd>
+      <dt>출력</dt><dd>MSSQL Insert <code>FeatureRoboRecommand</code>, ChatAPI POST, Gemini API 호출</dd>
+      <dt>핵심</dt><dd><code>SearchJob()</code> :280, <code>InsertRoboRecommand()</code> :201, <code>SendChatSchedule()</code> :129, <code>StartAsync()</code> :42</dd>
+    </dl>
+  </div>
+
+  <div class="panel">
+    <h4 style="margin-top:0">RecommandResult <span class="badge b-accent">JOB / SIM</span></h4>
+    <p>이전에 추천한 종목들의 N 일 후 수익률을 갱신.</p>
+    <dl class="kv">
+      <dt>트리거</dt><dd>장 종료 + 42 분 (≈16:42 KST)</dd>
+      <dt>입력</dt><dd>MSSQL <code>FeatureRoboRecommand</code></dd>
+      <dt>출력</dt><dd>MSSQL Update — <code>Diff</code>, <code>HoldingEndDate</code>, <code>After20TicksDate</code> ~ <code>After100TicksDate</code></dd>
+      <dt>핵심</dt><dd><code>Profit()</code> :75-345, <code>Start()</code> :26</dd>
+    </dl>
+  </div>
+
+  <div class="panel">
+    <h4 style="margin-top:0">StockExpressions <span class="badge b-accent">EXP</span></h4>
+    <p>검색식 결과 종목 차트를 헤드리스 크롬으로 캡처하고 테마와 연동해서 저장.</p>
+    <dl class="kv">
+      <dt>트리거</dt><dd>장 종료 + 12 분 (≈16:02 KST), <code>SchedulerExpression</code> 에서 호출</dd>
+      <dt>입력</dt><dd>MSSQL <code>StockExpression</code>, CefSharp ChromiumWebBrowser (1150×600)</dd>
+      <dt>출력</dt><dd>SP <code>SetStockExpressionResult</code>, PNG 파일 (<code>FilePath</code>=<code>Images\</code>), <b>Radar API</b> 호출(테마 매핑)</dd>
+      <dt>핵심</dt><dd><code>ExecuteAsync()</code> :52-126, <code>GetStockRelationThemeAsync()</code> :128</dd>
+    </dl>
+  </div>
+</div>
+
+<h3>3.3 실시간 Job</h3>
+<div class="grid">
+
+  <div class="panel">
+    <h4 style="margin-top:0">Mars <span class="badge b-accent">MS</span></h4>
+    <p>US 종목 1 분봉 기반 실시간 검색식. 5 분마다 분봉 갱신 후 식 평가.</p>
+    <dl class="kv">
+      <dt>주기</dt><dd>5 분 (분봉 ticker)</dd>
+      <dt>입력</dt><dd>MSSQL <code>Expression</code>, Redis 실시간 주가 (<code>stockdata</code> 클러스터)</dd>
+      <dt>출력</dt><dd>MSSQL Insert <code>T_ExpressionStock</code>, Tier10 종목 추출</dd>
+      <dt>핵심</dt><dd><code>SearchStock()</code> :194-307, <code>Start()/Stop()</code> :51-74</dd>
+    </dl>
+  </div>
+
+  <div class="panel">
+    <h4 style="margin-top:0">MarsTicker <span class="badge b-accent">MST</span></h4>
+    <p>US Ticker 일봉 기반 실시간 검색식. 30 초마다.</p>
+    <dl class="kv">
+      <dt>주기</dt><dd>30 초</dd>
+      <dt>입력</dt><dd>MSSQL <code>Expression</code>, <code>Constants.StockDay</code></dd>
+      <dt>출력</dt><dd>MSSQL Insert <code>T_ExpressionStock</code></dd>
+      <dt>핵심</dt><dd><code>SearchStock()</code> :134-229</dd>
+    </dl>
+  </div>
+
+  <div class="panel">
+    <h4 style="margin-top:0">MockTrade <span class="badge b-accent">MR</span></h4>
+    <p>분봉/5 분봉/일봉 캐시 실시간 갱신 + 모의투자 신호 publish.</p>
+    <dl class="kv">
+      <dt>주기</dt><dd>1 분</dd>
+      <dt>입력</dt><dd>MSSQL <code>ItemExpression</code>, Redis 주가</dd>
+      <dt>출력</dt><dd>MSSQL Insert <code>T_ItemExpressionResult</code>, <b>Redis Publish</b> <code>REDIS_CHANNEL_ITEM_EXP</code></dd>
+      <dt>핵심</dt><dd><code>SearchStock()</code> :158-231</dd>
+    </dl>
+  </div>
+</div>
+
+<h3>3.4 보조 분석 Job</h3>
+<table>
+  <thead><tr><th>클래스</th><th>역할</th><th>호출처 / 출력</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>AnalysisStock</code><br><span class="ref">Job/AnalysisStock.cs</span></td>
+      <td>종목 기술분석 메타 (이격률, 거래량 등) 추출</td>
+      <td>RoboAdvisor 가 호출 → <code>Dictionary&lt;string, object&gt;</code> 반환</td>
+    </tr>
+    <tr>
+      <td><code>AnalysisGemini</code><br><span class="ref">Job/AnalysisGemini.cs:35-117</span></td>
+      <td><b>Google Gemini AI</b> 로 종목 요약문 생성</td>
+      <td>RoboAdvisor 의 카톡 메시지 본문 생성에 사용 → <code>StockAnalysisResult{summary, success}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>3.5 전체 한눈에 보기</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Job</th><th>모드</th><th>주기</th><th>읽기</th><th>쓰기</th><th>외부 호출</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>RoboAdvisor</td><td>JOB / SIM</td><td>일 1 회 16:35</td><td>MSSQL FeatureRobo, StockDay 캐시</td><td>MSSQL FeatureRoboRecommand</td><td>Gemini, Chat API, Chart 캡처</td></tr>
+    <tr><td>RecommandResult</td><td>JOB / SIM</td><td>일 1 회 16:42</td><td>MSSQL FeatureRoboRecommand</td><td>MSSQL Update (Diff/AfterTicksDate)</td><td>—</td></tr>
+    <tr><td>StockExpressions</td><td>EXP</td><td>일 1 회 16:02</td><td>MSSQL StockExpression</td><td>SP SetStockExpressionResult, PNG</td><td>Radar API, CefSharp</td></tr>
+    <tr><td>Mars</td><td>MS</td><td>5 분</td><td>MSSQL Expression, Redis stockdata</td><td>MSSQL T_ExpressionStock</td><td>CefSharp 캡처</td></tr>
+    <tr><td>MarsTicker</td><td>MST</td><td>30 초</td><td>MSSQL Expression</td><td>MSSQL T_ExpressionStock</td><td>—</td></tr>
+    <tr><td>MockTrade</td><td>MR</td><td>1 분</td><td>MSSQL ItemExpression, Redis</td><td>MSSQL T_ItemExpressionResult, Redis pub</td><td>—</td></tr>
+    <tr><td>AnalysisStock</td><td>(헬퍼)</td><td>on-demand</td><td>StockDay 캐시</td><td>—</td><td>—</td></tr>
+    <tr><td>AnalysisGemini</td><td>(헬퍼)</td><td>on-demand</td><td>StockDay 캐시</td><td>—</td><td>Gemini</td></tr>
+  </tbody>
+</table>
+
+<h2 id="sec4">4. 실행 흐름</h2>
+
+<h3>4.1 UIType=JOB — 일일 로보 배치 (운영 본체로 추정)</h3>
+<pre><code>Scheduler.Load
+  └─ InitSchedule()                  ─ 15:50 KST 트리거 등록
+      ├─ GetScheduleMarket()         ─ WebAPI: https://stockdata.finup.co.kr/api  (당일 영업일 / 마감시각)
+      ├─ JobDataLoad()               ─ 16:10  메모리 캐시(StockDay) 로드
+      │     └─ Util.DataLoadAsync()  ─ MongoDB 10.0.0.4:1412 / MSSQL CandleData
+      ├─ JobSearch()                 ─ 16:35  RoboAdvisor.StartAsync()
+      │     ├─ AnalysisStock         ─ 메타 추출
+      │     ├─ AnalysisGemini        ─ Gemini 요약
+      │     └─ InsertRoboRecommand   ─ MSSQL Insert
+      ├─ JobSend()                   ─ 16:36~  ChatAPI POST (지연 분산)
+      └─ JobProfit()                 ─ 16:42  RecommandResult.Start()
+                                            └─ MSSQL Update N일 수익률
+
+(부수) Alive Check: 59초 interval → USPOperationTermHistoryInsert (oIdx=66)
+       단, IsManual=Y 면 비활성 (App.config 에 IsManual=Y 로 체크인됨 → 운영은 N 으로 떠있을 것)
+</code></pre>
+
+<h3>4.2 UIType=MR / MS / MST — 실시간</h3>
+<pre><code>RealtimeScheduler*.Load
+  └─ Util.SetMarketData()            ─ 시장 정보(Ticker.cs / 일반 Util.cs)
+  └─ Util.DataLoadAsync()            ─ 일봉 캐시 로드
+  └─ Timer 등록 (1m / 5m / 30s)
+       └─ MockTrade.SearchStock()  또는  Mars.SearchStock()  또는  MarsTicker.SearchStock()
+            ├─ Redis stockdata 분봉 조회 (Util.Minute.GetRealtimeMinute)
+            ├─ 검색식 평가 (Expression/v3 트리)
+            ├─ MSSQL 결과 Insert
+            └─ (MR only) Redis stockdatapubsub publish: REDIS_CHANNEL_ITEM_EXP
+</code></pre>
+
+<h3>4.3 UIType=SIM — 백테스트</h3>
+<pre><code>SchedulerTest.Load
+  └─ 사용자 입력 (시작일~종료일) → btnStart_Click
+       └─ for each 영업일:
+            ├─ 일자별 StockDay 강제 로드
+            ├─ RoboAdvisor.StartAsync(date)   ─ 채팅 발송은 IsManualSendMessage=N 이면 차단
+            └─ RecommandResult.Start(date)
+</code></pre>
+
+<h2 id="sec5">5. 외부 시스템 의존성 매트릭스</h2>
+
+<h3>5.1 Redis (StackExchange.Redis)</h3>
+<table>
+  <thead><tr><th>클러스터</th><th>엔드포인트</th><th>R/W</th><th>용도</th><th>참조 위치</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>stockdata</code></td>
+      <td><code>stockdata.wbwqse.ng.0001.apn2.cache.amazonaws.com:6379</code></td>
+      <td>R/W</td>
+      <td>분봉 SortedSet 저장/조회 (yyyyMM_code)</td>
+      <td><code>Util.Minute.cs:36,40</code></td>
+    </tr>
+    <tr>
+      <td><code>stockdata-ro</code></td>
+      <td><code>stockdata-ro.wbwqse.ng.0001.apn2.cache.amazonaws.com:6379</code></td>
+      <td>R</td>
+      <td>분봉 분석 쿼리 (read replica)</td>
+      <td><code>Util.Minute.cs</code></td>
+    </tr>
+    <tr>
+      <td><code>stockdatapubsub</code></td>
+      <td><code>stockdatapubsub.wbwqse.ng.0001.apn2.cache.amazonaws.com:6379</code></td>
+      <td>Pub/Sub</td>
+      <td>PRICE 채널 subscribe → 분봉 생성, MockTrade 결과 publish</td>
+      <td><code>Analysis/Realtime/*.cs</code></td>
+    </tr>
+    <tr>
+      <td><code>finup</code></td>
+      <td><code>10.0.0.221:6379</code> (사설)</td>
+      <td>R/W</td>
+      <td>내부 캐시 (App.config 에 정의)</td>
+      <td><code>App.config:24</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout info">
+  <b>운영 중요 단서</b> — 현재 <code>production-transition-checklist.md:117</code> 에 따르면 이 앱의 <b>핵심 운영 책임</b>은
+  “<code>stockdatapubsub</code> PRICE subscribe → 분봉 생성 → <code>stockdata</code> 저장”. 즉
+  <b>실제 운영 모드는 MR 또는 자체 분봉 생성 모드</b>일 가능성이 높다 (UIType=JOB 단독으로는 분봉 생성을 안 함).
+  실제 운영 <code>App.config</code> 의 <code>UIType</code> 확인이 필요.
+</div>
+
+<h3>5.2 MongoDB</h3>
+<table>
+  <thead><tr><th>호스트</th><th>역할</th><th>주요 컬렉션</th><th>참조</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>10.0.0.4:1412</code></td>
+      <td>분봉 데이터 (App.config <code>MongoDB</code> 키)</td>
+      <td><code>Price1M_yyyyMM_{code}</code></td>
+      <td><code>App.config:25</code>, <code>Util.cs</code></td>
+    </tr>
+    <tr>
+      <td><code>10.0.0.33:1412</code></td>
+      <td>실시간 데이터 (T_Price 등)</td>
+      <td><code>StockTicker</code> (US), <code>MockTradeHistory</code></td>
+      <td><code>Analysis/Realtime/*.cs</code></td>
+    </tr>
+  </tbody>
+</table>
+<p class="ref">메모리: <code>10.0.0.33 = StockData Mongo</code>, <code>10.0.0.4 = APP StockData Price</code> 의 사설 IP일 가능성.</p>
+
+<h3>5.3 MSSQL — 5 개 ConnectionString</h3>
+<table>
+  <thead><tr><th>App.config 키</th><th>실 DB</th><th>주요 SP/Table</th><th>사용처</th></tr></thead>
+  <tbody>
+    <tr><td><code>StockData</code></td><td>StockData</td><td><code>USP_OperationTermHistoryInsert</code></td><td>JobBase Alive (oIdx=66)</td></tr>
+    <tr><td><code>CandleData</code></td><td>StockData (운영)</td><td><code>T_StockDay</code> + <code>T_Stock</code> JOIN</td><td><code>Util.GetStockDaySingleAsync()</code></td></tr>
+    <tr><td><code>MockTrade</code></td><td>MockTrade</td><td><code>T_ItemExpression*</code></td><td>MockTrade.cs</td></tr>
+    <tr><td><code>StockInssa</code></td><td>StockInssa</td><td>(SQL/Biz.StockInssa.cs)</td><td>주식인싸 데이터</td></tr>
+    <tr><td>FinUp (코드)</td><td>FinUp</td><td><code>FeatureRobo</code>, <code>FeatureRoboRecommand</code>, <code>StockExpression</code>, <code>SetStockExpressionResult</code></td><td>RoboAdvisor / StockExpressions</td></tr>
+  </tbody>
+</table>
+
+<h3>5.4 Kafka — 로그 송신</h3>
+<table>
+  <thead><tr><th>설정</th><th>값</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td><code>KafkaUrl</code></td><td><code>13.209.254.165:9092</code> <span class="badge b-bad">stale</span></td><td>= APP Log Dev EIP. 2026-04-28 SSM 검증: 9092 LISTEN 안 됨 (2181/Zookeeper 만 잔존). 사용자 확인: <b>Kafka 는 MSK 로 이전</b>. 운영 <code>App.config</code> 의 <code>KafkaUrl</code> 은 MSK bootstrap 으로 교체되어 있어야 함.</td></tr>
+    <tr><td><code>System</code></td><td><code>RoboAnalysis</code></td><td>토픽/필터 키</td></tr>
+    <tr><td><code>SystemType</code></td><td><code>APP</code></td><td></td></tr>
+    <tr><td><code>UseLog</code></td><td><code>false</code> (체크인본)</td><td>운영은 true 일 가능성</td></tr>
+    <tr><td>local trace</td><td><code>C:\App\Robo\log\tracelog.log</code></td><td>호스트 식별의 결정적 단서</td></tr>
+  </tbody>
+</table>
+
+<h3>5.5 외부 HTTP API</h3>
+<table>
+  <thead><tr><th>이름</th><th>URL</th><th>호출 위치</th><th>용도</th></tr></thead>
+  <tbody>
+    <tr><td><code>WebAPIAddress</code></td><td><code>https://stockdata.finup.co.kr/api</code></td><td>Scheduler.GetScheduleMarket()</td><td>당일 영업일/마감시각</td></tr>
+    <tr><td><code>ChatAPIAddress</code></td><td><code>https://pre-apistock.finup.co.kr/api/chat/signal/robo</code></td><td>Util.Robo.SendChatMessage()</td><td>로보 추천 카톡 발송</td></tr>
+    <tr><td><code>ChartAPIAddress</code></td><td><code>http://pre-stockdata.finup.co.kr/api/chart/capture</code></td><td>SchedulerExpression / RoboAdvisor</td><td>차트 캡처 위임</td></tr>
+    <tr><td><code>ChartUrl</code></td><td><code>https://bizstock.finup.co.kr/common/chart/captureview.aspx</code></td><td>StockExpressions</td><td>CefSharp 로 띄울 차트 페이지</td></tr>
+    <tr><td><code>ChartUrl2Line</code></td><td><code>https://loc-stockdata.finup.co.kr/chart/tvtickerchartfull2line.html</code></td><td>Mars.cs</td><td>주식인싸 2 라인 (US)</td></tr>
+    <tr><td>Gemini API</td><td>(코드 내부 상수)</td><td>AnalysisGemini.AnalysisGeminiAsync()</td><td>종목 요약문</td></tr>
+  </tbody>
+</table>
+
+<h3>5.6 CefSharp Headless Browser</h3>
+<ul>
+  <li><b>SchedulerExpression</b>: <code>1150×600</code> ChromiumWebBrowser 로 검색식 결과 종목 차트 PNG 저장</li>
+  <li><b>RealtimeSchedulerMars / MarsTicker</b>: <code>1250×400</code> US 차트 렌더링</li>
+  <li><b>UNC 저장</b>: <code>WrapperImpersonationContext</code> 로 <code>FileUser</code> 자격증명을 임퍼소네이션해 <code>\\10.0.0.12\Files\Finance\StockExpression\</code> (= <b>IMG1 인스턴스</b> 10.0.0.12) 에 저장</li>
+</ul>
+
+<h2 id="sec6">6. Util / Common 레이어</h2>
+<table>
+  <thead><tr><th>파일</th><th>책임</th></tr></thead>
+  <tbody>
+    <tr><td><code>Util.cs</code></td><td>장 정보 초기화(<code>SetMarketData</code>), <code>DataLoadAsync</code>, MongoDB/Redis 연결 관리, Index 변환</td></tr>
+    <tr><td><code>Util.Robo.cs</code></td><td>로보 추천 시그널 메시지 생성(<code>SetSignalMessageV2</code>), ChatAPI POST 래퍼</td></tr>
+    <tr><td><code>Util.Minute.cs</code></td><td>Redis SortedSet 분봉 조회 — <code>GetRealtimeMinute(code, from, to)</code>, MongoDB Tick 결합</td></tr>
+    <tr><td><code>Util.Ticker.cs</code></td><td>US Ticker 시장정보, 다음 영업시간 계산(<code>GetScheduleNextMarket</code>)</td></tr>
+    <tr><td><code>Util.Capture.cs</code></td><td>CefSharp 스크린샷 + UNC 임퍼소네이션 저장</td></tr>
+    <tr><td><code>Constants.cs</code></td><td><code>StockDay</code> 메모리 캐시, <code>REDIS_CHANNEL_*</code>, <code>USP_*</code> SP명 상수</td></tr>
+    <tr><td><code>ExpressionGroups.cs</code> / <code>ExpressionNode.cs</code> / <code>IExpression.cs</code></td><td>검색식 도메인 모델 (트리 구조). <code>Analysis/Expression/v3/</code> 의 100+ UserControl 이 이를 시각화</td></tr>
+    <tr><td><code>LoadedDataSave.cs</code></td><td>로드된 일봉을 디스크에 직렬화 (재시작 시 빠른 부팅용)</td></tr>
+    <tr><td><code>WrapperImpersonationContext.cs</code></td><td>Win32 <code>LogonUser</code> P/Invoke — UNC 권한 임퍼소네이션</td></tr>
+  </tbody>
+</table>
+
+<h2 id="sec7">7. Java 측 이관 현황 — stockdata-admin</h2>
+
+<table>
+  <thead><tr><th>C# 기능</th><th>Java 대응</th><th>상태</th></tr></thead>
+  <tbody>
+    <tr><td>RoboAdvisor (검색식 실행)</td><td><code>RoboAnalysisService</code>, <code>RoboAnalysisCalculationService</code></td><td><span class="badge b-good">배포</span></td></tr>
+    <tr><td>일봉/분봉 데이터 로드</td><td><code>RoboAnalysisDataLoadService</code></td><td><span class="badge b-good">배포</span></td></tr>
+    <tr><td>스케줄러</td><td><code>RoboAnalysisScheduler</code></td><td><span class="badge b-warn">부분</span></td></tr>
+    <tr><td>분봉 생성 (PRICE subscribe → stockdata 저장)</td><td>—</td><td><span class="badge b-bad">미이관</span> · C# 잔존 사유</td></tr>
+    <tr><td>Gemini AI</td><td>(stockdata-admin 내 통합)</td><td><span class="badge b-good">배포</span></td></tr>
+    <tr><td>실시간 (MR/MS/MST)</td><td>—</td><td><span class="badge b-bad">미이관</span></td></tr>
+    <tr><td>차트 캡처 (CefSharp)</td><td>—</td><td><span class="badge b-bad">미이관</span></td></tr>
+  </tbody>
+</table>
+
+<p class="ref">출처: <code>docs/legacy-analysis/cs-to-java-feature-migration-report.md:218-234</code>, <code>docs/infra/production-transition-checklist.md:117</code></p>
+
+<div class="callout">
+  <b>이 앱이 아직 운영에 살아있어야 하는 이유</b>는 ① <b>분봉 생성 (PRICE → stockdata)</b> ② <b>실시간 시그널 (MR/MS/MST)</b> ③ 차트 캡처 — 세 갈래.
+  Java 가 분봉을 직접 생성하지 못하는 한 Phase 5 (RoboAnalysis 폐기) 는 불가.
+</div>
+
+<h2 id="sec8">8. 운영 호스트 식별 — 진행 상황 (2026-04-28 갱신)</h2>
+
+<h3>8.1 SSM 진입 가능 4 대 — 모두 RoboAnalysis 호스트 아님 <span class="badge b-good">확정</span></h3>
+<p>2026-04-28 SSM RunPowerShellScript 로 <code>C:\App</code> 디렉토리 + 실행 중 프로세스 직접 확인. 4 대 모두 <b>다른 C# 앱</b> 호스트.</p>
+<table>
+  <thead><tr><th>InstanceId</th><th>Name</th><th>실제로 떠있는 것</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>i-06239eec26ddc7201</code></td>
+      <td>APP Log Dev (=13.209.254.165)</td>
+      <td>
+        <code>C:\App\</code>: AlphaBot.Radar*, Analysis(=ThemeLog), CollectData.AlphaBot/Crawler/ThemeLog, FinUp.Finance.App.Alphabot, FinUp.Notify.App.*, FinUp.Radar.App.AlphaBot, MyKeyword, Omega, StockDataMig, ThemeLog_NewsCount …<br>
+        proc: <code>FinUp.CollectData.App.Crawler.Process</code>, <code>java(zookeeper)</code>, <code>kafkatool</code><br>
+        <span class="badge b-warn">9092 LISTEN 없음</span> · <span class="badge b-info">2181 LISTEN</span>
+      </td>
+    </tr>
+    <tr>
+      <td><code>i-066b9920966ef37d7</code></td>
+      <td>API Log1</td>
+      <td><code>C:\App\</code>: Kafka, RSS.Selenium 시리즈 6 종, RSS.log, ThemeRadar, PipeLine · proc: <code>FinUp.CollectData.App.Crawler.RSS.Selenium</code> ×4</td>
+    </tr>
+    <tr>
+      <td><code>i-0bc8d2533891e26f0</code></td>
+      <td>APP Log Dev New</td>
+      <td><code>C:\App\</code>: AlphaBot.Radar*, CollectData.*, FinUp.Radar.App.AlphaBot, MyKeyword, Omega, ThemeLog_6.0, ThemeLog_NewsCount …</td>
+    </tr>
+    <tr>
+      <td><code>i-0e9d244ecb79f6d5c</code></td>
+      <td>APP Radar Crawler</td>
+      <td><code>C:\App\</code>: RSS.*, RSS.Selenium 시리즈, ThemeRadar · proc: <code>FinUp.CollectData.App.Crawler.RSS.Master</code>, <code>RSS.Selenium</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <b>부수 발견</b>:
+  <ul style="margin:6px 0">
+    <li><span class="badge b-bad">stale</span> <code>App.config</code> 의 <code>KafkaUrl=13.209.254.165:9092</code> 는 더 이상 안 도는 EIP. <b>Kafka 는 AWS MSK 로 이관 완료</b>(사용자 확인). RoboAnalysis 운영본 <code>App.config</code> 은 MSK bootstrap 으로 교체되어 있을 것.</li>
+    <li>SSM 가능 4대 중 <b>API Log1 / APP Log Dev New 의 Name 태그가 misleading</b>: 실제로는 RSS Crawler 와 AlphaBot 호스트. 이름과 역할 미스매치 누적.</li>
+    <li>골든 AMI description 에 <b>RDP 포트(6969) + 비밀번호 노출</b>(<code>@sjehzhdlsgksi?57@</code>). VPN/Bastion 만 있으면 후보 6대 모두 RDP 가능.</li>
+  </ul>
+</div>
+
+<h3>8.2 RoboAnalysis 후보 6 대 — CloudWatch 메트릭 분석</h3>
+<p>2026-04-28 09:30 KST 시점, 지난 24h CPUUtilization Average 와 8h NetworkOut Sum 측정. <b>모두 IAM 미부착으로 SSM 직접 진입 불가</b>.</p>
+
+<table>
+  <thead><tr><th>InstanceId</th><th>Name</th><th>Private IP</th><th>CPU 패턴</th><th>NetworkOut</th><th>Launch</th><th>해석</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>i-05c8d3856e22caddd</code></td><td>APP Stock</td><td>10.0.0.233</td>
+      <td>6~7% 꾸준</td><td><b>50 MB/h 일정</b></td><td>2025-10-13</td>
+      <td>외부 통신 가장 활발 — 실시간 publish/HTTP 후보. <b>RoboAdvisor JOB 모드 후보</b> (16 시 후 카톡 발송 트래픽 일치).</td>
+    </tr>
+    <tr>
+      <td><code>i-0c656503ba6938773</code></td><td>APP StockData Price</td><td>10.0.0.39</td>
+      <td>0.4% → 08 시 36% spike</td><td>0.3 MB → 08 시 <b>310 MB!</b></td><td>2020-10-26</td>
+      <td>장 개시 직전 폭증 — 가격 수집(LS/Kiwoom)과 일치. RoboAnalysis 와는 무관 가능성 높음.</td>
+    </tr>
+    <tr>
+      <td><code>i-009948ab95820f940</code></td><td>APP Radar Analysis</td><td>10.0.0.89</td>
+      <td>1.5% 꾸준</td><td>4.3 MB 정확히 일정</td><td>2022-10-07</td>
+      <td>heartbeat 만 있는 idle 서비스. 사실상 죽었거나 minimal cron.</td>
+    </tr>
+    <tr>
+      <td><code>i-02adc31c9477ff305</code></td><td>APP Radar Analysis New</td><td>10.0.15.150</td>
+      <td><b>51% 꾸준</b></td><td>4.0 MB 일정 (외부로 안 나감)</td><td>2025-10-16</td>
+      <td>CPU bound 한 무거운 계산만 돌고 외부 IO 거의 없음. <b>분봉 생성 또는 검색식 트리 평가의 시그니처</b> — RoboAnalysis 분봉 생성 모드 1 순위 후보.</td>
+    </tr>
+    <tr>
+      <td><code>i-0e4471ea282e9301f</code></td><td>WEB Mars</td><td>10.0.0.14</td>
+      <td>0.4% idle, 가끔 7% spike</td><td>&lt; 1 MB</td><td>2025-10-14</td>
+      <td>거의 죽음. 코드의 <code>Job/Mars*.cs</code> 와 이름은 일치하나 실제 트래픽 없음.</td>
+    </tr>
+    <tr>
+      <td><code>i-06276aa59ecaef3a9</code></td><td>App Data</td><td>10.0.0.49</td>
+      <td>6% 꾸준</td><td><b>32.5 MB 정확히 일정</b></td><td>2020-11-16</td>
+      <td>정기 publish 시그니처 — 분봉 생성 → Redis publish 패턴 가능. 2 순위 후보.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout info">
+  <b>가설 (메트릭만 기반, 미검증)</b>: RoboAnalysis 가 단일 머신이 아니라 <b>UIType 별로 여러 머신에 분산</b> 가능성.
+  <ul style="margin:6px 0">
+    <li>분봉 생성 (PRICE subscribe) → <b>APP Radar Analysis New</b> (CPU 51% / Network 4MB) 가 1 순위</li>
+    <li>로보 추천 (JOB) → <b>APP Stock</b> (Network 50MB/h) 가 1 순위 — 카톡 발송 트래픽</li>
+    <li>차트 캡처 / 분봉 publish → <b>App Data</b> (Network 32MB/h)</li>
+    <li><b>WEB Mars</b> 와 <b>APP Radar Analysis (old)</b> 는 사실상 폐기/유휴 상태로 추정</li>
+  </ul>
+  <b>이 가설은 §8.3 의 결정타 검증 후에야 확정.</b>
+</div>
+
+<h3>8.3 결정타 — Redis <code>stockdatapubsub</code> CLIENT LIST <span class="badge b-warn">대기 중</span></h3>
+<p>2026-04-28 진행 중 발견: <b>APP Log Dev (i-06239eec26ddc7201) 가 jumpbox 로 동작 가능</b>.</p>
+<ul>
+  <li>DNS: <code>stockdatapubsub.wbwqse.ng.0001.apn2.cache.amazonaws.com</code> → <code>10.0.1.81</code></li>
+  <li>TCP 6379 도달 <span class="badge b-good">OK</span> (보안그룹 통과)</li>
+  <li>redis-cli 없음 → PowerShell <code>System.Net.Sockets.TcpClient</code> 로 RESP 직접 전송 가능</li>
+</ul>
+<p>다음 명령 2 개를 보내면 <b>호스트 즉시 확정</b>:</p>
+<pre><code>PUBSUB CHANNELS *      ← 활성 채널 목록 (PRICE 류 채널명 확인)
+CLIENT LIST            ← 모든 connected client 의 (addr, name, age, sub, last_cmd)
+                          → "sub=N (N&gt;0)" 인 client 의 addr=10.0.x.x 가 RoboAnalysis 호스트</code></pre>
+<p class="ref">실행은 사용자 승인 후. read-only 명령 2 개로 운영 데이터 영향 없음.</p>
+
+<h3>8.4 비파괴 옵션 — 우선순위 정리 (갱신)</h3>
+<table>
+  <thead><tr><th>#</th><th>방법</th><th>도달성</th><th>효과</th><th>상태</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Redis <code>CLIENT LIST</code> via APP Log Dev jumpbox</td>
+      <td><span class="badge b-good">검증 완료</span></td>
+      <td>호스트 즉시 확정</td>
+      <td><span class="badge b-warn">사용자 승인 대기</span></td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Redis <code>stockdata</code> 분봉 key 의 마지막 score</td>
+      <td><span class="badge b-good">동일 jumpbox 가능</span></td>
+      <td>“분봉 생성 측이 살아있나” 즉답 (호스트는 안 나옴)</td>
+      <td>대기</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>UNC <code>\\10.0.0.12\Files\Finance\StockExpression\</code> 최근 PNG mtime</td>
+      <td>확인 필요 (UNC 권한)</td>
+      <td>StockExpressions 가 살아있는지</td>
+      <td>대기</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>VPC Flow Logs 검색 (port 6379, dest=10.0.1.81)</td>
+      <td>Flow Log 활성화 여부 확인 필요</td>
+      <td>모든 client IP 추출 가능</td>
+      <td>미확인</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>MSK 클러스터 ARN 조회 후 <code>System=RoboAnalysis</code> 로그 producer IP 확인</td>
+      <td>MSK 접근권 + IAM 권한 필요</td>
+      <td>호스트 확정 (단 운영 <code>UseLog=true</code> 일 때만)</td>
+      <td>미확인</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>8.5 침해성 옵션 (사용자 승인 필요)</h3>
+<ul>
+  <li><b>EC2-SSM-Role 임시 부착</b> (<code>aws ec2 associate-iam-instance-profile</code>) — Windows AMI 는 보통 SSM Agent 사전 설치라 즉시 Online. 후보 6 대 한꺼번에 가능. 운영 인스턴스 IAM 변경이라 승인 필요.</li>
+  <li><b>운영팀에 직접 문의</b> — 가장 빠름. RDP 6969 포트 + 골든 비번이 알려진 상태이므로 VPN/Bastion 만 확보되면 모든 조사 종결.</li>
+</ul>
+
+<h2 id="sec9">9. 다음 단계 (디버깅 플레이북)</h2>
+<ol>
+  <li><b>Step 0 — 호스트 식별</b>: §8.3 의 Redis CLIENT LIST 시도. 사용자 승인만 받으면 즉시 결판. <b>대안</b>: 운영팀 직접 문의가 더 빠름.</li>
+  <li><b>Step 1 — 운영 <code>App.config</code> 회수</b>: 호스트 식별 후 SSM/RDP 진입 → 다음 키들 확인:
+    <ul>
+      <li><code>UIType</code> — JOB / MR / MS / MST 중 무엇? (체크인본 SIM 은 운영 아님)</li>
+      <li><code>IsManual</code> / <code>IsManualSendMessage</code> — Y 면 카톡 발송 차단 모드</li>
+      <li><code>UseLog</code> — true 일 때만 MSK 로 로그 송신</li>
+      <li><code>KafkaUrl</code> — MSK bootstrap broker 주소 확인 필요 (체크인본의 13.209.254.165 는 stale)</li>
+      <li>5 개 ConnectionString 중 “운영 vs STG” 어느 라인이 활성인지 (체크인본 주석 다수)</li>
+    </ul>
+  </li>
+  <li><b>Step 2 — 실행 모드 확정</b>: JOB / MR / MS / MST 매트릭스 채워야 “이 머신은 분봉 생성을 한다 / 안 한다” 명확. 분봉 생성 호스트 종료가 RoboAnalysis 폐기 Phase 5 의 트리거.</li>
+  <li><b>Step 3 — 로컬 셋업</b>:
+    <ul>
+      <li>VS 2019+ / .NET Framework 4.7 Developer Pack / WinForms 워크로드</li>
+      <li>x64 빌드 (CefSharp 가 x64 전용)</li>
+      <li>10.0.x 사설망 도달성 (VPN 또는 SSM Port Forwarding) — Redis/Mongo/MSSQL 모두 사설</li>
+      <li><code>FileUser</code> 자격증명이 있어야 UNC 경로 캡처 동작 (없으면 EXP/Mars 모드만 깨짐)</li>
+      <li><code>App.config</code> 의 ConnectionString 5 개 + Redis 3 개 + MongoDB 2 개 + KafkaUrl(MSK) + UNC 자격 — 운영본 회수 필수</li>
+    </ul>
+  </li>
+  <li><b>Step 4 — 안전한 테스트 시작</b>: UIType=SIM 으로 먼저 띄우면 운영 데이터 쓰기 최소화. 단 <code>IsManualSendMessage=N</code>, <code>IsManual=N</code> 동시 확인. 그 다음 운영 모드로 dry-run.</li>
+</ol>
+
+<h3>9.1 진행 로그</h3>
+<table>
+  <thead><tr><th>시각 (KST)</th><th>액션</th><th>결과</th></tr></thead>
+  <tbody>
+    <tr><td>2026-04-27</td><td>레거시 코드 정적 분석 + 보고서 v1 작성</td><td>UIType 9 모드, Job 8 종, 외부 의존 매트릭스 정리</td></tr>
+    <tr><td>2026-04-28 09:10</td><td>AWS finup 프로필 SSM 권한 확인</td><td>Windows 36 대 중 SSM Online 4 대만</td></tr>
+    <tr><td>2026-04-28 09:15</td><td>SSM 가능 4 대의 <code>C:\App</code> + 프로세스 직접 확인</td><td>4 대 모두 RoboAnalysis 아님 — Crawler/RSS/AlphaBot 호스트</td></tr>
+    <tr><td>2026-04-28 09:20</td><td>후보 6 대 CloudWatch CPU/NetworkOut 24h 측정</td><td>APP Radar Analysis New (CPU 51%) / APP Stock (Net 50MB) / App Data (Net 32MB) 3 종 활성 패턴</td></tr>
+    <tr><td>2026-04-28 09:25</td><td>EC2 메타(LaunchTime/AMI/Tag) + EBS 볼륨 grep</td><td>볼륨 태그에 식별 단서 없음. 골든 AMI RDP 6969 포트 + 비번 노출 발견</td></tr>
+    <tr><td>2026-04-28 09:30</td><td>APP Log Dev 에서 Kafka(9092) LISTEN 확인</td><td>9092 LISTEN 없음 → <b>13.209.254.165 EIP stale</b>, 사용자 확인: MSK 이전 완료</td></tr>
+    <tr><td>2026-04-28 09:35</td><td>APP Log Dev → stockdatapubsub Redis(10.0.1.81:6379) 도달성 테스트</td><td>TCP OK · jumpbox 로 사용 가능</td></tr>
+    <tr><td>2026-04-28 09:40</td><td>Redis CLIENT LIST 직전 — 사용자 승인 대기</td><td>여기서 일시 정지 / 정리 작업</td></tr>
+  </tbody>
+</table>
+
+<hr>
+<p class="muted ref">
+  본 보고서는 레거시 코드 정적 분석만으로 작성됨. 운영 호스트 / 운영 <code>App.config</code> 미확인 상태이므로
+  §2 의 <b>“운영은 SIM 이 아닐 가능성이 높다”</b> 와 §5.1 의 <b>“실제 운영 모드 추정”</b> 은
+  Step 0 (§9.1) 완료 후 갱신해야 함.
+</p>
+
+</div>
+</body>
+</html>

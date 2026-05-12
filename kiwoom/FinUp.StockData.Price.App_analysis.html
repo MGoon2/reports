@@ -1,0 +1,122 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FinUp.StockData.Price.App Analysis Report</title>
+  <style>
+    :root { color-scheme: light; --ink:#1f2937; --muted:#64748b; --line:#d7dee8; --bg:#f7f9fc; --panel:#ffffff; --accent:#0f766e; --warn:#b45309; --bad:#b91c1c; --good:#047857; }
+    body { margin:0; font-family: "Segoe UI", Arial, sans-serif; color:var(--ink); background:var(--bg); line-height:1.55; }
+    main { max-width:1180px; margin:0 auto; padding:40px 28px 56px; }
+    header { background:#0b1220; color:#fff; padding:34px 28px; border-bottom:4px solid var(--accent); }
+    header .wrap { max-width:1180px; margin:0 auto; }
+    h1 { margin:0 0 10px; font-size:30px; letter-spacing:0; }
+    h2 { margin:34px 0 14px; font-size:22px; border-bottom:1px solid var(--line); padding-bottom:8px; }
+    h3 { margin:24px 0 10px; font-size:17px; }
+    p { margin:8px 0 12px; }
+    code { font-family: Consolas, "Courier New", monospace; background:#eef2f7; padding:2px 5px; border-radius:4px; }
+    table { width:100%; border-collapse:collapse; background:var(--panel); margin:12px 0 18px; box-shadow:0 1px 2px rgba(15,23,42,.05); }
+    th, td { border:1px solid var(--line); padding:10px 12px; vertical-align:top; }
+    th { background:#eef6f4; text-align:left; }
+    ul { margin:8px 0 18px 22px; padding:0; }
+    li { margin:5px 0; }
+    .meta { color:#cbd5e1; font-size:14px; }
+    .note { background:#fff7ed; border-left:4px solid var(--warn); padding:12px 14px; margin:14px 0; }
+    .ok { color:var(--good); font-weight:600; }
+    .warn { color:var(--warn); font-weight:600; }
+    .evidence { font-size:13px; color:#334155; }
+    .summary { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:14px; margin:18px 0 8px; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }
+    .card h3 { margin-top:0; }
+    @media (max-width: 860px) { .summary { grid-template-columns:1fr; } main { padding:24px 16px 40px; } header { padding:26px 16px; } }
+  </style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>FinUp.StockData.Price.App Analysis Report</h1>
+  <div class="meta">Date: 2026-05-07 · Baseline setting: <code>StartUp=KR</code> · Target: <code>C:\Dev\FinUp.StockData.Price.App</code></div>
+</div></header>
+<main>
+  <section>
+    <h2>Executive Summary</h2>
+    <div class="summary">
+      <div class="card"><h3>Kafka</h3><p><span class="ok">No evidence of active Kafka use in the KR runtime path.</span> Kafka settings remain, but <code>UseLog=false</code> prevents the Core.Log Kafka DAL from being created.</p></div>
+      <div class="card"><h3>Redis / Valkey</h3><p><span class="warn">Redis Pub/Sub code exists, but KR/PRICE auto distribution is currently disabled.</span> The configured endpoint already points at a Valkey-looking AWS endpoint.</p></div>
+      <div class="card"><h3>MongoDB / PostgreSQL</h3><p><span class="ok">Mongo writes are disabled for the current KR/PRICE configuration.</span> The Mongo PRICE handler start call is also commented out, so enabling only the flag would not start persistence.</p></div>
+    </div>
+    <p>With the current <code>StartUp=KR</code>, <code>FIDType=PRICE</code>, <code>RedisDistribute=false</code>, and <code>MongoSaveData=false</code> settings, the app receives Kiwoom real-time price events but does not automatically publish them to Kafka/Redis or persist them to MongoDB.</p>
+  </section>
+
+  <section>
+    <h2>Current Settings</h2>
+    <table>
+      <thead><tr><th>Setting</th><th>Current state</th><th>Interpretation</th><th>Evidence</th></tr></thead>
+      <tbody>
+        <tr><td><code>StartUp</code></td><td><code>KR</code></td><td>Runs <code>SchedulerKiwoomReal</code>.</td><td class="evidence">App.config:75, Program.cs:20-30</td></tr>
+        <tr><td><code>FIDType</code></td><td><code>PRICE</code></td><td>Uses the Kiwoom PRICE FID set.</td><td class="evidence">App.config:94, KiwoomClient.cs:66-71, Constants.cs:23-28</td></tr>
+        <tr><td><code>RedisDistribute</code></td><td><code>false</code></td><td>The PRICE Redis handler is not created.</td><td class="evidence">App.config:98, KiwoomRedis.cs:71-78</td></tr>
+        <tr><td><code>MongoSaveData</code></td><td><code>false</code></td><td>The PRICE Mongo handler is not created.</td><td class="evidence">App.config:99, KiwoomRedis.cs:80-85</td></tr>
+        <tr><td><code>UseLog</code></td><td><code>false</code></td><td>Core.Log Kafka logging is disabled.</td><td class="evidence">App.config:102, Logger.cs:24-30</td></tr>
+        <tr><td>Redis endpoint</td><td><code>master.stockdatapubsub-valkey-dev...</code></td><td>AWS Valkey-like endpoint is already configured.</td><td class="evidence">App.config:21-29</td></tr>
+      </tbody>
+    </table>
+    <div class="note">Sensitive values such as account credentials and API keys are intentionally not reproduced in this report.</div>
+  </section>
+
+  <section>
+    <h2>KR Runtime Flow</h2>
+    <ol>
+      <li><code>Program.Main</code> reads <code>StartUp</code> and runs <code>SchedulerKiwoomReal</code> for <code>KR</code>.</li>
+      <li><code>SchedulerKiwoomReal</code> reads <code>MarketType</code>, <code>FIDType</code>, and schedule settings, then creates <code>KiwoomRedis</code>.</li>
+      <li><code>KiwoomRedis</code> creates <code>KiwoomClient</code> and receives real-time events through <code>OnPrice</code>, <code>OnHoga</code>, and <code>OnTrader</code>.</li>
+      <li>Because <code>FIDType=PRICE</code>, the current path focuses on price events. Redis and Mongo handlers are not created under the current flags.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Kafka Findings</h2>
+    <ul>
+      <li><code>KafkaUrl</code> and <code>LogCommunication=kafka</code> remain in config, but <code>UseLog=false</code>. <span class="evidence">App.config:101-107</span></li>
+      <li>The target app has no direct <code>FinUp.Core.Log</code> or <code>Logger.Instance</code> usage found by repository search.</li>
+      <li><code>FinUp.Core.Data</code> can call <code>Logger.Instance</code>, but <code>Logger</code> only creates a logging DAL when <code>UseLog=true</code>. <span class="evidence">Sql.cs:84-95, Log.cs:16-62, Logger.cs:22-30</span></li>
+      <li><code>FinUp.Core.Log</code> still references <code>Confluent.Kafka</code>, so Kafka remains a build/deployment dependency even if runtime logging is disabled. <span class="evidence">FinUp.Core.Log.csproj:89-91</span></li>
+    </ul>
+    <p><strong>Inference:</strong> Kafka is effectively unused in the KR runtime. Removing Kafka operationally is low risk, but removing the package/reference requires a separate dependency cleanup decision.</p>
+  </section>
+
+  <section>
+    <h2>Redis / Valkey Findings</h2>
+    <ul>
+      <li>The app defines <code>stockdata</code> and <code>stockdatapubsub</code> clusters under a custom <code>finup</code> config section. <span class="evidence">App.config:4-33</span></li>
+      <li>The active publishing handler uses <code>RedisDatabase.GetSubcriber("stockdatapubsub")</code> and publishes to <code>PRICE</code>, <code>HOGA</code>, and <code>TRADER</code> channels. <span class="evidence">RedisStockDataHandler.cs:24-51, 73-121</span></li>
+      <li>For the current PRICE path, this handler is only created when <code>RedisDistribute=true</code>. It is currently false. <span class="evidence">App.config:98, KiwoomRedis.cs:71-78</span></li>
+      <li>If <code>FIDType</code> is changed away from <code>PRICE</code>, the HOGATRADER branch creates Redis regardless of <code>RedisDistribute</code>. <span class="evidence">KiwoomRedis.cs:87-98, 133-140</span></li>
+      <li><code>Core.Redis</code> uses <code>StackExchange.Redis 2.1.58</code> and does not expose SSL/AUTH settings in its config schema. <span class="evidence">FinUp.Core.Redis.csproj:75-80, RedisCluster.cs:138-149</span></li>
+    </ul>
+    <p><strong>Inference:</strong> AWS Valkey compatibility is likely for plain Redis protocol Pub/Sub, but TLS/auth-enabled Valkey would require config/code support that is not present here.</p>
+  </section>
+
+  <section>
+    <h2>MongoDB / PostgreSQL Findings</h2>
+    <ul>
+      <li>Mongo settings remain in config, but <code>MongoSaveData=false</code>. <span class="evidence">App.config:78-81, 99</span></li>
+      <li>The PRICE Mongo handler is only created if <code>MongoSaveData=true</code>. <span class="evidence">KiwoomRedis.cs:80-85</span></li>
+      <li>The PRICE Mongo handler start call is commented out. Enabling the flag alone would create a handler but not start its consumer. <span class="evidence">KiwoomRedis.cs:126-131</span></li>
+      <li><code>MongoStockDataHandler</code> writes to year-suffixed databases and collections such as <code>T_Price</code>, <code>T_Hoga</code>, and <code>T_Trader</code>. <span class="evidence">MongoStockDataHandler.cs:27-43, 86-117</span></li>
+      <li>Migration/test/alternate startup paths still contain direct Mongo usage, so a full Mongo-to-PostgreSQL conversion is broader than the KR runtime path.</li>
+    </ul>
+    <p><strong>Inference:</strong> For KR/PRICE only, MongoDB is currently not an active runtime dependency. For full app parity, PostgreSQL migration needs a wider inventory of migration forms, test forms, and alternate scheduler modes.</p>
+  </section>
+
+  <section>
+    <h2>Unknowns / Limits</h2>
+    <ul>
+      <li>Actual AWS Valkey network reachability, TLS, and auth settings were not proven by repository analysis.</li>
+      <li>Whether Kafka DLLs are copied into deployment output requires a build/deployment artifact check.</li>
+      <li>The PostgreSQL migration scope needs a decision: KR real-time price only, or every Mongo-using mode and migration tool.</li>
+      <li><code>App.config</code> defines <code>KiwoomStartDelay</code> twice; this should be checked separately because duplicate appSettings keys can create runtime configuration risk. <span class="evidence">App.config:91, 100</span></li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>

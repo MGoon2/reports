@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>finup AWS 인프라 — 운영/인프라 엔지니어용</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --panel-2: #334155;
+    --ink: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --warn: #fbbf24;
+    --danger: #f87171;
+    --ok: #4ade80;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.55; margin: 0; }
+  body { max-width: 1280px; margin: 0 auto; padding: 24px 32px 64px; }
+  h1 { font-size: 28px; margin: 0 0 4px; }
+  h2 { font-size: 20px; margin: 32px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--panel-2); }
+  h3 { font-size: 16px; margin: 20px 0 8px; color: var(--accent); }
+  p { margin: 8px 0; }
+  code, .mono { font-family: var(--mono); font-size: 13px; background: var(--panel); padding: 1px 6px; border-radius: 4px; color: #f1f5f9; }
+  pre { background: var(--panel); padding: 12px 16px; border-radius: 6px; overflow-x: auto; font-family: var(--mono); font-size: 13px; }
+  a { color: var(--accent); }
+  .meta { color: var(--muted); font-size: 13px; }
+  .banner { background: linear-gradient(90deg, #1e3a8a33, #0f766e33); border: 1px solid var(--panel-2); border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin: 16px 0; }
+  .card { background: var(--panel); border: 1px solid var(--panel-2); border-radius: 6px; padding: 12px 14px; }
+  .card .n { font-size: 24px; font-weight: 600; color: var(--accent); }
+  .card .l { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--panel-2); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  tr:hover td { background: var(--panel); }
+  .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; font-weight: 600; white-space: nowrap; }
+  .t-legacy { background: #7c2d1226; color: #fca5a5; border: 1px solid #7c2d1266; }
+  .t-new { background: #05966922; color: #6ee7b7; border: 1px solid #05966966; }
+  .t-shared { background: #0369a122; color: #7dd3fc; border: 1px solid #0369a166; }
+  .t-unknown { background: #9ca3af22; color: #d1d5db; border: 1px solid #9ca3af66; }
+  .sev-high { color: var(--danger); font-weight: 600; }
+  .sev-med  { color: var(--warn); font-weight: 600; }
+  .sev-low  { color: var(--muted); }
+  .callout { background: #7c2d1222; border-left: 3px solid var(--danger); padding: 10px 14px; margin: 10px 0; border-radius: 4px; }
+  .callout.warn { background: #78350f22; border-left-color: var(--warn); }
+  .callout.ok { background: #04663622; border-left-color: var(--ok); }
+  ul, ol { padding-left: 22px; }
+  li { margin: 4px 0; }
+  nav.toc { background: var(--panel); border: 1px solid var(--panel-2); border-radius: 6px; padding: 12px 18px; margin: 16px 0; }
+  nav.toc ol { margin: 4px 0; padding-left: 22px; }
+  nav.toc a { text-decoration: none; }
+  .chip { display: inline-block; background: var(--panel); color: var(--muted); padding: 1px 8px; border-radius: 10px; font-size: 12px; font-family: var(--mono); margin-right: 4px; }
+  details { margin: 6px 0; }
+  summary { cursor: pointer; padding: 6px 0; font-weight: 600; }
+  footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--panel-2); color: var(--muted); font-size: 12px; }
+  @media print { body { background: white; color: black; max-width: 100%; } .banner, .card, pre, code { background: #f5f5f5 !important; color: black !important; border-color: #ccc; } table th { color: #555; } }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <h1>finup AWS 인프라 — 운영/인프라 엔지니어용</h1>
+  <p class="meta">
+    <strong>대상</strong>: 서버/인프라 운영 담당 · 온콜 · SRE ·
+    <strong>계정</strong> <code>326539043145</code> ·
+    <strong>리전</strong> <code>ap-northeast-2</code> ·
+    <strong>기준일</strong> 2026-04-19
+  </p>
+  <p class="meta">이 문서는 "뭐가 돌아가고, 뭐가 이상하고, 어디를 봐야 하는가"에 초점이 맞춰져 있습니다. 포괄 레퍼런스는 <code>docs/infra/*.md</code>를 참조하세요.</p>
+</div>
+
+<nav class="toc">
+  <strong>목차</strong>
+  <ol>
+    <li><a href="#snapshot">한눈에 보기 (규모)</a></li>
+    <li><a href="#env">환경 구성 & 서비스 배치</a></li>
+    <li><a href="#endpoints">핵심 엔드포인트</a></li>
+    <li><a href="#anomalies">이상 징후 / 확인 필요 (우선순위)</a></li>
+    <li><a href="#runbook">장애 대응 체크리스트</a></li>
+    <li><a href="#access">접속/조작 방법</a></li>
+    <li><a href="#cleanup">정리 대상 (비용/위생)</a></li>
+    <li><a href="#refresh">문서 갱신 명령</a></li>
+  </ol>
+</nav>
+
+<h2 id="snapshot">1. 한눈에 보기</h2>
+<div class="grid">
+  <div class="card"><div class="n">85</div><div class="l">EC2 (running 84)</div></div>
+  <div class="card"><div class="n">98</div><div class="l">EBS (12.1 TB)</div></div>
+  <div class="card"><div class="n">3</div><div class="l">RDS SQL Server</div></div>
+  <div class="card"><div class="n">18</div><div class="l">ElastiCache 노드 (Redis 6 + Valkey 12)</div></div>
+  <div class="card"><div class="n">11</div><div class="l">S3 버킷</div></div>
+  <div class="card"><div class="n">30</div><div class="l">ECR 레포</div></div>
+  <div class="card"><div class="n">5</div><div class="l">ALB</div></div>
+  <div class="card"><div class="n">79</div><div class="l">Target Group</div></div>
+  <div class="card"><div class="n">3</div><div class="l">CloudFront</div></div>
+  <div class="card"><div class="n">12</div><div class="l">Route53 Zone</div></div>
+  <div class="card"><div class="n">15</div><div class="l">ACM 인증서</div></div>
+  <div class="card"><div class="n">12</div><div class="l">CloudWatch Alarm</div></div>
+  <div class="card"><div class="n">1</div><div class="l">MSK 클러스터 (3 brokers)</div></div>
+  <div class="card"><div class="n">4</div><div class="l">VPC (실사용 1)</div></div>
+</div>
+
+<h2 id="env">2. 환경 구성 & 서비스 배치</h2>
+
+<p>브랜치 → 환경: <code>develop → dev</code>, <code>main → prod</code>. 배포: Jenkins → ECR → EC2 <code>docker run</code>.</p>
+
+<h3>2.1 메인 VPC: FinupVPC (<code>vpc-c60cabae</code>)</h3>
+<p>나머지 3개 VPC는 실사용 아님 (<code>vpc-7cd63c14</code> AjkVPCMain, <code>vpc-03e4ab8b7564072a2</code> AWSKafkaTutorialVPC, <code>vpc-d6ee55bf</code> default).</p>
+
+<h3>2.2 dev 환경 (21대) — 서비스별 1:1</h3>
+<p>모두 Graviton <code>t4g.*</code>, <code>subnet-0fcd38c15aaea7799</code> (finup-private-az1), SG <code>Internal</code>.</p>
+<details><summary>펼치기: dev 인스턴스 21대</summary>
+<table>
+  <tr><th>Name</th><th>InstanceId</th><th>Type</th><th>IP</th><th>역할</th></tr>
+  <tr><td>api-admin-dev</td><td><code>i-0559ee054a5d4c062</code></td><td>t4g.medium</td><td>10.0.200.141</td><td>Spring Boot</td></tr>
+  <tr><td>api-chat-dev</td><td><code>i-06cf307058fb18cf2</code></td><td>t4g.medium</td><td>10.0.200.173</td><td>Spring Boot</td></tr>
+  <tr><td>api-collectdata-dev</td><td><code>i-0d9989b26a885f411</code></td><td>t4g.large</td><td>10.0.201.223</td><td>Spring Boot (collectdata-private)</td></tr>
+  <tr><td>api-finance-dev</td><td><code>i-099f1e5b9787a4fec</code></td><td>t4g.medium</td><td>10.0.200.11</td><td>Spring Boot</td></tr>
+  <tr><td>api-mentor-dev</td><td><code>i-0c82d190a36eed53d</code></td><td>t4g.medium</td><td>10.0.200.107</td><td>Spring Boot</td></tr>
+  <tr><td>api-radar-dev</td><td><code>i-0c0210f2dfe0e84f0</code></td><td>t4g.medium</td><td>10.0.200.58</td><td>Spring Boot</td></tr>
+  <tr><td>api-stock-dev</td><td><code>i-0464f359a6ad35cb3</code></td><td>t4g.medium</td><td>10.0.200.87</td><td>Spring Boot</td></tr>
+  <tr><td>stockdata-admin-dev</td><td><code>i-0108490e8792955fd</code></td><td>t4g.large</td><td>10.0.200.214</td><td>Spring Boot</td></tr>
+  <tr><td>stockdata-core-dev</td><td><code>i-0df579972ed089f6d</code></td><td>t4g.medium</td><td>10.0.200.22</td><td>Spring Boot</td></tr>
+  <tr><td>stockdata-realtime-dev</td><td><code>i-06e3b1a1b4edf1396</code></td><td>t4g.xlarge</td><td>10.0.200.69</td><td>Spring Boot</td></tr>
+  <tr><td>front-admin-dev</td><td><code>i-08ceb957029251c54</code></td><td>t4g.medium</td><td>10.0.200.17</td><td>React SSR</td></tr>
+  <tr><td>front-company-dev</td><td><code>i-034f2589b07041665</code></td><td>t4g.small</td><td>10.0.200.152</td><td>React SSR</td></tr>
+  <tr><td>front-finance-dev</td><td><code>i-0ab3bf3e8a5737584</code></td><td>t4g.small</td><td>10.0.200.51</td><td>React SSR</td></tr>
+  <tr><td>front-freechat-dev</td><td><code>i-0675db5c0b7f4e6e0</code></td><td>t4g.small</td><td>10.0.200.156</td><td>React SSR</td></tr>
+  <tr><td>front-general-dev</td><td><code>i-09480daa7896b5865</code></td><td>t4g.small</td><td>10.0.200.5</td><td>React SSR</td></tr>
+  <tr><td>front-mentor-dev</td><td><code>i-061fcd6bdf48137a8</code></td><td>t4g.medium</td><td>10.0.200.72</td><td>React SSR</td></tr>
+  <tr><td>front-mweb-finance-dev</td><td><code>i-0a36000824da20a31</code></td><td>t4g.small</td><td>10.0.200.122</td><td>React SSR (mobile)</td></tr>
+  <tr><td>front-mweb-general-dev</td><td><code>i-06a5106c32592ac39</code></td><td>t4g.small</td><td>10.0.200.34</td><td>React SSR (mobile)</td></tr>
+  <tr><td>front-mweb-stock-dev</td><td><code>i-0824c2e211feb26b0</code></td><td>t4g.small</td><td>10.0.200.194</td><td>React SSR (mobile)</td></tr>
+  <tr><td>front-stock-dev</td><td><code>i-03497e4dd04cdd88c</code></td><td>t4g.small</td><td>10.0.200.66</td><td>React SSR</td></tr>
+  <tr><td>front-stockdata-dev</td><td><code>i-09a4e167a59b2952d</code></td><td>t4g.small</td><td>10.0.200.125</td><td>React SSR</td></tr>
+</table>
+</details>
+
+<h3>2.3 prod 환경 (16대) — 서비스 묶음 HA</h3>
+<p>모두 Graviton <code>m7g.large/xlarge</code> (DB는 <code>r7g</code>). 대부분 2대씩 AZ-a + AZ-c 분산.</p>
+<details><summary>펼치기: prod 인스턴스 16대</summary>
+<table>
+  <tr><th>Name</th><th>InstanceId</th><th>Type</th><th>IP</th><th>AZ</th></tr>
+  <tr><td>finup-api1</td><td><code>i-0c3f9f0865aa48465</code></td><td>m7g.large</td><td>10.0.200.18</td><td>2a</td></tr>
+  <tr><td>finup-api2</td><td><code>i-049ce2c99e0046b9e</code></td><td>m7g.large</td><td>10.0.202.228</td><td>2c</td></tr>
+  <tr><td>finup-biz-api1</td><td><code>i-09209054625e72c63</code></td><td>m7g.large</td><td>10.0.200.112</td><td>2a</td></tr>
+  <tr><td>finup-biz-api2</td><td><code>i-00d0a1bc5a06771b3</code></td><td>m7g.large</td><td>10.0.202.15</td><td>2c</td></tr>
+  <tr><td>finup-api-radar1</td><td><code>i-0116945fa56dd06ec</code></td><td>m7g.xlarge</td><td>10.0.200.46</td><td>2a</td></tr>
+  <tr><td>finup-api-radar2</td><td><code>i-0e4abf739a2d73d82</code></td><td>m7g.xlarge</td><td>10.0.202.72</td><td>2c</td></tr>
+  <tr><td>finup-api-collectdata1</td><td><code>i-0aa745282311b39d4</code></td><td>m7g.xlarge</td><td>10.0.200.181</td><td>2a</td></tr>
+  <tr><td>finup-stockdata-admin1</td><td><code>i-0310483c439dd9f7d</code></td><td>m7g.xlarge</td><td>10.0.200.9</td><td>2a</td></tr>
+  <tr><td>finup-stockdata-core1</td><td><code>i-0ab303897f6ab6f90</code></td><td>m7g.xlarge</td><td>10.0.200.108</td><td>2a</td></tr>
+  <tr><td>finup-stockdata-realtime1</td><td><code>i-0c2865415e217d61f</code></td><td>m7g.xlarge</td><td>10.0.200.116</td><td>2a</td></tr>
+  <tr><td>finup-front1</td><td><code>i-001207e466a68b2e4</code></td><td>m7g.large</td><td>10.0.200.80</td><td>2a</td></tr>
+  <tr><td>finup-front2</td><td><code>i-031b5ac7e9ac24d1e</code></td><td>m7g.large</td><td>10.0.202.159</td><td>2c</td></tr>
+  <tr><td>finup-biz-front1</td><td><code>i-0515aeaf91fa97b9e</code></td><td>m7g.large</td><td>10.0.200.187</td><td>2a</td></tr>
+  <tr><td>finup-biz-front2</td><td><code>i-0f5b3fbe092bfa636</code></td><td>m7g.large</td><td>10.0.202.194</td><td>2c</td></tr>
+  <tr><td>Stockdata-PG</td><td><code>i-0abe50b233e46cb0b</code></td><td>r7g.xlarge</td><td>10.0.208.94</td><td>2a (finup-db-az1)</td></tr>
+  <tr><td>Stockdata-PG-dev</td><td><code>i-0ae66271b73a11b59</code></td><td>r7g.large</td><td>10.0.200.242</td><td>2a</td></tr>
+</table>
+</details>
+
+<h3>2.4 공용/도구 (환경 태그 없음)</h3>
+<table>
+  <tr><th>역할</th><th>Name</th><th>InstanceId</th><th>접속</th></tr>
+  <tr><td>Jenkins Master</td><td>jenkins</td><td><code>i-08e1ff51ad68dacc9</code></td><td><a href="https://jenkins.internal.finup.co.kr">jenkins.internal.finup.co.kr</a></td></tr>
+  <tr><td>Jenkins Agent (main x3)</td><td>jenkins-agent-main1/2/3</td><td>—</td><td>내부</td></tr>
+  <tr><td>Jenkins Agent (dev x2)</td><td>jenkins-agent-dev3/4</td><td>—</td><td>내부</td></tr>
+  <tr><td>Nexus</td><td>nexus</td><td><code>i-06943ea93ad744351</code></td><td><a href="https://nexus.internal.finup.co.kr">nexus.internal.finup.co.kr</a></td></tr>
+  <tr><td>Git (사내)</td><td>git</td><td><code>i-0a11fa7c8d864ac2d</code></td><td><a href="https://git.internal.finup.co.kr">git.internal.finup.co.kr</a></td></tr>
+  <tr><td>GABIA WAF</td><td>FinUp-EC2-WAF1/2-N</td><td><code>i-099a9c6a881284594</code>, <code>i-0f224b1cafd28f436</code></td><td>43.200.38.96 / 52.78.159.188</td></tr>
+  <tr><td>monitoring1</td><td>monitoring1</td><td><code>i-0db311ea3d6d4a4af</code></td><td>용도 미확인 <span class="tag t-unknown">미확인</span></td></tr>
+</table>
+
+<h3>2.5 레거시 CS (37대)</h3>
+<p>대부분 Public Subnet1에 Public IP 보유. Windows Classic ASP/.NET 추정. 서비스별로 WEB1/2, API1/2, API Log1/2, APP Radar*, Chat *, IMG1, Staging*, WEB Mars 등.</p>
+<p class="meta">전체 목록은 <code>../02-compute.md</code> 4.3절 참조.</p>
+
+<h2 id="endpoints">3. 핵심 엔드포인트</h2>
+
+<h3>3.1 ALB</h3>
+<table>
+  <tr><th>Name</th><th>Scheme</th><th>DNS</th><th>용도</th></tr>
+  <tr><td>ELBMainExternal</td><td>internet-facing</td><td><code>ELBMainExternal-444094406.ap-northeast-2.elb.amazonaws.com</code></td><td>레거시 외부 <span class="tag t-legacy">레거시</span></td></tr>
+  <tr><td>ELBMainInternal</td><td>internal</td><td><code>internal-ELBMainInternal-1876140304...</code></td><td>레거시 내부 <span class="tag t-legacy">레거시</span></td></tr>
+  <tr><td>ELBMarsExternal</td><td>internet-facing</td><td><code>ELBMarsExternal-815186851...</code></td><td>Mars 레거시 <span class="tag t-legacy">레거시</span></td></tr>
+  <tr><td>alb-internal-finup</td><td>internal</td><td><code>internal-alb-internal-finup-1416507433...</code></td><td><strong>dev</strong> (28 host rule) <span class="tag t-new">신규</span></td></tr>
+  <tr><td>alb-internal-api</td><td>internal</td><td><code>internal-alb-internal-api-884718345...</code></td><td><strong>prod</strong> API (8 host rule) <span class="tag t-new">신규</span></td></tr>
+</table>
+
+<h3>3.2 DB / 캐시</h3>
+<table>
+  <tr><th>종류</th><th>이름</th><th>엔드포인트 (포트)</th><th>라벨</th></tr>
+  <tr><td>RDS SQL Server</td><td>maindb (4xlarge)</td><td><code>maindb.cddfbcymycsb.ap-northeast-2.rds.amazonaws.com:1412</code></td><td><span class="tag t-legacy">레거시·prod</span></td></tr>
+  <tr><td>RDS SQL Server</td><td>predb (large)</td><td><code>predb.cddfbcymycsb...:1412</code></td><td><span class="tag t-legacy">레거시·stg</span></td></tr>
+  <tr><td>RDS SQL Server</td><td>db-from-maindb-at-202603221548</td><td>스냅샷 복원본 (임시) Backup 0일</td><td><span class="tag t-unknown">미확인</span></td></tr>
+  <tr><td>EC2 PostgreSQL</td><td>Stockdata-PG</td><td>10.0.208.94 (EC2 self-host)</td><td><span class="tag t-new">신규</span></td></tr>
+  <tr><td>Redis (RG)</td><td>finup</td><td><code>finup.wbwqse.ng.0001.apn2.cache.amazonaws.com</code></td><td><span class="tag t-legacy">레거시</span></td></tr>
+  <tr><td>Redis (RG)</td><td>stockdata</td><td><code>stockdata.wbwqse.ng.0001.apn2.cache.amazonaws.com</code></td><td><span class="tag t-legacy">레거시</span></td></tr>
+  <tr><td>Redis (RG)</td><td>stockdatapubsub</td><td><code>stockdatapubsub.wbwqse.ng.0001.apn2.cache.amazonaws.com</code></td><td><span class="tag t-legacy">레거시</span></td></tr>
+  <tr><td>Valkey (RG)</td><td>stockdata-valkey-prod</td><td><code>master.stockdata-valkey-prod.wbwqse.apn2.cache.amazonaws.com</code></td><td><span class="tag t-new">신규·prod</span></td></tr>
+  <tr><td>Valkey (RG)</td><td>stockdatapubsub-valkey-prod</td><td><code>master.stockdatapubsub-valkey-prod.wbwqse.apn2.cache.amazonaws.com</code></td><td><span class="tag t-new">신규·prod</span></td></tr>
+  <tr><td>Valkey (RG)</td><td>stockdata-valkey-dev</td><td><code>master.stockdata-valkey-dev.wbwqse.apn2.cache.amazonaws.com</code></td><td><span class="tag t-new">신규·dev</span></td></tr>
+  <tr><td>Valkey (RG)</td><td>stockdatapubsub-valkey-dev</td><td><code>master.stockdatapubsub-valkey-dev.wbwqse.apn2.cache.amazonaws.com</code></td><td><span class="tag t-new">신규·dev</span></td></tr>
+  <tr><td>MSK</td><td>FinUpLog (3 brokers)</td><td>bootstrap: <code>aws kafka get-bootstrap-brokers</code> 로 조회</td><td><span class="tag t-shared">공용</span></td></tr>
+</table>
+
+<h3>3.3 S3 / CloudFront</h3>
+<table>
+  <tr><th>CloudFront</th><th>Alias</th><th>S3 Origin</th></tr>
+  <tr><td><code>EQRWIX4GH5GRA</code></td><td>img.finup.co.kr</td><td>finup-files-prod-326539043145-ap-northeast-2-an</td></tr>
+  <tr><td><code>E1EJZX07ECF7HX</code></td><td>img.internal.finup.co.kr</td><td>finup-dev</td></tr>
+  <tr><td><code>E3C9SS242Z9P2G</code></td><td>cdn.internal.finup.co.kr</td><td>finup-public-resource</td></tr>
+</table>
+
+<h2 id="anomalies">4. 이상 징후 / 확인 필요 (우선순위)</h2>
+
+<div class="callout">
+  <strong class="sev-high">HIGH · 인증서 만료 임박</strong><br>
+  ACM <code>financeup.co.kr</code> <strong>2026-07-02 만료</strong> (약 74일 후). 만료 전 재발급 필수. 이미 만료된 인증서 4개(<code>*.finup.co.kr</code> 2025-03-28, <code>*.ajk.co.kr</code> 2025-05-06, <code>server</code> 2023-08-03, <code>*.hrinvestment.co.kr</code> 2023-08-27)도 정리.
+</div>
+
+<div class="callout">
+  <strong class="sev-high">HIGH · MSK 평문 통신</strong><br>
+  MSK <code>FinUpLog</code>: ClientAuth <code>null</code>, Encryption In Transit <code>PLAINTEXT</code>. VPC 안 모든 EC2 + VPN 접속자가 인증 없이 Kafka 브로커에 접근 가능 (SG-Kafka1 ingress 10.0.0.0/16 + VPN). TLS + IAM/SASL 도입 검토 필요.
+</div>
+
+<div class="callout">
+  <strong class="sev-high">HIGH · RDS 가용성</strong><br>
+  <code>maindb</code>(prod 메인), <code>predb</code>가 모두 <strong>Single-AZ</strong>. 장애 시 RPO/RTO 리스크 큼. <code>db-from-maindb-at-202603221548</code> 인스턴스는 <strong>Backup 보존 0일</strong>.
+</div>
+
+<div class="callout warn">
+  <strong class="sev-med">MED · 관찰성 갭</strong><br>
+  애플리케이션 로그(Spring Boot / React / 레거시 CS) 가 <strong>CloudWatch Logs에 수집되지 않음</strong>. 로그 확인은 SSM 접속 후 <code>docker logs</code> / 파일 tail. 신규 서비스 37대에 StatusCheck/CPU 알람 없음.
+</div>
+
+<div class="callout warn">
+  <strong class="sev-med">MED · 네트워크 잔재</strong><br>
+  <ul>
+    <li>AjkVPCMain 메인 RT가 <strong>이미 삭제된 NAT</strong>(<code>nat-0ad0349adc7f35f44</code>)를 참조 — 프라이빗 서브넷 인터넷 불가 상태</li>
+    <li><code>nat-05163b6afa1990e13</code>이 Private Subnet 안에 배치되어 있음 — 동작 점검 필요</li>
+    <li><code>vpc-03e4ab8b7564072a2</code> (AWSKafkaTutorialVPC) 실제 사용 안 함 — 제거 검토</li>
+  </ul>
+</div>
+
+<div class="callout warn">
+  <strong class="sev-med">MED · S3 설정</strong><br>
+  <code>newbiz-sabangnet</code> 버킷 PAB 비활성 + 버킷 정책 없음 — 공개 위험 점검 필요. 모든 버킷 <strong>버저닝 비활성</strong>.
+</div>
+
+<div class="callout warn">
+  <strong class="sev-med">MED · IAM</strong><br>
+  장기 미접속 사용자 7명(<code>admindbteam</code>(2023-11), <code>smlee</code>, <code>cloudwatch</code>, <code>Gabia_Read_Only</code>, <code>S3FullAccessUser</code> 등). 액세스 키 활성 여부 점검.
+</div>
+
+<div class="callout">
+  <strong class="sev-low">LOW · 알람 잔재</strong><br>
+  이미 삭제된 RDS(<code>devdb</code>, <code>devfinupedudb</code>) 알람이 <code>INSUFFICIENT_DATA</code> 로 남아 있음. <code>himoonil-EC2-StatusCheckFailed-Count-1~5</code> 5개 알람 정체 미확인.
+</div>
+
+<h2 id="runbook">5. 장애 대응 체크리스트</h2>
+
+<h3>5.1 서비스 접속 장애 (신규)</h3>
+<ol>
+  <li>ALB <code>alb-internal-finup</code>/<code>alb-internal-api</code> Target Group <strong>UnHealthyHostCount</strong> 메트릭 — 어느 서비스/인스턴스가 빠져나갔는지 특정</li>
+  <li>해당 EC2 <strong>StatusCheck</strong>, <strong>CPU</strong>, <strong>NetworkIn/Out</strong></li>
+  <li>EC2에 SSM 접속 → <code>docker ps</code> / <code>docker logs &lt;container&gt;</code> — 애플리케이션 로그 확인 (CloudWatch에 없음)</li>
+  <li>Route53 내부 존 (<code>internal.finup.co.kr</code>) 레코드가 올바른 ALB를 가리키는지 확인</li>
+</ol>
+
+<h3>5.2 서비스 접속 장애 (레거시)</h3>
+<ol>
+  <li>GABIA WAF EC2(<code>FinUp-EC2-WAF1/2-N</code>) 상태 — 외부 유입 필터링 지점</li>
+  <li>ALB <code>ELBMainExternal</code>/<code>ELBMainInternal</code>/<code>ELBMarsExternal</code> 및 각 TG</li>
+  <li>레거시 EC2(WEB1/2, API1/2 등) 개별 확인</li>
+</ol>
+
+<h3>5.3 DB 장애</h3>
+<ol>
+  <li>RDS → CloudWatch <code>CPUUtilization</code>, <code>DatabaseConnections</code>, <code>FreeStorageSpace</code>, <code>ReadLatency</code>/<code>WriteLatency</code></li>
+  <li>RDS 에러 로그: <code>/aws/rds/instance/maindb/error</code> (25MB), <code>/aws/rds/instance/predb/error</code> (241MB)</li>
+  <li>Single-AZ이므로 즉시 복구 불가 → 긴급 시 snapshot 복원 (예: 기존 <code>db-from-maindb-at-...</code> 방식)</li>
+  <li>Stockdata-PG(EC2)는 self-host — <code>i-0abe50b233e46cb0b</code> SSM 접속 후 postgres 프로세스/<code>pg_log</code> 확인</li>
+</ol>
+
+<h3>5.4 캐시 장애</h3>
+<ul>
+  <li>Redis (레거시): <code>AWS/ElastiCache</code> → <code>CurrConnections</code>, <code>Engine CPUUtilization</code>, <code>Evictions</code></li>
+  <li>Valkey (신규): 동일 메트릭. RG 단위로 Primary endpoint 조회</li>
+</ul>
+
+<h3>5.5 Kafka 장애</h3>
+<ul>
+  <li>MSK 알람 <code>KafkaDataLogsDiskUsed &gt; 78%</code> (Target Tracking이 자동 확장 시도)</li>
+  <li>브로커별 <code>BytesIn/BytesOut</code>, <code>ActiveControllerCount</code>, <code>OfflinePartitionsCount</code></li>
+  <li>AWS API로 토픽 조회 불가 → Kafka CLI 또는 내부 관리 도구 필요</li>
+</ul>
+
+<h3>5.6 배포 장애</h3>
+<ul>
+  <li>Jenkins master(<code>i-08e1ff51ad68dacc9</code>) / agent 상태</li>
+  <li>ECR 레포 <code>finup/&lt;service&gt;</code> 에 최신 태그가 올라왔는지 (<code>dev-&lt;sha&gt;-&lt;build&gt;</code>)</li>
+  <li>대상 EC2 SSM 접속 → <code>docker pull</code> 에러, 디스크 공간(<code>df -h</code>), <code>docker system df</code></li>
+</ul>
+
+<h2 id="access">6. 접속/조작 방법</h2>
+
+<h3>6.1 EC2 접속 (SSM 권장, SSH 키 없이)</h3>
+<pre>aws ssm start-session --target &lt;INSTANCE_ID&gt; --region ap-northeast-2</pre>
+<p>레거시 Windows 인스턴스는 RDP (GABIA WAF 경유) 또는 AWS Fleet Manager 콘솔 사용.</p>
+
+<h3>6.2 내부 도구 접속 (VPN 필수)</h3>
+<ul>
+  <li>Jenkins: <a href="https://jenkins.internal.finup.co.kr">https://jenkins.internal.finup.co.kr</a></li>
+  <li>Nexus: <a href="https://nexus.internal.finup.co.kr">https://nexus.internal.finup.co.kr</a></li>
+  <li>Git: <a href="https://git.internal.finup.co.kr">https://git.internal.finup.co.kr</a></li>
+  <li>dev 서비스: <code>&lt;service&gt;.internal.finup.co.kr</code> (예: api-stock.internal.finup.co.kr)</li>
+</ul>
+
+<h3>6.3 로그 보기</h3>
+<p>CloudWatch Logs에는 애플리케이션 로그가 없음. EC2 직접 접속:</p>
+<pre>aws ssm start-session --target &lt;INSTANCE_ID&gt; --region ap-northeast-2
+# 접속 후
+sudo docker ps
+sudo docker logs -f --tail 200 &lt;container&gt;
+sudo tail -f /var/log/&lt;service&gt;/*.log</pre>
+
+<h3>6.4 RDS 접속</h3>
+<p>VPN 접속 후 SQL Server 클라이언트 (SSMS/Azure Data Studio):</p>
+<ul>
+  <li>Server: <code>maindb.cddfbcymycsb.ap-northeast-2.rds.amazonaws.com,1412</code> (포트 주의: 콤마 뒤 1412)</li>
+  <li>자격증명: 별도 관리 (Jenkins credentials 또는 팀 내 공유 확인 필요)</li>
+</ul>
+
+<h3>6.5 ECR 이미지 재배포 (롤백)</h3>
+<pre># 이전 태그 확인
+aws ecr describe-images --repository-name finup/api-stock --region ap-northeast-2 \
+  --query 'sort_by(imageDetails,&amp;imagePushedAt)[-10:].imageTags' --output json
+
+# 대상 EC2에 SSM 접속 후
+docker pull 326539043145.dkr.ecr.ap-northeast-2.amazonaws.com/finup/api-stock:&lt;이전태그&gt;
+docker stop &lt;current&gt; &amp;&amp; docker rm &lt;current&gt;
+docker run -d --name api-stock ... 326539043145.dkr.ecr.ap-northeast-2.amazonaws.com/finup/api-stock:&lt;이전태그&gt;</pre>
+
+<h2 id="cleanup">7. 정리 대상 (비용/위생)</h2>
+
+<table>
+  <tr><th>항목</th><th>대상</th><th>효과</th></tr>
+  <tr><td>미연결 EBS</td><td>gp3 volumes 2개 (available 상태)</td><td>비용 절감</td></tr>
+  <tr><td>중지 EC2</td><td><code>datasync-agent</code> (m5.2xlarge, stopped)</td><td>EBS 비용, 정리</td></tr>
+  <tr><td>미사용 버킷 후보</td><td><code>ajks3bucket</code>, <code>newbiz-sabangnet</code>, <code>userlogtest</code>, <code>elasticbeanstalk-ap-northeast-2-326539043145</code></td><td>확인 후 삭제</td></tr>
+  <tr><td>미사용 VPC</td><td><code>vpc-7cd63c14</code>, <code>vpc-03e4ab8b7564072a2</code>, default VPC</td><td>네트워크 단순화</td></tr>
+  <tr><td>삭제된 리소스 알람</td><td><code>devdb</code>, <code>devfinupedudb</code> FreeStorage 알람</td><td>노이즈 제거</td></tr>
+  <tr><td>오래된 Log Group</td><td>삭제된 RDS 로그 그룹 5개 (<code>devdb</code>, <code>dbtest</code>, <code>testdb</code>, <code>maindb2</code>, <code>devfinupedudb</code>)</td><td>저장 비용 (대부분 0~10MB라 작음)</td></tr>
+  <tr><td>Log Group 보존 정책</td><td>대부분 <code>never</code> (무기한) → 30~90일 적용</td><td>누적 비용 방지</td></tr>
+  <tr><td>레거시 ECR 레포</td><td><code>sykim/test</code> (2021-05)</td><td>이미지 스토리지 절감</td></tr>
+  <tr><td>미사용 IAM 정책</td><td><code>newbiz-sabangnet</code>(attach 0), <code>sqlNativeBackup-2017-08-25</code>(attach 0)</td><td>IAM 정리</td></tr>
+  <tr><td>미사용 CodeDeploy 앱</td><td><code>Funding</code> (2020, Deployment Group 0개)</td><td>정리</td></tr>
+  <tr><td>만료된 ACM</td><td>4개 (위 Anomalies 참조)</td><td>리스트 정리</td></tr>
+</table>
+
+<h2 id="refresh">8. 문서/리소스 갱신 명령</h2>
+
+<p>포괄 문서 재생성:</p>
+<pre># 각 섹션 파일 하단의 주석 블록에 AWS CLI 명령이 나열되어 있습니다.
+# 기본 리전: ap-northeast-2
+
+# 네트워크
+aws ec2 describe-vpcs
+aws ec2 describe-subnets
+aws ec2 describe-route-tables
+aws ec2 describe-security-groups
+aws elbv2 describe-load-balancers
+aws route53 list-hosted-zones
+
+# 컴퓨트
+aws ec2 describe-instances
+aws ec2 describe-volumes
+
+# DB / 캐시
+aws rds describe-db-instances
+aws elasticache describe-cache-clusters --show-cache-node-info
+aws elasticache describe-replication-groups
+
+# 스토리지 / 배포
+aws s3api list-buckets
+aws ecr describe-repositories
+
+# 보안 / 메시징 / 모니터링
+aws iam list-users
+aws acm list-certificates --region ap-northeast-2
+aws kafka list-clusters-v2
+aws cloudwatch describe-alarms
+aws logs describe-log-groups</pre>
+
+<p>상세 포괄 문서:</p>
+<ul>
+  <li><code>../00-overview.md</code> — 전체 개요</li>
+  <li><code>../01-network.md</code> — 네트워크</li>
+  <li><code>../02-compute.md</code> — 컴퓨트</li>
+  <li><code>../03-database.md</code> — DB</li>
+  <li><code>../04-storage.md</code> — S3</li>
+  <li><code>../05-deployment.md</code> — 배포</li>
+  <li><code>../06-security.md</code> — 보안</li>
+  <li><code>../07-messaging.md</code> — 메시징</li>
+  <li><code>../08-monitoring.md</code> — 모니터링</li>
+</ul>
+
+<footer>
+  finup 인프라 문서 · 대상: 운영/인프라 엔지니어 · 2026-04-19 작성 · 계정 326539043145 · <code>ap-northeast-2</code>
+</footer>
+
+</body>
+</html>

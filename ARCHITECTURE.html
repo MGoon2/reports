@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARCHITECTURE.md</title>
+    
+<style>
+body {
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+    font-size: 16px;
+    line-height: 1.5;
+    word-wrap: break-word;
+    margin: 0 auto;
+    padding: 45px;
+    max-width: 980px;
+    color: #24292e;
+    background-color: #fff;
+}
+h1, h2, h3, h4, h5, h6 { margin-top: 24px; margin-bottom: 16px; font-weight: 600; line-height: 1.25; }
+h1 { font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: .3em; }
+h2 { font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: .3em; }
+h3 { font-size: 1.25em; }
+p, blockquote, ul, ol, dl, table, pre { margin-top: 0; margin-bottom: 16px; }
+a { color: #0366d6; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, tt { font-family: SFMono-Regular,Consolas,"Liberation Mono",Menlo,monospace; font-size: 85%; padding: .2em .4em; margin: 0; background-color: rgba(27,31,35,.05); border-radius: 3px; }
+pre { word-wrap: normal; font-size: 85%; line-height: 1.45; background-color: #f6f8fa; border-radius: 3px; padding: 16px; overflow: auto; }
+pre code { display: inline; max-width: auto; padding: 0; margin: 0; overflow: visible; line-height: inherit; word-wrap: normal; background-color: transparent; border: 0; }
+blockquote { padding: 0 1em; color: #6a737d; border-left: .25em solid #dfe2e5; }
+table { border-spacing: 0; border-collapse: collapse; width: 100%; }
+table th, table td { padding: 6px 13px; border: 1px solid #dfe2e5; font-weight: 600; }
+table tr { background-color: #fff; border-top: 1px solid #c6cbd1; }
+table tr:nth-child(2n) { background-color: #f6f8fa; }
+hr { height: .25em; padding: 0; margin: 24px 0; background-color: #e1e4e8; border: 0; }
+</style>
+
+</head>
+<body>
+    <h1 id="finupstockdataroboanalysisapp">FinUp.StockData.RoboAnalysis.App – 코드 분석 문서</h1>
+<blockquote>
+<p>.NET Framework 4.7.2 기반 WinForms 애플리케이션. 사용자가 정의한 <strong>XML 조건식(Expression)</strong> 을 일별/실시간 주식 시세에 평가하여 조건에 부합하는 종목을 추출하고, AI 요약(Gemini) · 차트 캡처 · 채팅 알림 · DB 기록까지 수행하는 "로보 어드바이저" 시스템.</p>
+</blockquote>
+<hr />
+<h2 id="1">1. 전체 구성도</h2>
+<pre><code>┌─────────────────────────────────────────────────────────────────────┐
+│                           Program.cs (Main)                         │
+│  App.config의  UIType  값에 따라 진입 폼 결정                        │
+│  ─────────────────────────────────────────────                      │
+│  UI  → DynamicExpression       (식 작성/검색 UI)                    │
+│  JOB → Scheduler                (자동 스케줄 잡)                    │
+│  SIM → SchedulerTest            (시뮬레이션)                        │
+│  PRO → ProfitTest               (수익률 백테스트)                   │
+│  EXP → SchedulerExpression      (검색식 잡)                         │
+│  UR  → RealtimeDebuger          (실시간 디버그 UI)                  │
+│  MR  → RealtimeScheduler        (실시간 스케줄러)                   │
+│  MS  → RealtimeSchedulerMars    (모의투자 실시간)                   │
+│  MST → RealtimeSchedulerMarsTicker (실시간 티커)                    │
+└─────────────────────────────────────────────────────────────────────┘
+                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  Analysis Layer  (DynamicExpression / Report / Realtime/...)        │
+│  ─ XML 식 로드, ExpressionExcutebleWrap 트리 빌드, 종목 평가        │
+└─────────────────────────────────────────────────────────────────────┘
+                ▼               ▲
+┌─────────────────────┐   ┌─────────────────────────────────────────┐
+│  Common Layer       │   │  Job Layer                              │
+│  ─ 도메인 모델      │   │  ─ RoboAdvisor (검색→AI→DB→알림)        │
+│  ─ IExpression 등   │   │  ─ RecommandResult (보유기간 수익률)    │
+│  ─ Util / Extensions│   │  ─ Mars/MarsTicker, MockTrade 등        │
+└─────────────────────┘   └─────────────────────────────────────────┘
+                ▼               ▲
+┌─────────────────────────────────────────────────────────────────────┐
+│  Expression Controls (UserControl, IExpression 구현체)              │
+│  Analysis/Expression/{Band,Candle,GroupRange,Indicator,Investor,    │
+│                       Price,Success,v3} + 최상위 ucXxx              │
+└─────────────────────────────────────────────────────────────────────┘
+                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  Sql Layer (Biz, Types) + 외부 인프라                                │
+│  ─ MS-SQL: 종목/지수/추천 결과                                      │
+│  ─ Redis: 실시간 가격 Pub/Sub (stockdata, stockdatapubsub, finup)   │
+│  ─ MongoDB: 캔들 데이터(옵션)                                       │
+│  ─ ChartAPI / ChatAPI / Gemini API (HTTP)                           │
+│  ─ CefSharp: 브라우저 차트 PNG 캡처                                 │
+│  ─ Kafka: 운영 로그                                                 │
+└─────────────────────────────────────────────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="2">2. 디렉토리 / 파일별 기능</h2>
+<h3 id="21">2.1 진입 / 설정</h3>
+<table>
+<thead>
+<tr>
+<th>파일</th>
+<th>기능</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Program.cs</code></td>
+<td><code>Main()</code> 진입. <code>App.config</code>의 <code>UIType</code> 값에 따라 9종 폼 중 하나를 <code>Application.Run()</code>.</td>
+</tr>
+<tr>
+<td><code>App.config</code></td>
+<td>Redis 클러스터(stockdata / stockdatapubsub / finup), DB 연결 문자열(암호화), Web/Chart/Chat API 주소, Kafka, CefSharp 캡처 경로 등 모든 운영 파라미터.</td>
+</tr>
+<tr>
+<td><code>Properties/AssemblyInfo.cs</code> · <code>Resources.*</code> · <code>Settings.*</code></td>
+<td>표준 .NET 어셈블리/리소스 파일.</td>
+</tr>
+<tr>
+<td><code>WrapperImpersonationContext.cs</code></td>
+<td>Windows 사용자 임퍼소네이션 래퍼. 차트 PNG를 네트워크 공유 폴더에 저장할 때 자격 증명 전환에 사용.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22-common-common">2.2 Common 계층 (<code>Common/</code>)</h3>
+<p>도메인 모델과 식 평가 인프라.</p>
+<table>
+<thead>
+<tr>
+<th>파일</th>
+<th>핵심 타입/메서드</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Constants.cs</code></td>
+<td><code>StockDay</code>, <code>StockDayIndexer</code>, <code>StockIndex</code>, <code>RoboIndex</code>, <code>MarketOpenDateAll</code>, <code>SearchStartTime/EndTime</code>, <code>PriceRanges</code>, <code>IsSimulation</code></td>
+<td>전 영역에서 공유되는 정적 캐시(런타임에 메모리 적재된 종목·지수 데이터 + 검색 윈도우).</td>
+</tr>
+<tr>
+<td><code>IExpression.cs</code></td>
+<td><code>IExpression</code>, <code>ICondition</code>, <code>IConditionGroup</code>, <code>IConditionGroupIndex</code>, <code>IConditionGroupLine</code>, <code>IConditionGroupOr</code>, <code>ISetRange</code>, <code>IGetRange</code>, <code>IGroupRangeIndex</code>, <code>IGroupLine</code>, <code>ISuccess</code>, <code>ILog</code></td>
+<td>모든 조건식 UserControl이 구현하는 계약. 종류에 따라 호출 시그니처(단일봉 / 그룹범위 / 그룹라인 / 그룹인덱스 / 성공판정)가 분리.</td>
+</tr>
+<tr>
+<td><code>ExpressionGroups.cs</code></td>
+<td><code>GroupType</code>(GRP/PRC/CDL/INX/IND/INV/BAND/ETC/SUC), <code>ExpressionSort</code>(44개 Key Sort 메타), <code>currentExpression</code>(실행 중 식 트리 정적 참조)</td>
+<td>식 카테고리 분류와 정렬, 실행 컨텍스트.</td>
+</tr>
+<tr>
+<td><code>ExpressionNode.cs</code></td>
+<td><code>ExpressionRoot</code>(XML 직렬화 루트), <code>ExpressionMapper</code>(XML ↔ 메모리), <code>ExpressionNode</code>(TreeNode), <code>ExpressionGroup</code>, <strong><code>ExpressionExcutebleWrap</code></strong>(실행 가능 트리 노드)</td>
+<td>XML → TreeView → 실행 트리 변환의 데이터 컨테이너. <code>ExpressionMapper.GetNode()</code>가 XML Load 시 TreeNode 생성.</td>
+</tr>
+<tr>
+<td><code>Types.cs</code></td>
+<td><strong><code>RoboStock</code></strong>(code/name/ticks[]/ticks_1M/ticks_5M/Lines/Boxs/GroupIndexDays/Grade/StopLossPoint), <code>TickBase</code>(OHLCV+MA3~448+EMA5~448+StoFastK), <code>Tick</code>(일봉 확장: BodyTop/Bottom, RSI14, foreigner/institutions, marketcap, chdegree), <code>TickMinute</code>, <code>MACDIndicator</code>, <code>StochasticFastK</code>, <code>BollingerBand</code>, <code>Ichimoku</code>, <code>Box</code>, <code>Line</code></td>
+<td>핵심 도메인 모델. 시장가/지표를 미리 캐싱한 객체 그래프.</td>
+</tr>
+<tr>
+<td><code>Types.Mongo.cs</code></td>
+<td><code>MongoPrice</code> 등</td>
+<td>MongoDB용 캔들 모델.</td>
+</tr>
+<tr>
+<td><code>Extensions.cs</code></td>
+<td><code>AddMarketDay()</code>, <code>Tick()</code>, <code>Ticks()</code>(기간/날짜 봉 슬라이싱)</td>
+<td>기본 시장일 산술 + 봉 인덱싱 헬퍼.</td>
+</tr>
+<tr>
+<td><code>Extensions.ind.cs</code></td>
+<td><code>InitMACD()</code>, <code>InitStochasticFastK()</code>, <code>EMA()</code></td>
+<td>일봉용 기술적 지표 사전 계산.</td>
+</tr>
+<tr>
+<td><code>Extensions.min.cs</code> · <code>Extensions.min.ind.cs</code></td>
+<td><code>Tick&lt;T&gt;()</code>, 분봉용 <code>InitStochasticFastK&lt;T&gt;()</code></td>
+<td>분봉(TickBase) 제너릭 버전.</td>
+</tr>
+<tr>
+<td><code>Extensions.Robo.cs</code></td>
+<td><code>ToGradeString()</code></td>
+<td>StockGrade(A/B/C) ↔ 별점 변환.</td>
+</tr>
+<tr>
+<td><code>LoadedDataSave.cs</code></td>
+<td><code>DataGroup</code>, GZip+BinaryFormatter</td>
+<td>대용량 종목 데이터를 압축 직렬화/복원해 디스크 캐시.</td>
+</tr>
+<tr>
+<td><code>Util.cs</code></td>
+<td><strong><code>InitData()</code></strong>, <strong><code>DataLoadAsync()</code></strong>, <code>ConvertRoboIndex()</code></td>
+<td>영업일/지수 초기화, 비동기 종목 적재, 지수 MA 계산. 모든 잡의 초기 진입점.</td>
+</tr>
+<tr>
+<td><code>Util.Capture.cs</code></td>
+<td><code>SaveCaptureScreenshotAsync()</code></td>
+<td>CefSharp 브라우저 화면 PNG 캡처.</td>
+</tr>
+<tr>
+<td><code>Util.Minute.cs</code></td>
+<td>일봉 → 분봉 보강, 실시간 분봉 업데이트</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Util.Realtime.cs</code></td>
+<td><code>InitPriceSubscribe()</code>, <code>PushPrice()</code></td>
+<td>Redis 채널 구독 → RoboStock 분봉 실시간 갱신.</td>
+</tr>
+<tr>
+<td><code>Util.Robo.cs</code></td>
+<td><code>SendChatMessage()</code></td>
+<td>추천 결과를 ChatAPI로 발송.</td>
+</tr>
+<tr>
+<td><code>Util.Ticker.cs</code></td>
+<td><code>GetMarketInfo()</code>, <code>GetScheduleNextMarket()</code></td>
+<td>향후 10영업일 스케줄, 다음 개장시각.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23-analysis-analysis">2.3 Analysis 계층 (<code>Analysis/</code>)</h3>
+<table>
+<thead>
+<tr>
+<th>파일</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>DynamicExpression.cs</code></strong> (~93KB)</td>
+<td>메인 식 빌더 + 실행기 폼. ① 어셈블리 리플렉션으로 <code>IExpression</code> 구현체 전체 수집(<code>ExpressionBind</code>), ② TreeView UI에서 식 조립, ③ XML 저장/로드, ④ TreeNode → <code>ExpressionExcutebleWrap</code> 트리 변환, ⑤ <code>ExecuteExpression()</code> / <code>ExecuteExpressionDate()</code>로 종목별 평가, ⑥ 결과 DataTable 생성 후 그리드 바인딩 + 백테스트(성공/손절 구간 컬럼 동적 추가).</td>
+</tr>
+<tr>
+<td><code>DynamicExpression_v1.cs</code> · <code>DynamicExpression_v2.cs</code></td>
+<td>구버전 (현재 미사용, 참고용 보존).</td>
+</tr>
+<tr>
+<td><code>Report.cs</code> (~98KB)</td>
+<td>검색 결과를 받아 다중 백테스트 리포트 생성. ProfitMax/Min, 성공률 분포(이익 3~20% × 손절 3~20% × 봉수 20/40/60), 누적 손익, 고정/누적 금액 거래, 최대 매수 횟수 분석. 셀 더블클릭 시 <code>DebugSuccessDist</code> 창으로 드릴다운.</td>
+</tr>
+<tr>
+<td><code>DebugSuccessDist.cs</code></td>
+<td>단순 모달. 전달받은 DataTable을 그리드에 표시.</td>
+</tr>
+<tr>
+<td><code>Realtime/RealtimeDebuger.cs</code></td>
+<td>실시간 식 디버깅 UI. 로그 타임라인.</td>
+</tr>
+<tr>
+<td><code>Realtime/MarsDebuger.cs</code></td>
+<td>Mars(모의투자/마진) 디버깅 UI. CefSharp 임베드.</td>
+</tr>
+<tr>
+<td><code>Realtime/RealtimeScheduler.cs</code></td>
+<td>일일 종가 시각(15:50) 기반 실시간 스케줄러. <code>OperationTermHistory</code> Alive 신호(59초 주기) 전송.</td>
+</tr>
+<tr>
+<td><code>Realtime/RealtimeSchedulerMars.cs</code> · <code>RealtimeSchedulerMarsTicker.cs</code></td>
+<td>모의투자/티커 전용 실시간 스케줄러. 더 빈번한 업데이트 + 차트 자동 캡처.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="231-analysisexpression-usercontrol">2.3.1 <code>Analysis/Expression/</code> – 조건식 UserControl 군</h4>
+<p>각 컨트롤은 <code>IExpression</code>을 구현하며 <code>Key</code>(예: <code>PRC_COMP</code>, <code>IND_MACD</code>)로 식별. 컨트롤이 동시에 <code>ICondition</code> / <code>IConditionGroup</code> / … 중 하나 이상을 구현하여 평가 진입점을 결정.</p>
+<h5 id="band">Band (밴드/기준선)</h5>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>컨트롤</th>
+<th>인터페이스</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BAND_BOX</td>
+<td><code>ucBox</code></td>
+<td>IConditionGroupIndex</td>
+<td>박스권 상·하단 + 상승일 비율</td>
+</tr>
+<tr>
+<td>BAND_BOX_PRICE</td>
+<td><code>ucBoxPrice</code></td>
+<td>IConditionGroupIndex</td>
+<td>박스 가격 vs 현재가</td>
+</tr>
+<tr>
+<td>BAND_LINE</td>
+<td><code>ucLine</code></td>
+<td>IConditionGroupLine</td>
+<td>기준선 라인 조건</td>
+</tr>
+<tr>
+<td>BAND_LINE_GROUP</td>
+<td><code>ucLineGroup</code></td>
+<td>IConditionGroupLine</td>
+<td>라인 그룹 범위</td>
+</tr>
+<tr>
+<td>BAND_LINE_GROUP_LIMIT</td>
+<td><code>ucLineGroupLimit</code></td>
+<td>IConditionGroupLine</td>
+<td>라인 그룹 제한</td>
+</tr>
+<tr>
+<td>BAND_LINE_PRICE</td>
+<td><code>ucLinePrice</code></td>
+<td>IConditionGroupLine</td>
+<td>라인 가격 비교</td>
+</tr>
+<tr>
+<td>BAND_LINE_PRICE_COMP</td>
+<td><code>ucLinePriceCompre</code></td>
+<td>ICondition</td>
+<td>라인 가격 포괄 비교</td>
+</tr>
+</tbody>
+</table>
+<h5 id="candle">Candle (캔들)</h5>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>컨트롤</th>
+<th>인터페이스</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CDL_BODY_RATE</td>
+<td><code>ucCandleBodyRate</code></td>
+<td>ICondition</td>
+<td>봉 몸통 비율</td>
+</tr>
+<tr>
+<td>CDL_BODY_RATE2</td>
+<td><code>ucCandleBodyRate2</code></td>
+<td>ICondition</td>
+<td>몸통 비율 분포</td>
+</tr>
+<tr>
+<td>CDL_BODY_RATE3</td>
+<td><code>ucCandleBodyRate3</code></td>
+<td>ICondition</td>
+<td>몸통 비율 비교</td>
+</tr>
+<tr>
+<td>CDL_BODY_COMP_OR</td>
+<td><code>ucCandleBodyPriceCompRate</code></td>
+<td>ICondition</td>
+<td>바디 vs 가격(OR)</td>
+</tr>
+<tr>
+<td>CDL_CONTINUE</td>
+<td><code>ucCandleContinue</code></td>
+<td>ICondition</td>
+<td>양/음봉 연속</td>
+</tr>
+<tr>
+<td>CDL_RSV_CNT</td>
+<td><code>ucCandleReverseCount</code></td>
+<td>ICondition</td>
+<td>이평선 배열 지속</td>
+</tr>
+<tr>
+<td>CDL_RSV_DROP_RATE</td>
+<td><code>ucCandleReverseDropRate</code></td>
+<td>ICondition</td>
+<td>역배열 지속 하락률</td>
+</tr>
+</tbody>
+</table>
+<h5 id="grouprange">GroupRange (그룹/기간)</h5>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>컨트롤</th>
+<th>인터페이스</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GRP_RANGE</td>
+<td><code>ucGroupRange</code></td>
+<td>IConditionGroup, IGetRange</td>
+<td>기간 범위 정의(부모 그룹)</td>
+</tr>
+<tr>
+<td>GRP_RANGE_INDEX</td>
+<td><code>ucGroupRangeIndex</code></td>
+<td>IGroupRangeIndex</td>
+<td>기간 범위 인덱스 그룹</td>
+</tr>
+<tr>
+<td>GRP_LINE</td>
+<td><code>ucGroupLine</code></td>
+<td>IGroupLine</td>
+<td>기준선 그룹</td>
+</tr>
+<tr>
+<td>GRP_OR</td>
+<td><code>ucGroupOr</code></td>
+<td>IConditionGroupOr</td>
+<td>OR 조합 그룹</td>
+</tr>
+<tr>
+<td>GRP_COMP</td>
+<td><code>ucGroupComp</code></td>
+<td>IConditionGroup</td>
+<td>그룹일 vs 기준일 비교</td>
+</tr>
+<tr>
+<td>GRP_AVG_VOL</td>
+<td><code>ucGroupCompAvgVol</code></td>
+<td>IConditionGroup</td>
+<td>그룹 평균 거래량 비교</td>
+</tr>
+<tr>
+<td>GRP_CONTINUE</td>
+<td><code>ucGroupContinue</code></td>
+<td>IConditionGroup</td>
+<td>가격 비교 횟수</td>
+</tr>
+<tr>
+<td>GRP_MINMAX</td>
+<td><code>ucGroupMinMax</code></td>
+<td>IConditionGroup, ISetRange</td>
+<td>최고/최저가</td>
+</tr>
+<tr>
+<td>GRP_MINMAX_COMP</td>
+<td><code>ucGroupMinMaxComp</code></td>
+<td>IConditionGroup</td>
+<td>최고/최저 비교</td>
+</tr>
+<tr>
+<td>GRP_CONTINUE_FLOW</td>
+<td><code>ucGroupContinueFlow</code></td>
+<td>IConditionGroup</td>
+<td>상승/하락 흐름</td>
+</tr>
+<tr>
+<td>GRP_COMP_AND</td>
+<td><code>ucGroupCompAnd</code></td>
+<td>IConditionGroup</td>
+<td>기간 내 가격 비교 AND</td>
+</tr>
+<tr>
+<td>GRP_COMP_AND_BODY</td>
+<td><code>ucGroupCompAndBody</code></td>
+<td>ICondition, ISetRange</td>
+<td>그룹 가격·바디 AND</td>
+</tr>
+<tr>
+<td>GRP_FOREIGNER_CONT</td>
+<td><code>ucGroupForeignerContinue</code></td>
+<td>IConditionGroup</td>
+<td>외국인 매수/매도 연속</td>
+</tr>
+<tr>
+<td>GRP_BREAKUP</td>
+<td><code>ucBreakup</code> (top-level)</td>
+<td>ICondition</td>
+<td>돌파봉 패턴</td>
+</tr>
+</tbody>
+</table>
+<h5 id="indicator">Indicator (지표)</h5>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>컨트롤</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IND_BOL</td>
+<td><code>ucBol</code></td>
+<td>볼린저밴드</td>
+</tr>
+<tr>
+<td>IND_BOL_BAND</td>
+<td><code>ucBolBand</code></td>
+<td>볼린저 상/하한선</td>
+</tr>
+<tr>
+<td>IND_BOL_RANGE</td>
+<td><code>ucBolRange</code></td>
+<td>볼린저 기간 내</td>
+</tr>
+<tr>
+<td>IND_ICHIMOKU</td>
+<td><code>ucIchimoku</code></td>
+<td>일목균형표</td>
+</tr>
+<tr>
+<td>IND_STO_FASTK</td>
+<td><code>ucIndicatorStochasticFastK</code></td>
+<td>Stochastic %K</td>
+</tr>
+<tr>
+<td>IND_MACD</td>
+<td><code>ucMACD</code></td>
+<td>MACD</td>
+</tr>
+</tbody>
+</table>
+<h5 id="investor">Investor (투자자별)</h5>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>컨트롤</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>INV_VAL</td>
+<td><code>ucInvestorVal</code></td>
+<td>투자자별 금액</td>
+</tr>
+<tr>
+<td>INV_VAL_COMP</td>
+<td><code>ucInvestorValComp</code></td>
+<td>투자자별 금액 비교</td>
+</tr>
+<tr>
+<td>INV_VAL_COMP_RATE</td>
+<td><code>ucInvestorValCompRate</code></td>
+<td>비율 비교</td>
+</tr>
+</tbody>
+</table>
+<h5 id="price">Price (가격/거래량) – 핵심 군</h5>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>컨트롤</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PRC_COMP</td>
+<td><code>ucPriceComp</code></td>
+<td>단일 가격 비교</td>
+</tr>
+<tr>
+<td>PRC_COMP_AND</td>
+<td><code>ucPriceCompAnd</code></td>
+<td>가격 AND</td>
+</tr>
+<tr>
+<td>PRC_COMP_OR</td>
+<td><code>ucPriceCompOr</code></td>
+<td>가격 OR</td>
+</tr>
+<tr>
+<td>PRC_COMP_CONTINUE</td>
+<td><code>ucPriceCompContinue</code></td>
+<td>가격 비교 지속</td>
+</tr>
+<tr>
+<td>PRC_DIFF</td>
+<td><code>ucPriceDiff</code></td>
+<td>등락률 기간 추세</td>
+</tr>
+<tr>
+<td>PRC_DIFF_RANGE</td>
+<td><code>ucPriceDiffRange</code></td>
+<td>가격 이격 구간</td>
+</tr>
+<tr>
+<td>PRC_DIFF_TICK</td>
+<td><code>ucPriceDiffTick</code></td>
+<td>등락률(봉당)</td>
+</tr>
+<tr>
+<td>PRC_LIMIT</td>
+<td><code>ucPriceLimit</code></td>
+<td>가격 제한(상·하한가)</td>
+</tr>
+<tr>
+<td>PRC_RANGE</td>
+<td><code>ucPriceRange</code></td>
+<td>기간 내 비교</td>
+</tr>
+<tr>
+<td>PRC_VAL</td>
+<td><code>ucPriceValue</code></td>
+<td>거래대금</td>
+</tr>
+<tr>
+<td>PRC_VAL_AVG</td>
+<td><code>ucPriceValueAvg</code></td>
+<td>거래대금 평균</td>
+</tr>
+<tr>
+<td>PRC_VAL_RANGE</td>
+<td><code>ucPriceValueRange</code></td>
+<td>거래대금 기간</td>
+</tr>
+<tr>
+<td>PRC_VOL_RANGE</td>
+<td><code>ucPriceVolumeRange</code></td>
+<td>거래량 기간</td>
+</tr>
+<tr>
+<td>PRC_VOL_AVG</td>
+<td><code>ucPriceVolumeAvg</code></td>
+<td>거래량 평균(%)</td>
+</tr>
+<tr>
+<td>PRC_VOL_AVG2</td>
+<td><code>ucPriceVolumeAvg2</code></td>
+<td>거래량 평균(주)</td>
+</tr>
+<tr>
+<td>PRC_VOL_ABS</td>
+<td><code>ucPriceVolumeAbscnt</code></td>
+<td>유동주식수 대비</td>
+</tr>
+<tr>
+<td>PRC_STOP</td>
+<td><code>ucPriceStop</code></td>
+<td>거래정지</td>
+</tr>
+<tr>
+<td>PRC_CHANGE</td>
+<td><code>ucPriceChange</code></td>
+<td>수정주가</td>
+</tr>
+<tr>
+<td>PRC_MARKETCAP</td>
+<td><code>ucPriceMarketCap</code></td>
+<td>시가총액</td>
+</tr>
+<tr>
+<td>PRC_MINMAX</td>
+<td><code>ucPriceMinMax</code></td>
+<td>최고/최저(봉이내)</td>
+</tr>
+<tr>
+<td>PRC_MINMAX_DIFF</td>
+<td><code>ucPriceMinMaxDiff</code></td>
+<td>최고/최저 대비 등락률</td>
+</tr>
+<tr>
+<td>PRC_VP</td>
+<td><code>ucVP</code></td>
+<td>체결강도</td>
+</tr>
+<tr>
+<td>PRC_UPWARD_RATE</td>
+<td><code>ucPriceUpwardRate</code></td>
+<td>가격 상승 비율</td>
+</tr>
+</tbody>
+</table>
+<h5 id="top-level">기타(top-level)</h5>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>컨트롤</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>INX_FLOW</td>
+<td><code>ucIndexFlow</code></td>
+<td>지수 흐름</td>
+</tr>
+<tr>
+<td>ETC_TICKS</td>
+<td><code>ucTicks</code></td>
+<td>기준봉수</td>
+</tr>
+<tr>
+<td>ETC_GAP_EXCEPT</td>
+<td><code>ucPriceGapExcept</code></td>
+<td>신호 다음날 갭 제외</td>
+</tr>
+<tr>
+<td>ETC_FOREIGNER_CONT</td>
+<td><code>ucForeignerContinue</code></td>
+<td>외국인 연속 매매</td>
+</tr>
+<tr>
+<td>ETC_THEME_STOCK_DIFF</td>
+<td><code>ucThemeStockDiff</code></td>
+<td>테마종목 등락률 제외</td>
+</tr>
+<tr>
+<td>ETC_THEME_RANK</td>
+<td><code>ucThemeRank</code></td>
+<td>테마 순위</td>
+</tr>
+<tr>
+<td>(장대양봉)</td>
+<td><code>ucLongCandle</code></td>
+<td>장대 양·음봉</td>
+</tr>
+</tbody>
+</table>
+<h5 id="success">Success (성공 판정)</h5>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>컨트롤</th>
+<th>인터페이스</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SUC_DEF</td>
+<td><code>ucDefault</code></td>
+<td>ISuccess</td>
+<td>기본 성공(매수/매도/손절률)</td>
+</tr>
+<tr>
+<td>SUC_LINE</td>
+<td><code>ucLIne</code></td>
+<td>ISuccess</td>
+<td>기준선 성공</td>
+</tr>
+</tbody>
+</table>
+<h5 id="analysisexpressionv3"><code>Analysis/Expression/v3/</code> – 차세대 개편 폴더</h5>
+<p><code>Band, Candle, Common, Finance, Group, Index, Indicator, Other, Price, Simulation, Status, Value, Vp</code> 13개 하위 폴더로 재정리된 신버전 컨트롤 군. 현재는 <code>DynamicExpression</code>이 일부만 사용(<code>...v3.Common.Types</code> 네임스페이스 참조). 점진적 마이그레이션 진행 중인 것으로 보임.</p>
+<h3 id="24-job-job">2.4 Job 계층 (<code>Job/</code>)</h3>
+<table>
+<thead>
+<tr>
+<th>파일</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>JobBase.cs</code> · <code>JobBaseAsync.cs</code></td>
+<td>공통 잡 베이스. <code>WriteLog</code>, <code>WriteFile</code>, <code>JobComplete</code>, <code>InsertOperationTermHistoryStart/End</code>, 에러 메시지/완료 이벤트 등 인프라.</td>
+</tr>
+<tr>
+<td><strong><code>RoboAdvisor.cs</code></strong></td>
+<td>하루 1회 실행되는 핵심 잡. 로보 단위로 ① <code>DynamicExpression</code>을 인스턴스화해 식 평가 → 종목 도출, ② Gemini AI에 종목별 분석 요청, ③ <code>FeatureRoboRecommandInsert</code>로 DB 저장, ④ <code>SendChatSchedule</code>로 채팅(메신저) 알림 발송. 등급(Grade) 낮은 식부터 평가하여 중복 종목은 상위 등급 우선으로 정리, 최근 10봉 중복 종목 skip.</td>
+</tr>
+<tr>
+<td><strong><code>RecommandResult.cs</code></strong></td>
+<td>추천 종목 보유 기간(HoldingPeriod) 만료 후 수익률·성공/실패 판정. <code>CheckSuccess</code> / <code>CheckSuccessStopLoss</code> / 분할매수(SecondBuy) 재평가. DB Update.</td>
+</tr>
+<tr>
+<td><code>AnalysisStock.cs</code></td>
+<td>Mars용 기술 지표 5종 추출(224일선·112일선·5일선 이격률, 매집봉, 거래량). 메신저 표시 텍스트 구성용.</td>
+</tr>
+<tr>
+<td><code>AnalysisGemini.cs</code></td>
+<td>Google Gemini 호출 래퍼. 프롬프트 템플릿(<code>{{종목명}}</code>, <code>{{포착가}}</code> …) 치환 → HTTP POST → <code>StockAnalysisResult</code>(summary, success, requestBody) 반환.</td>
+</tr>
+<tr>
+<td><code>Mars.cs</code> · <code>MarsTicker.cs</code></td>
+<td>CefSharp(Chromium)로 차트 페이지 렌더 → 표현식 검색 → 차트 PNG 자동 캡처. 모의투자(Mars) 종목 추천에 사용.</td>
+</tr>
+<tr>
+<td><code>MockTrade.cs</code></td>
+<td>백테스트/모의 거래. Redis 실시간 가격 구독 → 추천 종목 자동 매수/매도 기록.</td>
+</tr>
+<tr>
+<td><code>StockExpressions.cs</code></td>
+<td>"검색식(StockExpression)" 잡. RoboAdvisor와 동일하게 <code>DynamicExpression</code> 사용해 종목 추출 후, CefSharp로 차트 캡처(<code>SaveCaptureScreenshotAsync</code> + <code>WrapperImpersonationContext</code>) → <code>SetStockExpressionResultInsert</code>로 저장. 추가로 종목 ↔ 테마 키워드(Radar API) 매핑까지 수행.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="25-sql-sql">2.5 Sql 계층 (<code>Sql/</code>)</h3>
+<table>
+<thead>
+<tr>
+<th>파일</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Biz.cs</code></td>
+<td>DB 접근(스토어드/쿼리) 래퍼. <code>FeatureRoboList</code>, <code>FeatureRoboRecommandList/Insert/Update</code>, <code>GetStockDaySingleAsync</code> 등.</td>
+</tr>
+<tr>
+<td><code>Biz.StockInssa.cs</code></td>
+<td>"주식인싸" 부가 기능용 비즈 로직.</td>
+</tr>
+<tr>
+<td><code>Types.cs</code></td>
+<td><code>StockDay</code>, <code>FeatureRobo</code>(RoboIdx, ExpressionPath, ScheduleTime, SecondBuyType, HoldingPeriod), <code>FeatureRoboRecommand</code>(StockCode, Grade, PublishDT, HoldingEndDate, StopLossPoint, ChartThumbnailImage, AIDesc) 등 ORM 모델.</td>
+</tr>
+<tr>
+<td><code>Types.StockInssa.cs</code></td>
+<td>주식인싸 도메인 모델.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="26">2.6 루트 폼 (스케줄러/테스트)</h3>
+<table>
+<thead>
+<tr>
+<th>파일</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Scheduler.cs</code></td>
+<td>UIType=JOB 진입 폼. 시간 기반 잡 디스패처. <code>InitSchedule(15:50)</code> → <code>JobDataLoad(16:10)</code> → <code>JobSearch(16:35)</code> → <code>JobChart(16:40)</code> → <code>JobProfit(16:42)</code> 순으로 <code>Task.Delay</code>+<code>CancellationTokenSource</code>로 예약. Alive 신호 59초마다 송신.</td>
+</tr>
+<tr>
+<td><code>SchedulerExpression.cs</code></td>
+<td>UIType=EXP. Scheduler 변형(검색식 잡 전용).</td>
+</tr>
+<tr>
+<td><code>SchedulerTest.cs</code></td>
+<td>UIType=SIM. 시뮬레이션.</td>
+</tr>
+<tr>
+<td><code>ProfitTest.cs</code></td>
+<td>UIType=PRO. 백테스트 수익률 검증.</td>
+</tr>
+<tr>
+<td><code>DebugFailExpression.cs</code></td>
+<td>식 평가 실패(왜 매칭 안됐나) 디버그 창.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-xml">3. XML 조건식 라이프사이클</h2>
+<h3 id="31-xml">3.1 XML 스키마 (요약)</h3>
+<pre><code class="language-xml">&lt;ExpressionRoot&gt;
+  &lt;ExpressionName&gt;...&lt;/ExpressionName&gt;
+  &lt;ExpressionVersion&gt;1|2&lt;/ExpressionVersion&gt;     &lt;!-- 성공식(SUC_*) 포함 시 v2 --&gt;
+  &lt;Expressions&gt;
+    &lt;ExpressionMapper&gt;
+      &lt;Key&gt;GRP_RANGE&lt;/Key&gt;                        &lt;!-- 식별자 --&gt;
+      &lt;Title&gt;기간&lt;/Title&gt;
+      &lt;IsAndOperator&gt;true&lt;/IsAndOperator&gt;
+      &lt;HasOutValues&gt;true&lt;/HasOutValues&gt;
+      &lt;IsCondition&gt;true&lt;/IsCondition&gt;
+      &lt;IsGroup&gt;true&lt;/IsGroup&gt;
+      &lt;Param&gt;                                     &lt;!-- key=value 리스트 --&gt;
+        &lt;string&gt;RangeStart=20&lt;/string&gt;
+        &lt;string&gt;RangeCount=10&lt;/string&gt;
+      &lt;/Param&gt;
+      &lt;Child&gt;
+        &lt;ExpressionMapper&gt;
+          &lt;Key&gt;PRC_COMP&lt;/Key&gt;
+          ...
+        &lt;/ExpressionMapper&gt;
+      &lt;/Child&gt;
+    &lt;/ExpressionMapper&gt;
+    ...
+  &lt;/Expressions&gt;
+&lt;/ExpressionRoot&gt;
+</code></pre>
+<h3 id="32-load">3.2 Load → 실행 트리 변환</h3>
+<pre><code>[XML 파일]
+   │  XmlSerializer.Deserialize&lt;ExpressionRoot&gt;()
+   ▼
+ExpressionRoot ── List&lt;ExpressionMapper&gt; (재귀, Child 트리)
+   │  ExpressionMapper.GetNode()
+   ▼
+TreeView &lt;ExpressionNode&gt;  (UI 표시용; &quot;RPC_*&quot; 오타는 &quot;PRC_*&quot;로 자동 보정)
+   │  DynamicExpression.SetExpressionGroupFromBindExpressions()
+   │   → ExpressionExcutableBinder(node) 재귀
+   │     → CloneExpression(node.Mapper):
+   │         ① _expressions(어셈블리 리플렉션 결과)에서 Key 일치 타입 찾기
+   │         ② Activator.CreateInstance → IExpression 인스턴스
+   │         ③ exp.SetParam(map.Param); exp.Init();
+   ▼
+List&lt;ExpressionExcutebleWrap&gt;  (실행 가능 트리)
+   │  Expression: IExpression
+   │  ChildExpression: List&lt;ExpressionExcutebleWrap&gt;
+   ▼
+ExpressionGroups.currentExpression = 위 리스트  (전역 컨텍스트 등록)
+</code></pre>
+<p>리플렉션은 시작 시 1회 실행되어 <code>IExpression</code>을 구현한 모든 <code>UserControl</code> 타입을 수집한다 (<code>DynamicExpression.ExpressionBind</code>, <a href="Analysis/DynamicExpression.cs#L64-L99">DynamicExpression.cs:64-99</a>). 식 트리 빌드는 <a href="Analysis/DynamicExpression.cs#L218-L235">DynamicExpression.cs:218-235</a>, 키 → 타입 매핑은 <a href="Analysis/DynamicExpression.cs#L182-L191">DynamicExpression.cs:182-191</a>.</p>
+<h3 id="33-expressionloopcore">3.3 종목 평가 (<code>ExpressionLoopCore</code>)</h3>
+<p>종목 1개 × 날짜 1개에 대해 루트 식 트리를 평가하는 알고리즘 (<a href="Analysis/DynamicExpression.cs#L453-L499">DynamicExpression.cs:453-499</a>):</p>
+<pre><code>foreach exp in 루트식들 (단, ISuccess 제외):
+    if !exp.IsGroup:
+        isTrue = ((ICondition)exp).Condition(stock, date)            # 단일봉 평가
+    elif exp is IConditionGroupOr:
+        isTrue = 자식 중 하나라도 ICondition.Condition true            # OR
+    elif exp is IGroupRangeIndex:
+        isTrue = GetConditionGroupRangeIndex(stock, date, exp)        # 범위 인덱스 그룹
+    elif exp is IGroupLine:
+        isTrue = GetConditionGroupLine(stock, date, exp)              # 라인 그룹
+    else:                                                              # 기간 범위 그룹
+        range = ((IGetRange)exp).GetRange(stock, date)                # ① 범위 산출
+        ChildExpression의 ISetRange 자식들에 SetRange(...)             # ② 자식에 범위 주입
+        foreach tick in range:
+            rangeFowardMoving = range.SkipUntil(tick.date)
+            isTrue = ((IConditionGroup)exp).ConditionGroupRange(
+                       stock, rangeFowardMoving, date, range.Count)   # ③ 슬라이딩 윈도우
+            if isTrue: 자식 ICondition도 동일 tick.date로 검증 + AND
+            if 모두 true: break
+    if !isTrue: break
+return isTrue
+</code></pre>
+<p>핵심은 <strong>그룹식이 부모–자식 식 트리의 시간축(범위)을 결정</strong>한다는 점. 자식들은 부모가 좁힌 범위 내에서만 동작한다.</p>
+<h3 id="34">3.4 결과 컬럼 동적 생성</h3>
+<p><code>ISuccess</code>(예: <code>SUC_DEF</code>) 식이 존재하면 <code>RangeCount × RangeTicks</code> 만큼 <code>1구간_20봉</code>, <code>1구간_20봉_성공</code> 컬럼을 자동 추가하여 백테스트 그리드에 시점별 수익률을 출력 (<a href="Analysis/DynamicExpression.cs#L279-L298">DynamicExpression.cs:279-298</a>).</p>
+<hr />
+<h2 id="4">4. 실행 시나리오별 시퀀스</h2>
+<h3 id="41-ui-uitypeui">4.1 UI 모드 (UIType=<code>UI</code>) – 사용자 검색</h3>
+<pre><code>사용자                DynamicExpression                    Expression UC
+  │ 폼 실행             │
+  │───────────────────▶│ ExpressionBind()              ── 리플렉션으로 IExpression 전체 등록
+  │                    │ tvExpression(좌측) 트리 표시
+  │                    │
+  │ 식 추가/저장        │ tvMyExpression에 ExpressionNode 추가
+  │ XML 저장            │ XmlSerializer ▶ ExpressionRoot ▶ 파일
+  │ XML 로드            │ XmlSerializer ◀ 파일 ▶ tvMyExpression 바인드
+  │
+  │ [실행] btnExecute   │ SetExpressionGroupFromBindExpressions()
+  │                    │   → ExpressionExcutableBinder(재귀) → List&lt;ExpressionExcutebleWrap&gt;
+  │                    │ _result(DataTable) 스키마 + 동적 컬럼 생성
+  │                    │ Task.Run( ExecuteExpression )
+  │                    │   for date in [start..end]:
+  │                    │     for stock in Constants.StockDay:
+  │                    │       ExpressionLoopCore(stock, date)  ─▶ ICondition / IConditionGroup ...
+  │                    │       if true: stocks.Add(...)
+  │ 그리드/요약 표시    │ BindResultAndSummary()
+  │
+  │ [리포트]            │ Report 폼 오픈 → 다중 백테스트 분포 출력
+</code></pre>
+<h3 id="42-job-uitypejob">4.2 JOB 모드 (UIType=<code>JOB</code>) – 자동 잡</h3>
+<pre><code>15:50  Scheduler.InitSchedule()
+       └─ FinUp.StockData.Fundamentals.Util.GetScheduleMarket()
+       └─ 영업일·식 스케줄 조합 → Task.Delay 예약
+                │
+16:10  ▶ JobDataLoad()
+       └─ Common.Util.DataLoadAsync(date)
+            ├─ 종목 마스터 + 봉 데이터 → Constants.StockDay
+            ├─ 지수(StockIndex) → Constants.RoboIndex (지수 MA 계산)
+            └─ 영업일 캐시
+                │
+16:35  ▶ JobSearch()
+       └─ FeatureRobo 목록 조회 (활성)
+       └─ new RoboAdvisor(robos, date).StartAsync(token)
+            │ Run():
+            │   1) SearchJob(token)
+            │      └─ using DynamicExpression:
+            │           foreach robo (Grade 오름차순):
+            │             ui.BindExpression(robo.ExpressionPath)         # XML 로드
+            │             ui.SetExpressionGroupFromBindExpressions()      # 실행 트리
+            │             stocks ← ui.ExecuteExpressionDate(date, token)  # 평가
+            │             등급 정리(상위 등급 우선) + 최근 10봉 중복 skip
+            │   2) for stock in stocks:
+            │      └─ AnalysisGemini.AnalysisGeminiAsync(prompt, code)    # AI 요약
+            │   3) InsertRoboRecommand(stocks)                            # DB 적재
+            │   4) (옵션) SendChatSchedule()                              # 즉시 전송
+            │
+16:40  ▶ JobChart()
+       └─ ChartAPIAddress HTTP 호출 → 추천 종목 PNG 생성
+                │
+16:42  ▶ JobProfit()
+       └─ RecommandResult.Profit()
+            ├─ HoldingEndDate 만료 또는 손절 후보 조회
+            ├─ CheckSuccess / CheckSuccessStopLoss
+            └─ 결과 Update + 분할매수(SecondBuy) 재평가
+
+(별도 시각)
+       ▶ SendChatSchedule (스케줄 송출)
+       └─ Util.SendChatMessage / SendChatMessageV3 → ChatAPI 발송
+</code></pre>
+<h3 id="43-uitypemrmsmstur">4.3 실시간 모드 (UIType=<code>MR</code>/<code>MS</code>/<code>MST</code>/<code>UR</code>)</h3>
+<pre><code>RealtimeScheduler / RealtimeSchedulerMars(Ticker)
+   ├─ 시장 개장 시간 동안 상시 동작
+   ├─ Util.Realtime.InitPriceSubscribe()
+   │     └─ Redis(stockdatapubsub) 채널 구독 → 분봉 stream
+   │            └─ Util.Realtime.PushPrice() → RoboStock.ticks_1M 갱신
+   ├─ 식별로 ExpressionLoopCore 평가(특정 cron/이벤트)
+   ├─ 매칭 종목 발생 → ChatAPI 알림 + DB 적재
+   └─ Mars 계열은 CefSharp로 차트 자동 캡처 추가
+</code></pre>
+<h3 id="44-stockexpressions-uitypeexp">4.4 검색식 잡 (<code>StockExpressions</code> – UIType=<code>EXP</code>)</h3>
+<pre><code>SchedulerExpression
+  └─ StockExpressions(name, exps, date, browser).RunAsync()
+       1) Common.Util.DataLoadAsync(date)
+       2) SearchJob(token)
+            └─ using DynamicExpression:
+                 foreach exp in _exps:
+                   ui.BindExpression(exp.ExpressionFilePath)
+                   ui.SetExpressionGroupFromBindExpressions()
+                   result ← ui.ExecuteExpressionDate(date, token)
+       3) foreach matched stock:
+            ├─ (옵션) ChromiumWebBrowser → ChartUrl 로드 → SaveCaptureScreenshotAsync
+            ├─ Radar API &quot;STOCK_RELATION_THEME&quot; → 테마 키워드 매핑
+            └─ ExpressionBiz.SetStockExpressionResultInsert(...)
+</code></pre>
+<hr />
+<h2 id="5">5. 데이터/메모리 흐름 핵심 포인트</h2>
+<ol>
+<li><strong>사전 적재</strong>: <code>Common.Util.DataLoadAsync</code>가 ① 종목 마스터, ② 일봉(<code>Tick</code>)·분봉(<code>TickMinute</code>), ③ 지수(<code>RoboIndex</code>), ④ 영업일을 모두 메모리(<code>Constants.StockDay</code>/<code>StockIndex</code>/<code>RoboIndex</code>/<code>MarketOpenDateAll</code>)에 로드하고 MA/EMA/StoFastK 등을 미리 계산해 둔다. 식 평가는 캐시된 객체 그래프에서만 동작 → 평가 성능 확보.</li>
+<li><strong>식 인스턴스 = WinForms UserControl</strong>: UI 표시 + 평가 로직이 하나의 클래스에 결합. JOB 모드도 <code>using (var ui = new DynamicExpression())</code> 패턴으로 폼을 띄우지 않은 채 인스턴스만 활용.</li>
+<li><strong>그룹식의 자식 범위 전파</strong>: <code>IGetRange</code> → <code>ISetRange</code>로 범위(Tick 리스트)가 부모→자식으로 흘러간다. 동시에 <code>ExpressionGroups.currentExpression</code>이 정적 컨텍스트로 살아 있어 자식 식이 형제·부모 정보를 참조 가능.</li>
+<li><strong>등급 우선순위</strong>: <code>RoboAdvisor.SearchJob</code>은 등급 낮은 식부터 평가 → 상위 등급에서 같은 종목이 잡히면 상위 등급으로 승격, 최근 10영업일 중복 종목은 제외.</li>
+<li><strong>알림 채널</strong>: ChatAPI(<code>ChatAPIAddress</code>)를 통해 외부 메신저로 발송. 발송 여부는 <code>IsManualSendMessage</code> 플래그.</li>
+<li><strong>차트 캡처</strong>: CefSharp(off-screen) + <code>WrapperImpersonationContext</code>로 네트워크 공유 폴더에 PNG 저장.</li>
+<li><strong>로깅</strong>: <code>system.diagnostics</code> Trace + Kafka(<code>KafkaUrl</code>) + DB의 <code>OperationTermHistory</code> Alive(60초). 운영 모니터링 용.</li>
+</ol>
+<hr />
+<h2 id="6">6. 모듈 의존 관계</h2>
+<pre><code>Program  ──► Scheduler / DynamicExpression / Realtime* / SchedulerExpression / ProfitTest / SchedulerTest
+                          │                       │             │
+                          ▼                       ▼             ▼
+              RoboAdvisor   StockExpressions    RecommandResult
+                 │                │                  │
+                 ├── DynamicExpression  ◀──── (모두 공통 식 평가 엔진)
+                 │      │
+                 │      ├── ExpressionExcutebleWrap (Common.Types)
+                 │      ├── IExpression 구현체 (Analysis/Expression/...)
+                 │      └── Constants.StockDay (Common.Util)
+                 │
+                 ├── AnalysisGemini       (외부 Gemini HTTP)
+                 ├── Util.SendChatMessage (외부 ChatAPI HTTP)
+                 └── Sql.Biz.RoboBiz      (MS-SQL)
+
+Common.Util ──► Sql.Biz (DB)
+            ──► Redis(stockdata, stockdatapubsub)
+            ──► MongoDB (옵션)
+            ──► Web/Chart API
+</code></pre>
+<hr />
+<h2 id="7-uitype">7. 진입점별 UIType 매트릭스</h2>
+<table>
+<thead>
+<tr>
+<th>UIType</th>
+<th>진입 폼</th>
+<th>용도</th>
+<th>외부 의존</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>UI</code></td>
+<td><code>DynamicExpression</code></td>
+<td>식 작성/검색 GUI</td>
+<td>DB, Redis(MA 캐시)</td>
+</tr>
+<tr>
+<td><code>JOB</code></td>
+<td><code>Scheduler</code></td>
+<td>일일 자동 잡(메인 운영)</td>
+<td>DB, Redis, Gemini, ChatAPI, ChartAPI</td>
+</tr>
+<tr>
+<td><code>SIM</code></td>
+<td><code>SchedulerTest</code></td>
+<td>잡 시뮬레이션</td>
+<td>DB</td>
+</tr>
+<tr>
+<td><code>PRO</code></td>
+<td><code>ProfitTest</code></td>
+<td>백테스트 수익률 검증</td>
+<td>DB</td>
+</tr>
+<tr>
+<td><code>EXP</code></td>
+<td><code>SchedulerExpression</code></td>
+<td>검색식(StockExpression) 전용 잡</td>
+<td>DB, ChartAPI, Radar API</td>
+</tr>
+<tr>
+<td><code>UR</code></td>
+<td><code>RealtimeDebuger</code></td>
+<td>실시간 디버그</td>
+<td>Redis Pub/Sub</td>
+</tr>
+<tr>
+<td><code>MR</code></td>
+<td><code>RealtimeScheduler</code></td>
+<td>실시간 스케줄</td>
+<td>Redis, DB</td>
+</tr>
+<tr>
+<td><code>MS</code></td>
+<td><code>RealtimeSchedulerMars</code></td>
+<td>모의투자 실시간</td>
+<td>Redis, DB, CefSharp</td>
+</tr>
+<tr>
+<td><code>MST</code></td>
+<td><code>RealtimeSchedulerMarsTicker</code></td>
+<td>실시간 티커</td>
+<td>Redis, DB, CefSharp</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="8">8. 한눈에 보는 핵심 호출 경로</h2>
+<pre><code>[btnExecute_Click] ──► SetExpressionGroupFromBindExpressions
+                  ──► ExecuteExpression
+                       └─► (date 루프)
+                            └─► (stock 루프 over Constants.StockDay)
+                                 └─► ExpressionLoopCore(stock, date)
+                                      ├─► (단일) ICondition.Condition
+                                      ├─► (그룹OR) 자식 ICondition.Condition
+                                      ├─► (그룹범위인덱스) GetConditionGroupRangeIndex
+                                      │       └─► IGroupRangeIndex.GetGroupRangeIndex
+                                      │       └─► 자식 ICondition / IConditionGroupIndex.Condition
+                                      ├─► (그룹라인) GetConditionGroupLine
+                                      │       └─► IGroupLine.GetLineIndex
+                                      │       └─► 자식 ICondition / IConditionGroupLine.Condition
+                                      └─► (일반그룹) IGetRange.GetRange + ISetRange.SetRange
+                                              └─► IConditionGroup.ConditionGroupRange (슬라이딩)
+                                              └─► 자식 ICondition.Condition (해당 tick.date)
+                       └─► InitExpressionResultColumns / AddExpressionResultValues
+                       └─► (ISuccess 존재 시) 구간별 수익률 컬럼/판정 추가
+                  ──► BindResultAndSummary
+</code></pre>
+<hr />
+<h2 id="9">9. 부록 – 주요 파일 경로 인덱스</h2>
+<ul>
+<li>진입: <a href="Program.cs">Program.cs</a>, <a href="App.config">App.config</a></li>
+<li>공통: <a href="Common/IExpression.cs">Common/IExpression.cs</a>, <a href="Common/ExpressionNode.cs">Common/ExpressionNode.cs</a>, <a href="Common/ExpressionGroups.cs">Common/ExpressionGroups.cs</a>, <a href="Common/Constants.cs">Common/Constants.cs</a>, <a href="Common/Types.cs">Common/Types.cs</a>, <a href="Common/Util.cs">Common/Util.cs</a>, <a href="Common/Util.Realtime.cs">Common/Util.Realtime.cs</a></li>
+<li>식 엔진: <a href="Analysis/DynamicExpression.cs">Analysis/DynamicExpression.cs</a>, <a href="Analysis/Report.cs">Analysis/Report.cs</a></li>
+<li>실시간: <a href="Analysis/Realtime/RealtimeScheduler.cs">Analysis/Realtime/RealtimeScheduler.cs</a>, <a href="Analysis/Realtime/RealtimeSchedulerMars.cs">Analysis/Realtime/RealtimeSchedulerMars.cs</a></li>
+<li>잡: <a href="Scheduler.cs">Scheduler.cs</a>, <a href="Job/RoboAdvisor.cs">Job/RoboAdvisor.cs</a>, <a href="Job/RecommandResult.cs">Job/RecommandResult.cs</a>, <a href="Job/AnalysisGemini.cs">Job/AnalysisGemini.cs</a>, <a href="Job/StockExpressions.cs">Job/StockExpressions.cs</a>, <a href="Job/Mars.cs">Job/Mars.cs</a>, <a href="Job/MockTrade.cs">Job/MockTrade.cs</a></li>
+<li>DB: <a href="Sql/Biz.cs">Sql/Biz.cs</a>, <a href="Sql/Types.cs">Sql/Types.cs</a></li>
+<li>식 컨트롤: <a href="Analysis/Expression/">Analysis/Expression/</a></li>
+</ul>
+</body>
+</html>

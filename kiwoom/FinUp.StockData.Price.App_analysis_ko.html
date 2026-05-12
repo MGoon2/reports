@@ -1,0 +1,184 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FinUp.StockData.Price.App 분석 리포트_ko</title>
+  <style>
+    :root { color-scheme: light; --ink:#1f2937; --muted:#64748b; --line:#d7dee8; --bg:#f7f9fc; --panel:#ffffff; --accent:#0f766e; --warn:#b45309; --bad:#b91c1c; --good:#047857; }
+    body { margin:0; font-family: "Segoe UI", "Malgun Gothic", Arial, sans-serif; color:var(--ink); background:var(--bg); line-height:1.55; }
+    main { max-width:1180px; margin:0 auto; padding:40px 28px 56px; }
+    header { background:#0b1220; color:#fff; padding:34px 28px; border-bottom:4px solid var(--accent); }
+    header .wrap { max-width:1180px; margin:0 auto; }
+    h1 { margin:0 0 10px; font-size:30px; letter-spacing:0; }
+    h2 { margin:34px 0 14px; font-size:22px; border-bottom:1px solid var(--line); padding-bottom:8px; }
+    h3 { margin:24px 0 10px; font-size:17px; }
+    p { margin:8px 0 12px; }
+    code { font-family: Consolas, "Courier New", monospace; background:#eef2f7; padding:2px 5px; border-radius:4px; }
+    table { width:100%; border-collapse:collapse; background:var(--panel); margin:12px 0 18px; box-shadow:0 1px 2px rgba(15,23,42,.05); }
+    th, td { border:1px solid var(--line); padding:10px 12px; vertical-align:top; }
+    th { background:#eef6f4; text-align:left; }
+    ul { margin:8px 0 18px 22px; padding:0; }
+    li { margin:5px 0; }
+    .meta { color:#cbd5e1; font-size:14px; }
+    .note { background:#fff7ed; border-left:4px solid var(--warn); padding:12px 14px; margin:14px 0; }
+    .ok { color:var(--good); font-weight:600; }
+    .warn { color:var(--warn); font-weight:600; }
+    .bad { color:var(--bad); font-weight:600; }
+    .tag { display:inline-block; font-size:12px; padding:2px 7px; border-radius:999px; background:#e2e8f0; color:#334155; margin-right:6px; }
+    .evidence { font-size:13px; color:#334155; }
+    .summary { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:14px; margin:18px 0 8px; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }
+    .card h3 { margin-top:0; }
+    @media (max-width: 860px) { .summary { grid-template-columns:1fr; } main { padding:24px 16px 40px; } header { padding:26px 16px; } }
+  </style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>FinUp.StockData.Price.App 분석 리포트_ko</h1>
+  <div class="meta">작성일: 2026-05-07 · 기준 설정: <code>StartUp=KR</code> · 대상 경로: <code>C:\Dev\FinUp.StockData.Price.App</code></div>
+</div></header>
+<main>
+  <section>
+    <h2>요약 결론</h2>
+    <div class="summary">
+      <div class="card"><h3>Kafka</h3><p><span class="ok">KR 런타임 기준 실사용 근거 없음.</span> 설정에는 <code>KafkaUrl</code>, <code>LogCommunication=kafka</code>가 남아 있지만 <code>UseLog=false</code>이고 대상 앱 코드에서 <code>FinUp.Core.Log.Logger</code> 호출은 발견되지 않았다.</p></div>
+      <div class="card"><h3>Redis / Valkey</h3><p><span class="warn">코드는 Redis Pub/Sub 경로를 보유하지만 현재 KR/PRICE 설정에서는 자동 분배가 꺼져 있다.</span> Valkey endpoint는 이미 설정되어 있으며, 활성화 시 <code>stockdatapubsub</code> 클러스터로 publish한다.</p></div>
+      <div class="card"><h3>MongoDB / PG 전환</h3><p><span class="ok">현재 KR/PRICE 설정에서는 Mongo 저장이 꺼져 있다.</span> 더 강하게는 코드상 PRICE Mongo handler의 <code>StartAsync</code> 호출도 주석 처리되어 있어, 플래그만 켜도 저장이 시작되지 않는다.</p></div>
+    </div>
+    <p>따라서 현재 <code>StartUp=KR</code>, <code>FIDType=PRICE</code>, <code>RedisDistribute=false</code>, <code>MongoSaveData=false</code> 기준의 자동 실행 경로는 키움 실시간 가격 이벤트를 수신하지만 Kafka/Redis/MongoDB로 자동 송신 또는 저장하지 않는 구조로 판단된다.</p>
+  </section>
+
+  <section>
+    <h2>현재 설정 스냅샷</h2>
+    <table>
+      <thead><tr><th>설정</th><th>현재값 / 상태</th><th>해석</th><th>근거</th></tr></thead>
+      <tbody>
+        <tr><td><code>StartUp</code></td><td><code>KR</code></td><td><code>SchedulerKiwoomReal</code> 실행</td><td class="evidence">App.config:75, Program.cs:20-30</td></tr>
+        <tr><td><code>MarketType</code></td><td><code>ALL</code></td><td>코스피/코스닥 전체 대상</td><td class="evidence">App.config:93, SchedulerKiwoomReal.cs:43-59</td></tr>
+        <tr><td><code>FIDType</code></td><td><code>PRICE</code></td><td>키움 FID <code>REAL_FID_PRICE</code> 사용</td><td class="evidence">App.config:94, KiwoomClient.cs:66-71, Constants.cs:23-28</td></tr>
+        <tr><td><code>RedisDistribute</code></td><td><code>false</code></td><td>PRICE 경로 Redis handler 미생성</td><td class="evidence">App.config:98, SchedulerKiwoomReal.cs:163-174, KiwoomRedis.cs:71-78</td></tr>
+        <tr><td><code>MongoSaveData</code></td><td><code>false</code></td><td>PRICE 경로 Mongo handler 미생성</td><td class="evidence">App.config:99, SchedulerKiwoomReal.cs:163-174, KiwoomRedis.cs:80-85</td></tr>
+        <tr><td><code>UseOperationLog</code></td><td><code>false</code></td><td>작업 이력 SQL alive/start/end 로그 비활성</td><td class="evidence">App.config:97, AliveLogger.cs:23-25, JobBase2.cs:31-44</td></tr>
+        <tr><td><code>UseLog</code></td><td><code>false</code></td><td>Core.Data/Core.Log Kafka 로깅 비활성</td><td class="evidence">App.config:102, Logger.cs:24-30, LoggerConfigModel.cs:56-64</td></tr>
+        <tr><td>Redis endpoint</td><td><code>master.stockdatapubsub-valkey-dev...</code></td><td>AWS Valkey로 보이는 endpoint가 이미 설정됨</td><td class="evidence">App.config:21-29</td></tr>
+        <tr><td>MongoDB endpoint</td><td><code>mongodb://10.0.0.187:1412</code></td><td>설정은 남아 있으나 KR/PRICE 현재 플래그상 미사용</td><td class="evidence">App.config:78-81, KiwoomRedis.cs:65-69</td></tr>
+      </tbody>
+    </table>
+    <div class="note">주의: <code>App.config</code>에는 계정/비밀번호/API 키 성격의 값이 포함되어 있다. 본 리포트는 민감값을 인용하지 않고 설정 키와 의존성 판단에 필요한 항목만 기록했다.</div>
+  </section>
+
+  <section>
+    <h2>KR 실행 흐름</h2>
+    <ol>
+      <li><code>Program.Main</code>이 <code>ConfigurationManager.AppSettings["StartUp"]</code>을 읽고 <code>KR</code>이면 <code>SchedulerKiwoomReal</code>을 실행한다.</li>
+      <li><code>SchedulerKiwoomReal</code>은 <code>MarketType</code>, <code>FIDType</code>, <code>KiwoomStartDelay</code>를 읽고 장 시작 스케줄을 계산한다.</li>
+      <li>스케줄 시작 시 <code>RedisDistribute</code>, <code>MongoSaveData</code>를 읽어 <code>KiwoomRedis</code>에 전달한다.</li>
+      <li><code>KiwoomRedis</code>는 <code>KiwoomClient</code>를 생성하고 키움 OpenAPI 실시간 이벤트를 <code>OnPrice</code>, <code>OnHoga</code>, <code>OnTrader</code>로 받는다.</li>
+      <li>현재 <code>FIDType=PRICE</code>이므로 PRICE 데이터만 관심 경로이며, Redis/Mongo handler는 현재 플래그상 생성되지 않는다.</li>
+    </ol>
+    <table>
+      <thead><tr><th>흐름 지점</th><th>근거</th></tr></thead>
+      <tbody>
+        <tr><td>KR 분기</td><td class="evidence">Program.cs:20-30</td></tr>
+        <tr><td>Redis endpoint 로그 및 스케줄 초기화</td><td class="evidence">SchedulerKiwoomReal.cs:84-96, 116-180</td></tr>
+        <tr><td>PRICE/HOGATRADER FID 선택</td><td class="evidence">KiwoomClient.cs:55-75, Constants.cs:23-28</td></tr>
+        <tr><td>키움 가격 이벤트 생성</td><td class="evidence">KiwoomClient.cs:286-343</td></tr>
+        <tr><td>이벤트를 handler에 전달</td><td class="evidence">KiwoomRedis.cs:170-186</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Kafka 확인</h2>
+    <h3>Evidence</h3>
+    <ul>
+      <li><code>App.config</code>에는 <code>KafkaUrl</code>, <code>LogCommunication=kafka</code>가 있다. 동시에 <code>UseLog=false</code>다. <span class="evidence">App.config:101-107</span></li>
+      <li>대상 앱 코드에서 <code>FinUp.Core.Log</code>, <code>Logger.Instance</code>, <code>LoggerKafkaDAL</code> 직접 사용은 검색되지 않았다.</li>
+      <li><code>FinUp.Core.Data</code>는 SQL 실행 후 <code>Log.Insert</code>를 호출하고, <code>Log.Insert</code>는 <code>Logger.Instance.InsertManualy</code>로 이어진다. <span class="evidence">Sql.cs:84-95, 173-184, Log.cs:16-62</span></li>
+      <li><code>Logger</code>는 생성 시 <code>UseLog</code>가 true일 때만 <code>LoggerFactory</code>와 DAL을 만든다. <span class="evidence">Logger.cs:22-30</span></li>
+      <li><code>LoggerFactory</code>는 <code>LogCommunication=Kafka</code>일 때 <code>LoggerKafkaDAL</code>을 생성하고, 이 DAL은 <code>KafkaUtil</code>로 <code>Confluent.Kafka</code> producer를 만든다. <span class="evidence">LoggerFactory.cs:50-57, LoggerKafkaDAL.cs:7-24, KafkaUtil.cs:31-64</span></li>
+      <li>프로젝트 참조상 <code>FinUp.Core.Log</code>와 <code>Confluent.Kafka</code> 의존성은 빌드 그래프에 남아 있다. <span class="evidence">FinUp.StockData.Price.App.csproj:476-479, FinUp.Core.Log.csproj:89-91</span></li>
+    </ul>
+    <h3>Inference</h3>
+    <p>KR 런타임 기준 Kafka는 기능적으로 비활성이다. 다만 빌드/배포 의존성으로는 <code>FinUp.Core.Log</code> 및 <code>Confluent.Kafka</code>가 남아 있으므로, “운영에서 Kafka를 호출하지 않는다”와 “Kafka 라이브러리/설정을 제거해도 된다”는 서로 다른 판단이다.</p>
+    <table>
+      <thead><tr><th>판단</th><th>신뢰도</th><th>설명</th></tr></thead>
+      <tbody>
+        <tr><td>현재 KR 실행에서 Kafka 송신 없음</td><td>높음</td><td><code>UseLog=false</code>가 Kafka DAL 생성을 차단하고 대상 앱 내 직접 호출이 없다.</td></tr>
+        <tr><td>Kafka 설정 삭제 가능</td><td>중간</td><td>런타임 호출은 없지만 Core.Data/Core.Log 빌드 의존성이 있어 제거 범위 확인이 필요하다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Redis / AWS Valkey 확인</h2>
+    <h3>Evidence</h3>
+    <ul>
+      <li><code>stockdata</code>, <code>stockdatapubsub</code> Redis cluster가 <code>finup</code> custom config section에 정의되어 있다. 현재 endpoint는 <code>master.stockdatapubsub-valkey-dev...</code>다. <span class="evidence">App.config:4-33</span></li>
+      <li><code>SchedulerKiwoomReal</code>은 로드시 <code>stockdatapubsub</code> endpoint를 로그에 출력한다. 이 자체는 설정 접근이며 publish는 아니다. <span class="evidence">SchedulerKiwoomReal.cs:84-89</span></li>
+      <li>PRICE 경로에서는 <code>RedisDistribute=true</code>일 때만 <code>RedisStockDataHandler</code>가 생성된다. 현재 값은 false다. <span class="evidence">App.config:98, KiwoomRedis.cs:71-78</span></li>
+      <li><code>RedisStockDataHandler</code>는 <code>RedisDatabase.GetSubcriber("stockdatapubsub")</code>로 subscriber를 얻고 <code>PRICE</code>, <code>HOGA</code>, <code>TRADER</code> channel에 publish한다. <span class="evidence">RedisStockDataHandler.cs:24-27, 31-51, 73-121</span></li>
+      <li><code>SchedulerKiwoomReal.button1_Click</code>는 수동 테스트 버튼으로 Redis Pub/Sub 테스트 메시지를 publish한다. 자동 실행 경로와는 구분된다. <span class="evidence">SchedulerKiwoomReal.cs:344-380</span></li>
+      <li><code>Core.Redis</code>는 <code>StackExchange.Redis 2.1.58</code>를 사용하고 <code>ConfigurationOptions</code>에 endpoint, timeout, retry 등을 넣어 연결한다. SSL/AUTH 관련 설정은 현재 schema에 없다. <span class="evidence">FinUp.Core.Redis.csproj:75-80, RedisCluster.cs:138-149, Configuration/FinUp.cs:140-214</span></li>
+    </ul>
+    <h3>Inference</h3>
+    <p>현재 KR/PRICE 자동 실행에서 Redis publish는 꺼져 있다. Redis를 AWS Valkey로 전환하는 관점에서는 이미 endpoint가 Valkey dev로 잡혀 있으나, 실제 Redis Pub/Sub 기능은 <code>RedisDistribute=true</code> 또는 HOGATRADER 경로에서 검증해야 한다.</p>
+    <p>Valkey가 Redis 프로토콜 호환 모드이고 인증/TLS를 강제하지 않는 구성이라면 현재 <code>StackExchange.Redis</code> 경로로 동작할 가능성이 높다. 반대로 AWS Valkey에서 TLS 또는 AUTH token을 요구하면 현재 config schema에는 <code>Ssl</code>, <code>Password</code>, <code>User</code>를 표현할 곳이 없어 코드/설정 확장이 필요하다.</p>
+    <div class="note">특이점: <code>FIDType</code>이 <code>PRICE</code>가 아니면 <code>KiwoomRedis</code>의 else 경로가 <code>RedisDistribute</code> 플래그를 보지 않고 <code>RedisStockDataHandler</code>를 생성한다. 현재는 <code>FIDType=PRICE</code>라 해당되지 않지만, HOGATRADER 운용 시 Redis는 사실상 강제 사용된다. <span class="evidence">KiwoomRedis.cs:87-98, 133-140</span></div>
+  </section>
+
+  <section>
+    <h2>MongoDB / PostgreSQL 전환 확인</h2>
+    <h3>Evidence</h3>
+    <ul>
+      <li><code>App.config</code>에는 <code>MongoDB</code>, <code>MongoDBName=StockData</code>가 남아 있다. <span class="evidence">App.config:76-81</span></li>
+      <li>PRICE 경로에서 <code>MongoSaveData=true</code>일 때만 <code>MongoStockDataHandler</code>를 생성한다. 현재 값은 false다. <span class="evidence">App.config:99, KiwoomRedis.cs:80-85</span></li>
+      <li>그러나 <code>KiwoomRedis.Start</code>의 PRICE Mongo handler 시작 호출은 주석 처리되어 있다. 즉 플래그를 true로 바꾸는 것만으로는 PRICE Mongo 저장 consumer가 시작되지 않는다. <span class="evidence">KiwoomRedis.cs:126-131</span></li>
+      <li>HOGA Mongo handler 생성 및 시작도 주석 처리되어 있다. <span class="evidence">KiwoomRedis.cs:89-98, 133-140</span></li>
+      <li><code>MongoStockDataHandler</code>는 DB명을 <code>{MongoDBName}{yyyy}</code>로 바꾸며, <code>T_Hoga</code>, <code>T_Trader</code>, <code>T_Price</code> collection을 만들고 <code>InsertManyAsync</code>로 batch insert한다. <span class="evidence">MongoStockDataHandler.cs:27-43, 60-83, 86-117</span></li>
+      <li>프로젝트에는 마이그레이션/테스트/다른 StartUp 경로의 Mongo 직접 사용이 다수 있다. 예: <code>Mig\MongoDBMig.cs</code>, <code>Mig\KiwoomBackupMig.cs</code>, <code>Job.v2\TraderDayKiwoom.cs</code>, <code>Test\TraderDay.cs</code>. 이들은 KR 자동 가격 수집 경로와 별도다.</li>
+    </ul>
+    <h3>Inference</h3>
+    <p>현재 KR/PRICE 운용만 놓고 보면 MongoDB는 즉시 제거 후보에 가깝다. 하지만 프로젝트 전체에서 마이그레이션 폼, 테스트 폼, 다른 스케줄러/StartUp 경로가 MongoDB에 직접 연결하므로 “앱 전체 MongoDB 제거”는 KR 경로보다 넓은 작업이다.</p>
+    <p>PG 전환 시 KR/PRICE 자동 수집만 목표라면 우선순위는 낮다. 반대로 과거/일봉/거래원/마이그레이션 기능까지 유지하려면 Mongo collection <code>T_Price</code>, <code>T_Hoga</code>, <code>T_Trader</code>, <code>T_TraderDay</code> 등과 연도 suffix DB 전략을 PG schema/table partition 전략으로 매핑해야 한다.</p>
+  </section>
+
+  <section>
+    <h2>랭크별 판단</h2>
+    <table>
+      <thead><tr><th>Rank</th><th>판단</th><th>신뢰도</th><th>근거</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>현재 <code>StartUp=KR</code> 자동 실행에서 Kafka는 사용되지 않는다.</td><td>높음</td><td><code>UseLog=false</code>, 직접 Logger 호출 없음, Kafka는 Core.Log 내부 옵션 경로에만 존재.</td></tr>
+        <tr><td>2</td><td>현재 <code>StartUp=KR</code>, <code>FIDType=PRICE</code> 자동 실행에서 Redis publish는 꺼져 있다.</td><td>높음</td><td><code>RedisDistribute=false</code>이고 PRICE handler 생성 조건이 false.</td></tr>
+        <tr><td>3</td><td>현재 <code>StartUp=KR</code>, <code>FIDType=PRICE</code> 자동 실행에서 Mongo 저장은 꺼져 있고, 코드상 시작 호출도 비활성이다.</td><td>높음</td><td><code>MongoSaveData=false</code> 및 <code>_mongoPriceHandler.StartAsync</code> 주석 처리.</td></tr>
+        <tr><td>4</td><td>Redis를 Valkey로 바꾸는 작업은 현재 설정 변경 일부가 이미 반영되어 있으나 TLS/AUTH 요구사항 확인이 남아 있다.</td><td>중간</td><td>Valkey endpoint 설정은 존재하지만 연결 테스트/운영 보안 설정은 저장소 근거만으로 확정 불가.</td></tr>
+        <tr><td>5</td><td>MongoDB를 PG로 완전히 전환하려면 KR 경로보다 마이그레이션/테스트/다른 StartUp 경로까지 범위가 확대된다.</td><td>중간</td><td>Mongo 직접 사용 파일이 다수이나 현재 요청 범위는 KR 런타임 중심.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>전환 영향 요약</h2>
+    <table>
+      <thead><tr><th>전환 대상</th><th>현재 KR 영향</th><th>남은 확인 포인트</th></tr></thead>
+      <tbody>
+        <tr><td>Kafka 미사용</td><td>운영 호출 제거 관점에서는 이미 비활성에 가깝다.</td><td><code>FinUp.Core.Log</code>/<code>Confluent.Kafka</code> 배포 의존성까지 제거할지 결정 필요.</td></tr>
+        <tr><td>Redis → AWS Valkey</td><td>KR/PRICE 자동 publish는 꺼져 있으므로 현재 장애 표면은 작다.</td><td>Valkey TLS/AUTH/port 요구사항, <code>RedisDistribute=true</code> 활성화 시 Pub/Sub 동작 검증.</td></tr>
+        <tr><td>MongoDB → PostgreSQL</td><td>KR/PRICE 자동 저장은 꺼져 있어 직접 영향은 낮다.</td><td>마이그레이션/테스트/다른 StartUp 기능까지 유지할 경우 PG schema, batch insert, 연도별 데이터 분리 전략 필요.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Unknowns / Limits</h2>
+    <ul>
+      <li>실제 AWS Valkey endpoint 접속 가능 여부, TLS/AUTH 적용 여부는 저장소만으로 확정할 수 없다.</li>
+      <li>배포 산출물에 Kafka 관련 DLL을 포함하는지, 운영 모니터링에서 Kafka traffic이 실제로 0인지까지는 빌드/런타임 관측이 필요하다.</li>
+      <li>PG 전환 범위가 KR 실시간 가격 수집만인지, 마이그레이션/테스트/다른 StartUp 경로까지 포함하는지는 별도 범위 결정이 필요하다.</li>
+      <li><code>App.config</code>에는 <code>KiwoomStartDelay</code>가 중복 정의되어 있다. 현재 분석 주제는 아니지만 .NET configuration 로딩 정책에 따라 런타임 설정 오류 또는 예기치 않은 값 해석 가능성이 있어 별도 확인 가치가 있다. <span class="evidence">App.config:91, 100</span></li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>

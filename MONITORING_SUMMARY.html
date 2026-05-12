@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>FinUp 모니터링 스택 구축 정리</title>
+<style>
+  :root {
+    --fg: #1a1a1a;
+    --muted: #555;
+    --bg: #fafafa;
+    --card: #ffffff;
+    --border: #e2e2e2;
+    --accent: #2563eb;
+    --good: #16a34a;
+    --warn: #d97706;
+    --crit: #dc2626;
+    --code-bg: #f3f4f6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px;
+    line-height: 1.6;
+  }
+  h1 { font-size: 28px; margin: 0 0 8px; }
+  h2 { font-size: 22px; margin: 36px 0 12px; padding-bottom: 6px; border-bottom: 2px solid var(--accent); }
+  h3 { font-size: 17px; margin: 24px 0 8px; color: var(--accent); }
+  .subtitle { color: var(--muted); margin-bottom: 24px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 12px 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 14px;
+  }
+  th, td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  th { background: #f1f5f9; font-weight: 600; }
+  tr:hover td { background: #f9fafb; }
+  code {
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: "SF Mono", Consolas, Monaco, monospace;
+    font-size: 13px;
+  }
+  pre {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 14px 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  pre code { background: transparent; color: inherit; padding: 0; }
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .tag-ok { background: #dcfce7; color: var(--good); }
+  .tag-warn { background: #fef3c7; color: var(--warn); }
+  .tag-crit { background: #fee2e2; color: var(--crit); }
+  .tag-info { background: #dbeafe; color: var(--accent); }
+  .metric {
+    display: inline-block;
+    padding: 4px 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin: 2px 4px 2px 0;
+    font-size: 13px;
+    font-family: monospace;
+  }
+  ul, ol { padding-left: 22px; }
+  li { margin: 4px 0; }
+  .toc { background: #eff6ff; border-left: 4px solid var(--accent); padding: 12px 16px; margin: 16px 0; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .box {
+    border-left: 4px solid var(--warn);
+    background: #fffbeb;
+    padding: 10px 14px;
+    margin: 12px 0;
+    border-radius: 0 4px 4px 0;
+  }
+  .box-crit { border-left-color: var(--crit); background: #fef2f2; }
+  .box-ok { border-left-color: var(--good); background: #f0fdf4; }
+  .diagram {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 20px;
+    border-radius: 6px;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<h1>FinUp 모니터링 스택 구축 정리</h1>
+<p class="subtitle">Prometheus + Grafana + Alertmanager 기반 셀프호스팅 모니터링 · 2026-04-19 작업</p>
+
+<div class="toc">
+  <strong>목차</strong>
+  <ol>
+    <li><a href="#overview">개요</a></li>
+    <li><a href="#architecture">아키텍처</a></li>
+    <li><a href="#access">접근 방법</a></li>
+    <li><a href="#coverage">관측 대상 커버리지</a></li>
+    <li><a href="#dashboards">Grafana 대시보드</a></li>
+    <li><a href="#alerts">알람 규칙</a></li>
+    <li><a href="#runbook">운영 런북</a></li>
+    <li><a href="#deploy-summary">배포 변경 요약</a></li>
+    <li><a href="#files">관련 파일/설정</a></li>
+  </ol>
+</div>
+
+<h2 id="overview">1. 개요</h2>
+<div class="card">
+  <p>오전 Hikari 커넥션 풀 고갈로 로그인 장애가 발생했으나 선제 감지가 불가능했음. 이를 계기로 <strong>앱 내부 메트릭(HikariCP/JVM/HTTP) + 호스트 + AWS 인프라</strong>를 통합 관측하는 자체 호스팅 모니터링 스택을 구축.</p>
+
+  <h3>목표</h3>
+  <ul>
+    <li>풀 고갈·JVM Heap 포화·응답 지연을 <strong>사전 감지</strong> (트렌드 기반 알람)</li>
+    <li>Spring Boot 전 서비스에 Prometheus 엔드포인트 노출하여 일관된 메트릭 통합</li>
+    <li>Telegram 자동 알람 (기존 봇 재활용)</li>
+    <li>외부 SaaS 의존 제거, AWS 내부망 완결</li>
+  </ul>
+
+  <h3>결과 요약</h3>
+  <ul>
+    <li>Prometheus 타겟 <strong>48개</strong> 모두 <span class="tag tag-ok">up</span></li>
+    <li>관측 중인 Spring Boot 서비스 <strong>11개</strong>: api-stock, api-admin, api-mentor, api-radar, api-finance, api-chat, stockdata-admin, stockdata-core, stockdata-realtime, collector-extra-worker, collector-news-worker</li>
+    <li>호스트 메트릭 <strong>14개 EC2</strong>: finup-api1/2, front1/2, biz-api1/2, biz-front1/2, api-radar1/2, stockdata-admin/core/realtime1, api-collectdata1</li>
+    <li>AWS 인프라 메트릭 (CloudWatch Exporter): ALB, RDS, ElastiCache 의 24개 메트릭</li>
+    <li>알람 룰 <strong>17개</strong> (prod 환경 필터링 적용)</li>
+    <li>Grafana 대시보드 <strong>7개</strong>: FinUp Overview, AWS Infra, JVM Micrometer, Spring Boot APM(2), Node Exporter Full, Cadvisor</li>
+  </ul>
+</div>
+
+<h2 id="architecture">2. 아키텍처</h2>
+
+<div class="diagram">
+[사용자] → https://grafana.finup.co.kr
+                │
+                │ (사무실 IP 61.82.98.177/32만 허용, 그 외 403)
+                ▼
+        ELBMainExternal ALB (priority 16/17 rule)
+                │
+                ▼
+        TG-monitoring-grafana (10.0.202.65:3000)
+                │
+                ▼
+  ┌──────────────────────────────────┐
+  │  monitoring1 EC2 (신규)          │
+  │  i-0db311ea3d6d4a4af / 10.0.202.65│
+  │  ┌─────────┐  ┌─────────┐         │
+  │  │ Grafana │  │Prometheus│        │
+  │  │  :3000  │─>│  :9090  │        │
+  │  └─────────┘  └─────────┘         │
+  │                   │               │
+  │            ┌──────┴───────┐       │
+  │            ▼              ▼       │
+  │  ┌───────────────┐  ┌──────────┐  │
+  │  │ Alertmanager  │  │Cloudwatch│  │
+  │  │   :9093       │  │ Exporter │  │
+  │  │               │  │  :9106   │  │
+  │  └──────┬────────┘  └────┬─────┘  │
+  └─────────┼────────────────┼────────┘
+            │                │
+            ▼                ▼
+      [Telegram Bot]   [AWS CloudWatch API]
+                       (IAM: CloudWatchReadOnlyAccess)
+
+    ↑ scrape (30s)
+    │
+┌───┴────────────────────────────────────┐
+│ 앱 EC2 14개 (read-only 사이드카)        │
+│  ┌──────────────┐  ┌──────────┐        │
+│  │ node_exporter│  │ cadvisor │        │
+│  │   :9100      │  │  :9101   │        │
+│  └──────────────┘  └──────────┘        │
+│                                         │
+│  Spring Boot 앱 :8081~8095              │
+│  /actuator/prometheus                   │
+│  (micrometer-registry-prometheus)       │
+└─────────────────────────────────────────┘
+</div>
+
+<h2 id="access">3. 접근 방법</h2>
+<div class="card">
+  <h3>Grafana</h3>
+  <ul>
+    <li>URL: <code>https://grafana.finup.co.kr</code></li>
+    <li>접근 제한: <strong>사무실 공인 IP(<code>61.82.98.177/32</code>)만 허용</strong>, 그 외 403 Forbidden</li>
+    <li>인증: Grafana 자체 로그인 (admin 비번은 로컬 <code>~/tmp/gfpw.txt</code> 보관)</li>
+    <li>TLS: 기존 <code>*.finup.co.kr</code> ACM 인증서 재사용</li>
+  </ul>
+  <div class="box">
+    <strong>권장:</strong> admin 기본 패스워드 즉시 변경 + 팀원별 Viewer 계정 발급 + MFA 활성화.
+  </div>
+
+  <h3>Prometheus / Alertmanager (관리자용)</h3>
+  <ul>
+    <li>각각 127.0.0.1 에만 바인딩되어 있어 외부 접근 불가</li>
+    <li>접근 필요시 SSM port forwarding:
+      <pre><code>aws --profile finup ssm start-session \
+  --target i-0db311ea3d6d4a4af \
+  --document-name AWS-StartPortForwardingSession \
+  --parameters "portNumber=9090,localPortNumber=9090"</code></pre>
+    </li>
+  </ul>
+
+  <h3>Telegram 알람</h3>
+  <ul>
+    <li>기존 <code>finup-monitor.sh</code> 가 쓰던 봇 재활용 (chat_id <code>-1003964991815</code>)</li>
+    <li>발송 조건: Alertmanager 경유, prod 환경만 필터링</li>
+  </ul>
+</div>
+
+<h2 id="coverage">4. 관측 대상 커버리지</h2>
+
+<h3>Prometheus 타겟 (총 48개)</h3>
+<table>
+  <thead><tr><th>Job</th><th>개수</th><th>대상</th><th>메트릭</th></tr></thead>
+  <tbody>
+    <tr><td>prometheus</td><td>1</td><td>self</td><td>스크레이프 상태</td></tr>
+    <tr><td>alertmanager</td><td>1</td><td>self</td><td>알람 발송</td></tr>
+    <tr><td>cloudwatch</td><td>1</td><td>CloudWatch Exporter</td><td>ALB/RDS/ElastiCache</td></tr>
+    <tr><td>node_exporter</td><td>14</td><td>14개 EC2</td><td>CPU/메모리/디스크/네트워크</td></tr>
+    <tr><td>cadvisor</td><td>14</td><td>14개 EC2</td><td>컨테이너 자원 사용량</td></tr>
+    <tr><td>spring_apps</td><td>17</td><td>11개 서비스 인스턴스</td><td>HikariCP/JVM/HTTP 요청</td></tr>
+  </tbody>
+</table>
+
+<h3>관측 중인 Spring Boot 서비스</h3>
+<table>
+  <thead><tr><th>서비스</th><th>인스턴스</th><th>포트</th><th>호스트</th></tr></thead>
+  <tbody>
+    <tr><td>api-stock</td><td>2</td><td>8081</td><td>finup-api1/2</td></tr>
+    <tr><td>api-finance</td><td>2</td><td>8082</td><td>finup-api1/2</td></tr>
+    <tr><td>api-chat</td><td>2</td><td>8083</td><td>finup-api1/2</td></tr>
+    <tr><td>api-admin</td><td>2</td><td>8086</td><td>finup-biz-api1/2</td></tr>
+    <tr><td>api-mentor</td><td>2</td><td>8083</td><td>finup-biz-api1/2</td></tr>
+    <tr><td>api-radar</td><td>2</td><td>8088</td><td>finup-api-radar1/2</td></tr>
+    <tr><td>stockdata-admin</td><td>1</td><td>8085</td><td>finup-stockdata-admin1</td></tr>
+    <tr><td>stockdata-core</td><td>1</td><td>8084</td><td>finup-stockdata-core1</td></tr>
+    <tr><td>stockdata-realtime</td><td>1</td><td>8087</td><td>finup-stockdata-realtime1</td></tr>
+    <tr><td>collector-extra-worker</td><td>1</td><td>8095</td><td>finup-api-collectdata1</td></tr>
+    <tr><td>collector-news-worker</td><td>1</td><td>8092</td><td>finup-api-collectdata1</td></tr>
+  </tbody>
+</table>
+
+<h3>미관측 대상 (의도적 스킵)</h3>
+<ul>
+  <li>Next.js 프론트 11개: <code>front-admin</code>, <code>front-stock</code>, <code>front-finance</code>, <code>front-mentor</code>, <code>front-company</code>, <code>front-freechat</code>, <code>front-general</code>, <code>front-mweb-finance</code>, <code>front-mweb-general</code>, <code>front-mweb-stock</code>, <code>front-stockdata</code>
+    — cadvisor 컨테이너 메트릭과 ALB 메트릭으로 간접 관측 (앱 레벨 인스트루멘테이션 ROI 낮음 판단)</li>
+  <li>SSM 미연결 호스트: API Push, API Log2 — SSM Agent 설치 후 별도 작업 필요</li>
+  <li>Windows: API Log1 — 다른 exporter 번들 필요</li>
+</ul>
+
+<h2 id="dashboards">5. Grafana 대시보드</h2>
+<table>
+  <thead><tr><th>이름</th><th>URL</th><th>용도</th></tr></thead>
+  <tbody>
+    <tr><td>FinUp Overview</td><td><code>/d/finup-overview</code></td><td>커스텀 — 전체 헬스 한눈에 (Hikari/JVM/HTTP/호스트/컨테이너)</td></tr>
+    <tr><td>AWS Infra (ALB/RDS/ElastiCache)</td><td><code>/d/finup-aws</code></td><td>커스텀 — AWS 리소스 메트릭</td></tr>
+    <tr><td>JVM (Micrometer)</td><td><code>/d/dfjkdxregr9c0b</code></td><td>import 4701 — JVM 힙/GC/스레드</td></tr>
+    <tr><td>Spring Boot APM</td><td><code>/d/X034JGT7Gz</code></td><td>import 12900 — HTTP/HikariCP/JDBC</td></tr>
+    <tr><td>Spring Boot 2.1 Statistics</td><td><code>/d/spring_boot_21</code></td><td>import 10280 — 보조 JVM</td></tr>
+    <tr><td>Node Exporter Full</td><td><code>/d/rYdddlPWk</code></td><td>import 1860 — 호스트 OS</td></tr>
+    <tr><td>Cadvisor exporter</td><td><code>/d/pMEd7m0Mz</code></td><td>import 14282 — 컨테이너</td></tr>
+  </tbody>
+</table>
+
+<h2 id="alerts">6. 알람 규칙 (17개)</h2>
+<p>모든 알람은 Alertmanager → Telegram 그룹(<code>-1003964991815</code>) 으로 발송. prod 환경만 필터링 (dev/staging/mars 제외).</p>
+
+<h3>infra.host (3)</h3>
+<table>
+  <thead><tr><th>룰</th><th>임계값</th><th>심각도</th></tr></thead>
+  <tbody>
+    <tr><td>HostHighCPU</td><td>idle 평균 &lt; 10% (10분)</td><td><span class="tag tag-warn">warning</span></td></tr>
+    <tr><td>HostLowDisk</td><td>root / &lt; 10% 가용</td><td><span class="tag tag-crit">critical</span></td></tr>
+    <tr><td>HostHighMemory</td><td>사용률 &gt; 90% (10분)</td><td><span class="tag tag-warn">warning</span></td></tr>
+  </tbody>
+</table>
+
+<h3>infra.container (1)</h3>
+<ul>
+  <li><strong>ContainerDown</strong>: 컨테이너 last_seen 이 2분 이상 업데이트 안 됨 (critical)</li>
+</ul>
+
+<h3>app.spring (4)</h3>
+<table>
+  <thead><tr><th>룰</th><th>임계값</th><th>심각도</th></tr></thead>
+  <tbody>
+    <tr><td>HikariPoolPending</td><td>pending &gt; 0 (2분)</td><td><span class="tag tag-crit">critical</span></td></tr>
+    <tr><td>HikariPoolNearLimit</td><td>active/max &gt; 80% (5분)</td><td><span class="tag tag-warn">warning</span></td></tr>
+    <tr><td>HighHttpErrorRate</td><td>5xx 비율 &gt; 5% (5분)</td><td><span class="tag tag-warn">warning</span></td></tr>
+    <tr><td>JvmHeapHigh</td><td>heap 사용률 &gt; 90% (10분)</td><td><span class="tag tag-warn">warning</span></td></tr>
+  </tbody>
+</table>
+
+<h3>aws.alb / aws.rds / aws.elasticache (9, prod 필터링)</h3>
+<table>
+  <thead><tr><th>룰</th><th>임계값</th></tr></thead>
+  <tbody>
+    <tr><td>ALB5xxRate</td><td>TG 5xx 비율 &gt; 5%</td></tr>
+    <tr><td>ALBTargetResponseTimeHigh</td><td>p95 &gt; 3s</td></tr>
+    <tr><td>ALBUnhealthyHost</td><td>unhealthy 호스트 감지</td></tr>
+    <tr><td>RdsCpuHigh</td><td>CPU &gt; 85% (10분)</td></tr>
+    <tr><td>RdsConnectionsHigh</td><td>max 연결수 &gt; 200</td></tr>
+    <tr><td>RdsFreeStorageLow</td><td>남은 디스크 &lt; 10GB</td></tr>
+    <tr><td>ElastiCacheCpuHigh</td><td>CPU &gt; 75%</td></tr>
+    <tr><td>ElastiCacheMemoryHigh</td><td>메모리 &gt; 85%</td></tr>
+    <tr><td>ElastiCacheHitRateLow</td><td>히트율 &lt; 70% (15분)</td></tr>
+  </tbody>
+</table>
+
+<h3>Telegram 알람 메시지 예시</h3>
+<pre><code>🔴 HikariPoolPending (critical)
+영향 대상 1개
+• [prod] api-stock Hikari pending=5 (pool=HikariPool-1) on finup-api1
+👀 대시보드: https://grafana.finup.co.kr/d/finup-aws/</code></pre>
+
+<h2 id="runbook">7. 운영 런북</h2>
+
+<h3>일상적인 점검</h3>
+<div class="card">
+  <ol>
+    <li>Grafana → <code>FinUp Overview</code> 대시보드에서 HikariCP Pending / JVM Heap / HTTP 5xx 쪽 스파이크 확인</li>
+    <li>알람 노이즈 발생 시 Alertmanager silence 추가 (일시적) 또는 <code>aws-alerts.yml</code> 규칙 수정 (영구적)</li>
+    <li>주기적: Prometheus 디스크 사용량 확인 (30일 TSDB, 현재 30GB EBS)</li>
+  </ol>
+</div>
+
+<h3>모니터링 EC2 관리</h3>
+<div class="card">
+  <ul>
+    <li>인스턴스 ID: <code>i-0db311ea3d6d4a4af</code> / <code>10.0.202.65</code></li>
+    <li>Docker Compose: <code>/opt/monitoring/</code></li>
+    <li>SSM 접근: <code>aws --profile finup ssm start-session --target i-0db311ea3d6d4a4af</code></li>
+    <li>컨테이너 재시작: <code>docker compose restart &lt;service&gt;</code></li>
+  </ul>
+</div>
+
+<h3>자주 있는 장애 대응</h3>
+<div class="card">
+  <h3>Hikari 풀 고갈 알람 수신 시</h3>
+  <ol>
+    <li>어느 서비스인지 확인 — 알람 메시지의 <code>application</code> + <code>host</code> 라벨</li>
+    <li>Grafana FinUp Overview 에서 <code>hikaricp_connections_pending</code> 트렌드 확인 (급상승 / 점진적 상승 구분)</li>
+    <li>긴급 임시 조치: 해당 EC2 SSH → <code>docker restart &lt;api-service&gt;</code> (풀 초기화, 다운타임 ~20초)</li>
+    <li>근본 원인 분석: <code>docker logs &lt;api&gt; | grep "leak detection"</code> — 커넥션 누수 위치 확인 (leak-detection-threshold 60s 가 이미 적용됨)</li>
+  </ol>
+
+  <h3>모니터링 EC2 가 다운됐을 때</h3>
+  <ul>
+    <li>앱 서비스에는 영향 없음 (exporter 는 사이드카, 앱 독립)</li>
+    <li>알람만 일시적으로 발송 중단 — 복구 우선순위 낮음</li>
+    <li>복구: <code>docker compose up -d</code> 로 전체 재기동</li>
+  </ul>
+
+  <h3>CloudWatch Exporter 에러</h3>
+  <ul>
+    <li>IAM 권한 문제 (<code>EC2-Service-Role</code> 에 <code>CloudWatchReadOnlyAccess</code> 필요)</li>
+    <li>config.yml 문법 에러 — <code>aws_statistics</code> 는 <code>[SampleCount, Average, Sum, Minimum, Maximum]</code> 만 허용. p95 등은 <code>aws_extended_statistics</code> 에 별도 지정</li>
+  </ul>
+</div>
+
+<h2 id="deploy-summary">8. 배포 변경 요약</h2>
+
+<h3>코드 변경 저장소 (11개)</h3>
+<table>
+  <thead><tr><th>저장소</th><th>변경 내용</th></tr></thead>
+  <tbody>
+    <tr><td>api-stock</td><td>micrometer + actuator 노출 + Hikari 풀 10→30 + JWT/NoResource 핸들러 추가</td></tr>
+    <tr><td>api-admin</td><td>micrometer + actuator 노출 + Spring Security 화이트리스트 <code>/actuator/prometheus</code></td></tr>
+    <tr><td>api-mentor</td><td>micrometer + actuator 노출</td></tr>
+    <tr><td>api-radar</td><td>micrometer + actuator 노출</td></tr>
+    <tr><td>api-finance</td><td>micrometer + actuator 노출 (merge 충돌 해결 후)</td></tr>
+    <tr><td>service-chat (api-chat)</td><td>micrometer 의존성 (노출 설정은 이미 있었음)</td></tr>
+    <tr><td>stockdata-admin</td><td>micrometer + actuator 노출</td></tr>
+    <tr><td>stockdata-core</td><td>micrometer + actuator 노출</td></tr>
+    <tr><td>stockdata-realtime</td><td>micrometer + actuator 노출</td></tr>
+    <tr><td>front-stock (web)</td><td>(모니터링 외) detail-tab-list rewrite 추가</td></tr>
+    <tr><td>front-mweb-stock</td><td>(모니터링 외) detail-tab-list rewrite 추가</td></tr>
+  </tbody>
+</table>
+
+<h3>공통 코드 패턴</h3>
+<div class="card">
+  <p><code>build.gradle</code>:</p>
+  <pre><code>implementation "io.micrometer:micrometer-registry-prometheus"</code></pre>
+  <p><code>application.yml</code>:</p>
+  <pre><code>management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}</code></pre>
+</div>
+
+<h3>AWS 인프라 신규 리소스</h3>
+<table>
+  <thead><tr><th>리소스</th><th>식별자</th></tr></thead>
+  <tbody>
+    <tr><td>EC2 (monitoring1)</td><td><code>i-0db311ea3d6d4a4af</code> t3.small, 30GB gp3, Amazon Linux 2023</td></tr>
+    <tr><td>ALB 리스너 룰 (priority 16)</td><td><code>Host=grafana.finup.co.kr</code> + <code>SourceIP=61.82.98.177/32</code> → TG-monitoring-grafana</td></tr>
+    <tr><td>ALB 리스너 룰 (priority 17)</td><td><code>Host=grafana.finup.co.kr</code> fallback → 403 Forbidden</td></tr>
+    <tr><td>Target Group</td><td><code>TG-monitoring-grafana</code> 10.0.202.65:3000</td></tr>
+    <tr><td>Route53 A 레코드</td><td><code>grafana.finup.co.kr</code> → ELBMainExternal</td></tr>
+    <tr><td>IAM 정책 attach</td><td><code>CloudWatchReadOnlyAccess</code> → EC2-Service-Role</td></tr>
+    <tr><td>S3 로그 버킷 확장</td><td><code>finuplog/alb-access/</code> (7일 수명주기)</td></tr>
+  </tbody>
+</table>
+
+<h3>각 앱 EC2 14개에 사이드카 배포</h3>
+<ul>
+  <li><code>node_exporter</code> (호스트 네트워크, :9100)</li>
+  <li><code>cadvisor</code> (호스트 9101 → 컨테이너 8080)</li>
+  <li><strong>앱 프로세스 영향 0</strong> — read-only 메트릭 수집만</li>
+  <li>CPU 오버헤드 &lt; 1%</li>
+</ul>
+
+<h2 id="files">9. 관련 파일/설정</h2>
+<div class="card">
+  <h3>리포 (Git 관리)</h3>
+  <ul>
+    <li><code>ops/monitoring/docker-compose.yml</code> — 전체 스택 정의</li>
+    <li><code>ops/monitoring/prometheus/prometheus.yml</code> — scrape 설정</li>
+    <li><code>ops/monitoring/prometheus/rules/*.yml</code> — 알람 룰</li>
+    <li><code>ops/monitoring/alertmanager/alertmanager.yml</code> — 알람 라우팅 (git ignored — 토큰 포함)</li>
+    <li><code>ops/monitoring/grafana/provisioning/datasources/prometheus.yml</code> — 데이터소스 자동 등록</li>
+    <li><code>ops/monitoring/cloudwatch/config.yml</code> — CloudWatch Exporter 메트릭 정의</li>
+    <li><code>ops/monitoring/.env</code> — Grafana admin 비밀번호 (git ignored)</li>
+    <li><code>ops/monitoring/README.md</code> — 셋업 가이드</li>
+  </ul>
+
+  <h3>모니터링 EC2 내부 경로</h3>
+  <ul>
+    <li><code>/opt/monitoring/</code> — Docker Compose 루트</li>
+    <li><code>/opt/monitoring/prometheus/rules/alerts.yml</code>, <code>aws-alerts.yml</code></li>
+    <li><code>/opt/monitoring/cloudwatch/config.yml</code></li>
+    <li>Volumes: <code>prom_data</code> (TSDB 30일), <code>grafana_data</code>, <code>am_data</code></li>
+  </ul>
+</div>
+
+<div class="footer">
+  <p>문서 작성: 2026-04-19 · 작성 도구: Claude Code</p>
+  <p>문의: monitoring EC2 관련 — <code>i-0db311ea3d6d4a4af</code> 에 SSM 접속 후 <code>/opt/monitoring/README.md</code> 참고</p>
+</div>
+
+</body>
+</html>

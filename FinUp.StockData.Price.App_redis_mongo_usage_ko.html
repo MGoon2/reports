@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FinUp.StockData.Price.App Redis 및 MongoDB 설정 사용 분석</title>
+  <style>
+    body { margin: 0; background: #f5f7fa; color: #1f2933; font-family: "Segoe UI", "Malgun Gothic", Arial, sans-serif; line-height: 1.58; }
+    header { background: #17212f; color: #fff; padding: 32px 42px; }
+    header h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: 0; }
+    header p { margin: 4px 0; color: #d8e1ea; }
+    main { max-width: 1180px; margin: 0 auto; padding: 28px 28px 56px; }
+    section { background: #fff; border: 1px solid #d8dee8; border-radius: 8px; padding: 24px; margin-bottom: 22px; }
+    h2 { margin: 0 0 14px; font-size: 22px; }
+    h3 { margin: 22px 0 10px; font-size: 17px; }
+    code { background: #eef2f7; border-radius: 4px; padding: 1px 5px; font-family: Consolas, "Cascadia Mono", monospace; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+    th, td { border: 1px solid #d8dee8; padding: 10px 11px; vertical-align: top; }
+    th { background: #edf1f6; text-align: left; }
+    .note { border-left: 4px solid #0f766e; background: #e7f5f2; padding: 12px 14px; border-radius: 6px; margin: 14px 0; }
+    .warn { border-left: 4px solid #9a5b00; background: #fff4d8; padding: 12px 14px; border-radius: 6px; margin: 14px 0; }
+    .risk { border-left: 4px solid #a61b1b; background: #ffe8e8; padding: 12px 14px; border-radius: 6px; margin: 14px 0; }
+    .badge { display: inline-block; border-radius: 999px; padding: 2px 8px; font-size: 12px; font-weight: 700; }
+    .on { background: #e7f5f2; color: #0f766e; }
+    .partial { background: #fff4d8; color: #9a5b00; }
+    .off { background: #eef0f3; color: #46515f; }
+    ul { padding-left: 22px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FinUp.StockData.Price.App Redis 및 MongoDB 설정 사용 분석</h1>
+    <p>분석 프로젝트: <code>C:\Dev\FinUp.StockData.Price.App</code></p>
+    <p>보고서 위치: <code>C:\reports\FinUp.StockData.Price.App_redis_mongo_usage_ko.html</code></p>
+    <p>분석 기준일: 2026-05-08</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>핵심 결론</h2>
+      <div class="note">
+        <p><strong><code>stockdatapubsub</code> 클러스터는 Kiwoom 실시간 PRICE 데이터를 Redis pub/sub로 발행하는 주 경로에서 직접 사용된다.</strong></p>
+      </div>
+      <ul>
+        <li><code>stockdatapubsub</code>: <code>RedisStockDataHandler</code>가 <code>RedisDatabase.GetSubcriber("stockdatapubsub")</code>로 선택한다.</li>
+        <li><code>stockdata</code>: Kiwoom 실시간 PRICE publish 주 경로에서는 직접 선택되지 않는다. 공통 Redis DB/cache 접근이나 일부 캐시성 작업에서 기본 클러스터로 쓰일 수 있다.</li>
+        <li><code>MongoDB</code>: <code>KiwoomRedis</code>가 <code>MongoStockDataHandler</code> 생성에 사용한다. 단 현재 PRICE 경로에서는 Mongo 저장 consumer 시작 코드가 주석 처리되어 실제 insert까지 이어지지 않는다.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Redis 설정 사용 흐름</h2>
+      <table>
+        <thead>
+          <tr><th>설정</th><th>사용 여부</th><th>사용 방식</th><th>근거</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>cluster name="stockdatapubsub"</code></td>
+            <td><span class="badge on">직접 사용</span></td>
+            <td>실시간 가격/호가/거래원 데이터를 Redis pub/sub 채널로 발행하는 subscriber 연결에 사용된다.</td>
+            <td><code>RedisStockDataHandler.cs:24-27</code></td>
+          </tr>
+          <tr>
+            <td><code>cluster name="stockdata"</code></td>
+            <td><span class="badge partial">간접/기본 경로</span></td>
+            <td>공통 Redis 유틸의 기본 DB/cache 접근 경로로 쓰일 수 있으나, Kiwoom PRICE publish 경로에서는 <code>stockdatapubsub</code>가 명시 사용된다.</td>
+            <td><code>FinUp.Core.Redis\RedisDatabase.cs</code>, <code>RedisCluster.cs</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Kiwoom PRICE Redis Publish 흐름</h3>
+      <ol>
+        <li><code>StartUp=KR</code>이면 <code>SchedulerKiwoomReal</code> 실행: <code>Program.cs:29-30</code></li>
+        <li><code>RedisDistribute</code>가 없으면 기본 <code>true</code>: <code>SchedulerKiwoomReal.cs:163</code></li>
+        <li><code>KiwoomRedis</code>가 <code>RedisStockDataHandler</code> 생성: <code>KiwoomRedis.cs:71-78</code></li>
+        <li><code>RedisStockDataHandler</code>가 <code>stockdatapubsub</code>로 subscriber 획득: <code>RedisStockDataHandler.cs:24-27</code></li>
+        <li>가격 이벤트가 <code>AddPrice</code>로 들어와 <code>PRICE</code> 채널로 publish: <code>KiwoomRedis.cs:182-185</code>, <code>RedisStockDataHandler.cs:108-110</code></li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>MongoDB 설정 사용 흐름</h2>
+      <table>
+        <thead>
+          <tr><th>설정</th><th>사용 위치</th><th>실제 동작</th><th>근거</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>MongoDB</code></td>
+            <td><code>KiwoomRedis</code> 생성자</td>
+            <td><code>ConfigurationManager.AppSettings["MongoDB"]</code>로 읽어 <code>MongoStockDataHandler</code>에 전달한다.</td>
+            <td><code>KiwoomRedis.cs:65-66</code>, <code>KiwoomRedis.cs:80-85</code></td>
+          </tr>
+          <tr>
+            <td><code>MongoDBName</code></td>
+            <td><code>MongoStockDataHandler</code></td>
+            <td>DB명에 실행 연도 suffix를 붙인다. 예: <code>StockData2026</code></td>
+            <td><code>MongoStockDataHandler.cs:27-40</code></td>
+          </tr>
+          <tr>
+            <td>컬렉션</td>
+            <td><code>MongoStockDataHandler</code></td>
+            <td>저장 consumer가 시작되면 <code>T_Price</code>, <code>T_Hoga</code>, <code>T_Trader</code> 컬렉션에 batch insert한다.</td>
+            <td><code>MongoStockDataHandler.cs:60-73</code>, <code>104-116</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="risk">
+        <p><strong>중요:</strong> 현재 <code>FIDType=PRICE</code> 경로에서는 <code>_mongoPriceHandler?.StartAsync(...)</code> 호출이 주석 처리되어 있다. 따라서 MongoDB 설정은 읽히고 handler 객체는 만들어질 수 있지만, 실제 저장 consumer는 시작되지 않는다.</p>
+      </div>
+      <p>근거: <code>KiwoomRedis.cs:126-132</code>, <code>MongoStockDataHandler.cs:86-107</code></p>
+    </section>
+
+    <section>
+      <h2>런타임 주의점</h2>
+      <table>
+        <thead>
+          <tr><th>항목</th><th>판단</th><th>설명</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Redis</td>
+            <td><span class="badge on">실제 사용</span></td>
+            <td><code>stockdatapubsub</code>로 압축된 <code>RedisMessage</code>를 <code>PRICE</code>, <code>HOGA</code>, <code>TRADER</code> 채널에 publish하는 구조다. PRICE 경로에서는 <code>PRICE</code>가 핵심이다.</td>
+          </tr>
+          <tr>
+            <td>MongoDB</td>
+            <td><span class="badge partial">부분 사용</span></td>
+            <td>설정은 handler 생성에 쓰이지만 PRICE 저장 루프가 주석이라 insert는 발생하지 않는다.</td>
+          </tr>
+          <tr>
+            <td>Mongo queue</td>
+            <td><span class="badge partial">리스크</span></td>
+            <td><code>_mongoPriceHandler?.AddPrice(price)</code>는 호출되므로, handler가 생성된 상태에서 consumer가 없으면 내부 <code>BlockingCollection</code>이 drain되지 않을 수 있다.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>결론</h2>
+      <p><code>stockdatapubsub</code>는 Kiwoom 실시간 가격 발행의 직접 Redis 연결 설정이다. <code>stockdata</code>는 이 경로의 직접 publish 대상이 아니라 Redis 공통 DB/cache 계열 설정으로 봐야 한다. <code>MongoDB</code>는 Kiwoom 실시간 저장 handler 생성에 사용되지만, 현재 PRICE 경로에서는 저장 시작 코드가 막혀 있어 실제 MongoDB insert는 수행되지 않는 것으로 판단된다.</p>
+    </section>
+  </main>
+</body>
+</html>

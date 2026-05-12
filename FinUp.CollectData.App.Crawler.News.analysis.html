@@ -1,0 +1,214 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FinUp.CollectData.App.Crawler.News 분석 보고서</title>
+<style>body{font-family:"Malgun Gothic","Segoe UI",Arial,sans-serif;margin:0;background:#f6f8fb;color:#1f2937;line-height:1.6}header{background:#0f172a;color:white;padding:28px 36px}main{max-width:1280px;margin:0 auto;padding:24px 32px 60px}section{background:white;border:1px solid #d8dee8;border-radius:10px;margin:16px 0;padding:22px}h1{margin:0 0 8px;font-size:28px}h2{font-size:23px;margin:0 0 14px}h3{font-size:18px;color:#155e75;margin-top:20px}table{width:100%;border-collapse:collapse;margin:12px 0 18px;font-size:13px}th,td{border:1px solid #d8dee8;padding:8px 10px;vertical-align:top}th{background:#eef2f7;text-align:left}tr:nth-child(even) td{background:#fbfcfe}code{background:#eef2f7;padding:1px 4px;border-radius:4px;font-family:Consolas,"Courier New",monospace}.fact{color:#166534;font-weight:700}.infer{color:#9f4b00;font-weight:700}.unknown{color:#991b1b;font-weight:700}.box{border-left:4px solid #155e75;background:#ecfeff;padding:10px 14px}.risk{border-left:4px solid #991b1b;background:#fff1f2;padding:10px 14px;margin:10px 0}pre{background:#0b1020;color:#e5e7eb;border-radius:8px;padding:14px;overflow:auto}</style></head><body>
+<header><h1>FinUp.CollectData.App.Crawler.News 런타임/설정 분석</h1><p>대상: <code>C:\Dev\FinUp.CollectData.App.Crawler.News</code></p><p>생성일: 2026-05-07 / 읽기 전용 분석 결과</p></header><main>
+<section><h2>요약</h2><ol>
+<li><span class="fact">사실</span>: 이 프로젝트는 ASP.NET Core/Generic Host가 아니라 WPF WinExe다. <code>Program.cs</code>, <code>Startup.cs</code>, <code>CreateHostBuilder</code>, <code>WebApplication.CreateBuilder</code> 흐름은 확인되지 않았고, <code>App.xaml</code>의 <code>Startup="Application_Startup"</code>이 진입점이다. 근거: <code>FinUp.CollectData.App.Crawler.News.csproj:4-6</code>, <code>App.xaml:5</code>.</li>
+<li><span class="fact">사실</span>: <code>appsettings.json</code>은 시작 시 필수 로드되고 Serilog 설정에만 연결된다. 크롤러 동작 옵션은 대부분 <code>App.config</code>를 <code>ConfigurationManager</code>로 직접 읽는다. 근거: <code>App.xaml.cs:30-38</code>, <code>App.xaml.cs:58-68</code>, <code>AppSetting.cs:10-22</code>.</li>
+<li><span class="fact">사실</span>: DI 등록은 메모리 캐시, <code>CacheRepository</code>, <code>MainViewModel</code>, <code>MainWindow</code>, <code>Debugger</code> singleton에 한정된다. 핵심 크롤링/Kafka/DB 객체는 ViewModel과 Biz 클래스 내부에서 직접 생성된다. 근거: <code>App.xaml.cs:52-73</code>, <code>MainViewModel.cs:50-87</code>.</li>
+<li><span class="fact">사실</span>: 실행 후 <code>MainViewModel</code>은 1초 <code>DispatcherTimer</code>, 형태소 Kafka consumer, 디버그 Kafka consumer, 3초 ping producer를 시작한다. 근거: <code>MainViewModel.cs:52-93</code>.</li>
+<li><span class="fact">사실</span>: 주기 도달 시 <code>CrawlerSiteRepository.Run</code>이 DB에서 활성 사이트 목록을 가져오고, 사이트별 병렬 요청/파싱/필터링/Mongo 저장/Kafka 또는 Telegram 발송을 수행한다. 근거: <code>CrawlerSiteRepository.cs:84-121</code>, <code>171-400</code>, <code>418-628</code>.</li>
+<li><span class="infer">추론</span>: 설정 변경 영향은 값마다 다르다. <code>AppSetting</code> static initializer로 읽은 값은 최초 접근 후 고정되고, getter 기반 시간/필터 값은 호출 시 다시 읽힐 가능성이 있으나 소비 클래스가 생성 시 캐싱하면 즉시 반영되지 않는다.</li>
+<li><span class="fact">사실</span>: 종료는 <code>MainWindow.OnClosed</code>에서 <code>Application.Current.Shutdown()</code>을 호출하는 수준이다. consumer/task/timer/provider dispose 또는 cancellation token 연결은 확인되지 않는다. 근거: <code>MainWindow.xaml.cs:33-37</code>, <code>Consumer.cs:79-104</code>, <code>Consumer.cs:120-153</code>.</li>
+</ol></section>
+<section><h2>실행 진입점</h2>
+<table>
+<tr><th>단계</th><th>호출/처리</th><th>근거</th></tr>
+<tr><td>1. WPF 시작</td><td>WPF 런타임이 App.xaml의 Startup 이벤트를 호출한다.</td><td>App.xaml:5</td></tr>
+<tr><td>2. JSON 설정 로드</td><td>ConfigurationBuilder가 현재 작업 디렉터리에서 appsettings.json을 필수 로드한다.</td><td>App.xaml.cs:30-34</td></tr>
+<tr><td>3. Serilog 초기화</td><td>ReadFrom.Configuration(_config)로 Serilog logger를 만든다.</td><td>App.xaml.cs:36-38; appsettings.json:10-22</td></tr>
+<tr><td>4. DI 구성</td><td>ServiceCollection 생성, ConfigureServices 호출, BuildServiceProvider 수행.</td><td>App.xaml.cs:40-43</td></tr>
+<tr><td>5. MainWindow 표시</td><td>DI에서 MainWindow를 resolve하고 Show()를 호출한다. Debugger show 코드는 주석 처리.</td><td>App.xaml.cs:45-49</td></tr>
+<tr><td>6. ViewModel 초기화</td><td>MainWindow 생성자가 MainViewModel을 DataContext로 설정하고, MainViewModel 생성자가 Init()을 호출한다.</td><td>MainWindow.xaml.cs:25-30; MainViewModel.cs:37-44</td></tr>
+<tr><td>7. 백그라운드 루프 시작</td><td>DispatcherTimer, 형태소 consumer, 디버그 consumer, ping producer가 시작된다.</td><td>MainViewModel.cs:52-93</td></tr>
+</table>
+<p><span class="fact">사실</span>: 대상 프로젝트에는 ASP.NET middleware, controller, hosted service 등록이 없다. 서비스 등록 지점은 <code>App.xaml.cs:52-79</code>에 한정된다.</p></section>
+<section><h2>DI 구조</h2><table>
+<tr><th>서비스</th><th>수명</th><th>역할</th><th>근거</th></tr>
+<tr><td>IMemoryCache</td><td>DI 기본 등록</td><td>메모리 캐시 인프라</td><td>App.xaml.cs:55</td></tr>
+<tr><td>CacheRepository</td><td>Singleton</td><td>IMemoryCache를 받지만 현재 SetCache&lt;T&gt;()는 비어 있음</td><td>App.xaml.cs:56; CacheRepository.cs:10-22</td></tr>
+<tr><td>MainViewModel</td><td>Singleton</td><td>생성 시 타이머/Kafka/크롤링 저장소 초기화</td><td>App.xaml.cs:71; MainViewModel.cs:37-63</td></tr>
+<tr><td>MainWindow</td><td>Singleton</td><td>MainViewModel 주입, DataContext 설정, 창 제목 설정</td><td>App.xaml.cs:72; MainWindow.xaml.cs:25-30</td></tr>
+<tr><td>Debugger</td><td>Singleton</td><td>등록은 되지만 show 경로는 주석. 표시 시 Kafka 테스트 메시지 전송</td><td>App.xaml.cs:73; Debugger.xaml.cs:57-64</td></tr>
+<tr><td>ThemeConfig/ConnectionStrings/MongoConnectionStrings/TelegramConfig</td><td>등록 없음</td><td>IOptions 바인딩 후보이나 모두 주석 처리</td><td>App.xaml.cs:58-68</td></tr>
+</table></section>
+<section><h2>옵션/설정 목록</h2><div class="box">핵심: 실제 크롤러 옵션은 App.config 중심이다. appsettings.json의 ConnectionStrings/TelegramConfig/CrawlerConfig는 현재 코드에서 바인딩되지 않는다.</div>
+<h3>설정 공급자</h3><table>
+<tr><th>소스</th><th>정의 위치</th><th>바인딩 위치</th><th>사용 위치</th><th>누락/오류 동작</th></tr>
+<tr><td>appsettings.json</td><td>appsettings.json:1-74; 출력 복사 csproj:26-28</td><td>App.xaml.cs:30-34</td><td>Serilog only: App.xaml.cs:36-38</td><td>optional:false라 파일 누락 시 startup 예외. CrawlerConfig 등은 현재 영향 없음.</td></tr>
+<tr><td>App.config</td><td>App.config:7-127</td><td>ConfigurationManager direct read</td><td>AppSetting.cs, MainViewModel.cs, MainWindow.xaml.cs, Core DS/Dac</td><td>직접 .ToString()/int.Parse 값은 누락/형식 오류 시 예외 가능.</td></tr>
+<tr><td>appsettings.{Environment}.json</td><td>없음</td><td>로딩 코드 없음</td><td>없음</td><td>환경별 JSON 오버레이 없음.</td></tr>
+<tr><td>launchSettings.json</td><td>없음</td><td>없음</td><td>없음</td><td>프로필 기반 환경 변수/인자 없음.</td></tr>
+<tr><td>환경 변수</td><td>없음</td><td>AddEnvironmentVariables 호출 없음</td><td>없음</td><td>환경 변수 오버라이드 없음.</td></tr>
+<tr><td>command-line arguments</td><td>앱 옵션으로 파싱하지 않음</td><td>Environment.GetCommandLineArgs()[0]만 사용</td><td>NLog config 파일명 구성</td><td>NLog 로드 실패는 catch로 무시: CrawlerSiteRepository.cs:77-81 등</td></tr>
+</table>
+<h3>IOptions / Configure / Bind</h3><p><span class="fact">사실</span>: <code>IOptions&lt;T&gt;</code>, <code>IOptionsSnapshot&lt;T&gt;</code>, <code>IOptionsMonitor&lt;T&gt;</code>, <code>Configure&lt;TOptions&gt;</code>, <code>Bind</code>, <code>Validate</code>, <code>PostConfigure</code>, <code>IConfigureOptions&lt;T&gt;</code> 실제 사용은 확인되지 않았다. 관련 코드는 <code>App.xaml.cs:58-68</code>에 주석으로만 남아 있다.</p>
+<h3>App.config 활성 옵션 및 실제 영향</h3><table>
+<tr><th>옵션</th><th>종류</th><th>정의 위치</th><th>현재값</th><th>바인딩/읽기 위치</th><th>런타임 영향</th><th>없거나 잘못됐을 때</th></tr>
+<tr><td>DBThemeRadar</td><td>connectionString</td><td>App.config:13</td><td>[masked]</td><td>AppSetting.cs:10; SQL Extension.cs:16,84-90</td><td>SQL 기본 연결. 크롤링 사이트, 필터, 휴장일, 종목, 실행 이력 조회/저장에 영향.</td><td>직접 .ToString()/static initializer 또는 BaseConfig 경로에서 예외 가능.</td></tr>
+<tr><td>DBThemeRadarReal</td><td>connectionString</td><td>App.config:14</td><td>[masked]</td><td>AppSetting.cs:11</td><td>현재 대상 흐름 직접 사용 확인 없음. AppSetting static 초기화 성공 여부에 영향.</td><td>직접 .ToString()/static initializer 또는 BaseConfig 경로에서 예외 가능.</td></tr>
+<tr><td>MongoConnection</td><td>connectionString</td><td>App.config:15</td><td>mongodb://10.0.0.111:1412</td><td>AppSetting.cs:13; ConnectionString.cs:47-52</td><td>Mongo client 연결 대상.</td><td>직접 .ToString()/static initializer 또는 BaseConfig 경로에서 예외 가능.</td></tr>
+<tr><td>MongoConnectionNews</td><td>connectionString</td><td>App.config:16</td><td>mongodb://10.0.0.111:1412</td><td>ConnectionString.cs:54-59; MongoBaseNews.cs:20-23</td><td>뉴스 MongoDB News.T_NewsCrawlerSite collection 읽기/쓰기.</td><td>직접 .ToString()/static initializer 또는 BaseConfig 경로에서 예외 가능.</td></tr>
+<tr><td>MongoConnectionLog</td><td>connectionString</td><td>App.config:17</td><td>mongodb://10.0.0.111:1412</td><td>ConnectionString.cs:40-45</td><td>Mongo client 연결 대상.</td><td>직접 .ToString()/static initializer 또는 BaseConfig 경로에서 예외 가능.</td></tr>
+<tr><td>ConnectionKafka</td><td>connectionString</td><td>App.config:18</td><td>10.0.0.174:9092</td><td>AppSetting.cs:15; ConnectionString.cs:62-67</td><td>Kafka producer/consumer bootstrap server.</td><td>직접 .ToString()/static initializer 또는 BaseConfig 경로에서 예외 가능.</td></tr>
+<tr><td>Server</td><td>appSetting</td><td>App.config:22</td><td>REAL</td><td>MainWindow.xaml.cs:30</td><td>메인 창 제목의 환경 표시.</td><td>저장소 근거만으로 세부 동작 미확정.</td></tr>
+<tr><td>CrawlingInterval</td><td>appSetting</td><td>App.config:23</td><td>35</td><td>MainViewModel.cs:32</td><td>DispatcherTimer 카운트다운 후 CrawlerSiteRepository.Run 실행 주기.</td><td>누락은 30초 fallback. 비정수면 int.Parse 예외.</td></tr>
+<tr><td>SendNewsCrawlerTelegram</td><td>appSetting</td><td>App.config:25</td><td>True</td><td>AppSetting.cs:26; CrawlerUtil.cs:131-132</td><td>FALSE면 CrawlerUtil.SendMessageList의 Telegram 전송 중단.</td><td>누락은 False.</td></tr>
+<tr><td>SendNewsCrawlerKafka</td><td>appSetting</td><td>App.config:26</td><td>True</td><td>AppSetting.cs:27; CrawlerUtil.cs:123-129</td><td>CrawlerUtil.SendMessageList의 Kafka 전송 여부. Repository의 형태소 Kafka 전달은 별도 경로.</td><td>누락은 False.</td></tr>
+<tr><td>Kafka.Consume.PoolIntervalMS</td><td>appSetting</td><td>App.config:29</td><td>300</td><td>SettingNotify.cs:29; Consumer.cs:120-124</td><td>Consumer.ReceiveAsync loop delay.</td><td>누락은 300ms 기본값.</td></tr>
+<tr><td>HtsTelegramBotToken</td><td>appSetting</td><td>App.config:34</td><td>[masked]</td><td>AppSetting.cs:49; CrawlerUtil.cs:33; CrawlerSiteRepository.cs:47</td><td>Telegram bot/token 또는 채널 목적지 결정.</td><td>직접 .ToString()/static initializer 또는 BaseConfig 경로에서 예외 가능.</td></tr>
+<tr><td>PartnersTelegramBotToken</td><td>appSetting</td><td>App.config:35</td><td>[masked]</td><td>AppSetting.cs:50; CrawlerUtil.cs:34</td><td>Telegram bot/token 또는 채널 목적지 결정.</td><td>직접 .ToString()/static initializer 또는 BaseConfig 경로에서 예외 가능.</td></tr>
+<tr><td>ChatIdHts</td><td>appSetting</td><td>App.config:37</td><td>[masked]</td><td>AppSetting.cs:51-61; CrawlerUtil.cs:36-46; CrawlerUtil.cs:319-389</td><td>Telegram bot/token 또는 채널 목적지 결정.</td><td>직접 .ToString()/static initializer 또는 BaseConfig 경로에서 예외 가능.</td></tr>
+<tr><td>ChatIdHtsNoFilter</td><td>appSetting</td><td>App.config:38</td><td>[masked]</td><td>AppSetting.cs:51-61; CrawlerUtil.cs:36-46; CrawlerUtil.cs:319-389</td><td>Telegram bot/token 또는 채널 목적지 결정.</td><td>직접 .ToString()/static initializer 또는 BaseConfig 경로에서 예외 가능.</td></tr>
+<tr><td>ChatIdKoreaBreifing</td><td>appSetting</td><td>App.config:42</td><td>[masked]</td><td>AppSetting.cs:51-61; CrawlerUtil.cs:36-46; CrawlerUtil.cs:319-389</td><td>Telegram bot/token 또는 채널 목적지 결정.</td><td>직접 .ToString()/static initializer 또는 BaseConfig 경로에서 예외 가능.</td></tr>
+<tr><td>ChatIdSpecialStock</td><td>appSetting</td><td>App.config:43</td><td>[masked]</td><td>AppSetting.cs:51-61; CrawlerUtil.cs:36-46; CrawlerUtil.cs:319-389</td><td>Telegram bot/token 또는 채널 목적지 결정.</td><td>직접 .ToString()/static initializer 또는 BaseConfig 경로에서 예외 가능.</td></tr>
+<tr><td>ChatIdMinjoo</td><td>appSetting</td><td>App.config:44</td><td>[masked]</td><td>AppSetting.cs:51-61; CrawlerUtil.cs:36-46; CrawlerUtil.cs:319-389</td><td>Telegram bot/token 또는 채널 목적지 결정.</td><td>직접 .ToString()/static initializer 또는 BaseConfig 경로에서 예외 가능.</td></tr>
+<tr><td>ChatIdHtsMorphemeFilter</td><td>appSetting</td><td>App.config:48</td><td>[masked]</td><td>AppSetting.cs:51-61; CrawlerUtil.cs:36-46; CrawlerUtil.cs:319-389</td><td>Telegram bot/token 또는 채널 목적지 결정.</td><td>invalid는 코드 fallback이 있으나 완전 누락은 catch 경로에서 예외 가능.</td></tr>
+<tr><td>ChatIdPartners</td><td>appSetting</td><td>App.config:49</td><td>[masked]</td><td>AppSetting.cs:51-61; CrawlerUtil.cs:36-46; CrawlerUtil.cs:319-389</td><td>Telegram bot/token 또는 채널 목적지 결정.</td><td>직접 .ToString()/static initializer 또는 BaseConfig 경로에서 예외 가능.</td></tr>
+<tr><td>TestModeNewsCount</td><td>appSetting</td><td>App.config:51</td><td>30</td><td>AppSetting.cs:31-45; CrawlerSiteRepository.cs:436-450</td><td>TestMode=true일 때 HTS 발송 후보 수 제한.</td><td>invalid는 코드 fallback이 있으나 완전 누락은 catch 경로에서 예외 가능.</td></tr>
+<tr><td>HtsCrawlStartTime</td><td>appSetting</td><td>App.config:69</td><td>000000</td><td>AppSetting.cs:65-277; CrawlerUtil.cs:244-280; CrawlerSiteRepository.cs:994-1030</td><td>채널별 크롤링 가능 시간 창. 범위 밖이면 사이트 요청 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>HtsCrawlEndTime</td><td>appSetting</td><td>App.config:70</td><td>235959</td><td>AppSetting.cs:65-277; CrawlerUtil.cs:244-280; CrawlerSiteRepository.cs:994-1030</td><td>채널별 크롤링 가능 시간 창. 범위 밖이면 사이트 요청 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>KoreaBreifingCrawlStartTime</td><td>appSetting</td><td>App.config:71</td><td>000000</td><td>AppSetting.cs:65-277; CrawlerUtil.cs:244-280; CrawlerSiteRepository.cs:994-1030</td><td>채널별 크롤링 가능 시간 창. 범위 밖이면 사이트 요청 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>KoreaBreifingCrawlEndTime</td><td>appSetting</td><td>App.config:72</td><td>235959</td><td>AppSetting.cs:65-277; CrawlerUtil.cs:244-280; CrawlerSiteRepository.cs:994-1030</td><td>채널별 크롤링 가능 시간 창. 범위 밖이면 사이트 요청 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>SpecialStockCrawlStartTime</td><td>appSetting</td><td>App.config:73</td><td>085000</td><td>AppSetting.cs:65-277; CrawlerUtil.cs:244-280; CrawlerSiteRepository.cs:994-1030</td><td>채널별 크롤링 가능 시간 창. 범위 밖이면 사이트 요청 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>SpecialStockCrawlEndTime</td><td>appSetting</td><td>App.config:74</td><td>153000</td><td>AppSetting.cs:65-277; CrawlerUtil.cs:244-280; CrawlerSiteRepository.cs:994-1030</td><td>채널별 크롤링 가능 시간 창. 범위 밖이면 사이트 요청 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>MinjooCrawlStartTime</td><td>appSetting</td><td>App.config:75</td><td>000000</td><td>AppSetting.cs:65-277; CrawlerUtil.cs:244-280; CrawlerSiteRepository.cs:994-1030</td><td>채널별 크롤링 가능 시간 창. 범위 밖이면 사이트 요청 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>MinjooCrawlEndTime</td><td>appSetting</td><td>App.config:76</td><td>235959</td><td>AppSetting.cs:65-277; CrawlerUtil.cs:244-280; CrawlerSiteRepository.cs:994-1030</td><td>채널별 크롤링 가능 시간 창. 범위 밖이면 사이트 요청 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>PartnersCrawlStartTime</td><td>appSetting</td><td>App.config:81</td><td>075000</td><td>AppSetting.cs:65-277; CrawlerUtil.cs:244-280; CrawlerSiteRepository.cs:994-1030</td><td>채널별 크롤링 가능 시간 창. 범위 밖이면 사이트 요청 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>PartnersCrawlEndTime</td><td>appSetting</td><td>App.config:82</td><td>201000</td><td>AppSetting.cs:65-277; CrawlerUtil.cs:244-280; CrawlerSiteRepository.cs:994-1030</td><td>채널별 크롤링 가능 시간 창. 범위 밖이면 사이트 요청 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>HtsAlarmStartTime</td><td>appSetting</td><td>App.config:85</td><td>080000</td><td>AppSetting.cs:282-526; CrawlerUtil.cs:202-242; CrawlerSiteRepository.cs:952-992</td><td>채널별 발송 가능 시간 창. 범위 밖이면 메시지 전송 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>HtsAlarmEndTime</td><td>appSetting</td><td>App.config:86</td><td>153000</td><td>AppSetting.cs:282-526; CrawlerUtil.cs:202-242; CrawlerSiteRepository.cs:952-992</td><td>채널별 발송 가능 시간 창. 범위 밖이면 메시지 전송 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>HtsIncludeAlarmStartTime</td><td>appSetting</td><td>App.config:87</td><td>000000</td><td>AppSetting.cs:282-526; CrawlerUtil.cs:202-242; CrawlerSiteRepository.cs:952-992</td><td>채널별 발송 가능 시간 창. 범위 밖이면 메시지 전송 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>HtsIncludeAlarmEndTime</td><td>appSetting</td><td>App.config:88</td><td>235959</td><td>AppSetting.cs:282-526; CrawlerUtil.cs:202-242; CrawlerSiteRepository.cs:952-992</td><td>채널별 발송 가능 시간 창. 범위 밖이면 메시지 전송 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>KoreaBreifingAlarmStartTime</td><td>appSetting</td><td>App.config:89</td><td>080000</td><td>AppSetting.cs:282-526; CrawlerUtil.cs:202-242; CrawlerSiteRepository.cs:952-992</td><td>채널별 발송 가능 시간 창. 범위 밖이면 메시지 전송 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>KoreaBreifingAlarmEndTime</td><td>appSetting</td><td>App.config:90</td><td>180000</td><td>AppSetting.cs:282-526; CrawlerUtil.cs:202-242; CrawlerSiteRepository.cs:952-992</td><td>채널별 발송 가능 시간 창. 범위 밖이면 메시지 전송 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>SpecialStockAlarmStartTime</td><td>appSetting</td><td>App.config:91</td><td>090000</td><td>AppSetting.cs:282-526; CrawlerUtil.cs:202-242; CrawlerSiteRepository.cs:952-992</td><td>채널별 발송 가능 시간 창. 범위 밖이면 메시지 전송 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>SpecialStockAlarmEndTime</td><td>appSetting</td><td>App.config:92</td><td>152000</td><td>AppSetting.cs:282-526; CrawlerUtil.cs:202-242; CrawlerSiteRepository.cs:952-992</td><td>채널별 발송 가능 시간 창. 범위 밖이면 메시지 전송 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>MinjooAlarmStartTime</td><td>appSetting</td><td>App.config:93</td><td>000000</td><td>AppSetting.cs:282-526; CrawlerUtil.cs:202-242; CrawlerSiteRepository.cs:952-992</td><td>채널별 발송 가능 시간 창. 범위 밖이면 메시지 전송 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>MinjooAlarmEndTime</td><td>appSetting</td><td>App.config:94</td><td>235959</td><td>AppSetting.cs:282-526; CrawlerUtil.cs:202-242; CrawlerSiteRepository.cs:952-992</td><td>채널별 발송 가능 시간 창. 범위 밖이면 메시지 전송 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>PartnersAlarmStartTime</td><td>appSetting</td><td>App.config:99</td><td>080000</td><td>AppSetting.cs:282-526; CrawlerUtil.cs:202-242; CrawlerSiteRepository.cs:952-992</td><td>채널별 발송 가능 시간 창. 범위 밖이면 메시지 전송 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>PartnersAlarmEndTime</td><td>appSetting</td><td>App.config:100</td><td>200000</td><td>AppSetting.cs:282-526; CrawlerUtil.cs:202-242; CrawlerSiteRepository.cs:952-992</td><td>채널별 발송 가능 시간 창. 범위 밖이면 메시지 전송 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>CrawlIntervalSecUpbit</td><td>appSetting</td><td>App.config:103</td><td>60</td><td>AppSetting.cs:531-539; CrawlerSiteUrl.cs:17; CrawlerSiteRepository.cs:188-199,326-331</td><td>UPBIT/CoinOne 개별 크롤러 skip count 계산.</td><td>누락/invalid는 300 기반 계산값 9.</td></tr>
+<tr><td>CrawlIntervalSecCoinOne</td><td>appSetting</td><td>App.config:104</td><td>60</td><td>AppSetting.cs:541-549; CrawlerSiteUrl.cs:18; CrawlerSiteRepository.cs:200-211,332-337</td><td>UPBIT/CoinOne 개별 크롤러 skip count 계산.</td><td>누락/invalid는 300 기반 계산값 9.</td></tr>
+<tr><td>IncludeFilterCacheExpireMin</td><td>appSetting</td><td>App.config:107</td><td>30</td><td>AppSetting.cs:553-568; IncludeFilterCache.cs:17,29-34</td><td>Include filter cache 만료 시간.</td><td>invalid는 코드 fallback이 있으나 완전 누락은 catch 경로에서 예외 가능.</td></tr>
+<tr><td>TitleLengthFilterValue</td><td>appSetting</td><td>App.config:110</td><td>10</td><td>AppSetting.cs:572-587; HtsFilter.cs:25,307-327</td><td>HTS 제목 길이 필터 기준.</td><td>invalid는 코드 fallback이 있으나 완전 누락은 catch 경로에서 예외 가능.</td></tr>
+<tr><td>TitleLengthFilterValueNoImg</td><td>appSetting</td><td>App.config:111</td><td>0</td><td>AppSetting.cs:590-605; HtsFilter.cs:26,317-326</td><td>HTS 제목 길이 필터 기준.</td><td>invalid는 코드 fallback이 있으나 완전 누락은 catch 경로에서 예외 가능.</td></tr>
+<tr><td>HtsMorphemeCacheExpireMin</td><td>appSetting</td><td>App.config:114</td><td>600</td><td>AppSetting.cs:608-623; CrawlerSiteMorpheme.cs:43,74-87,270-278</td><td>형태소 중복 캐시 만료 시간.</td><td>invalid는 코드 fallback이 있으나 완전 누락은 catch 경로에서 예외 가능.</td></tr>
+<tr><td>KoreaBriefingMorphemeCacheExpireMin</td><td>appSetting</td><td>App.config:115</td><td>360</td><td>AppSetting.cs:626-641; CrawlerSiteMorpheme.cs:44,89-103,273-275</td><td>형태소 중복 캐시 만료 시간.</td><td>invalid는 코드 fallback이 있으나 완전 누락은 catch 경로에서 예외 가능.</td></tr>
+<tr><td>HtsMorphemeCacheCount</td><td>appSetting</td><td>App.config:118</td><td>3</td><td>AppSetting.cs:644-659; CrawlerSiteMorpheme.cs:45,180-191</td><td>중복 형태소 필터 임계값.</td><td>invalid는 코드 fallback이 있으나 완전 누락은 catch 경로에서 예외 가능.</td></tr>
+<tr><td>KoreaBriefingMorphemeCacheCount</td><td>appSetting</td><td>App.config:119</td><td>2</td><td>AppSetting.cs:662-677; CrawlerSiteMorpheme.cs:46,180-191</td><td>중복 형태소 필터 임계값.</td><td>invalid는 코드 fallback이 있으나 완전 누락은 catch 경로에서 예외 가능.</td></tr>
+<tr><td>UseProxy</td><td>appSetting</td><td>App.config:122</td><td>False</td><td>AppSetting.cs:17; CrawlerUtil.cs:532-537</td><td>NAVER/SPECIAL_STOCK_RSS 요청 프록시 사용 여부.</td><td>누락은 false.</td></tr>
+<tr><td>ProxyHost</td><td>appSetting</td><td>App.config:123</td><td>zproxy.lum-superproxy.io</td><td>AppSetting.cs:19-22; CrawlerUtil.cs:532-537</td><td>UseProxy=true일 때 proxy endpoint/credential.</td><td>직접 .ToString()/static initializer 또는 BaseConfig 경로에서 예외 가능.</td></tr>
+<tr><td>ProxyPort</td><td>appSetting</td><td>App.config:124</td><td>22225</td><td>AppSetting.cs:19-22; CrawlerUtil.cs:532-537</td><td>UseProxy=true일 때 proxy endpoint/credential.</td><td>직접 .ToString()/static initializer 또는 BaseConfig 경로에서 예외 가능.</td></tr>
+<tr><td>ProxyId</td><td>appSetting</td><td>App.config:125</td><td>[masked]</td><td>AppSetting.cs:19-22; CrawlerUtil.cs:532-537</td><td>UseProxy=true일 때 proxy endpoint/credential.</td><td>직접 .ToString()/static initializer 또는 BaseConfig 경로에서 예외 가능.</td></tr>
+<tr><td>ProxyPassword</td><td>appSetting</td><td>App.config:126</td><td>[masked]</td><td>AppSetting.cs:19-22; CrawlerUtil.cs:532-537</td><td>UseProxy=true일 때 proxy endpoint/credential.</td><td>직접 .ToString()/static initializer 또는 BaseConfig 경로에서 예외 가능.</td></tr>
+<tr><td>TestMode</td><td>appSetting (read but inactive/missing)</td><td>App.config:52 commented</td><td>missing -&gt; false</td><td>ConfigurationManager direct read / see source search</td><td>런타임 구성값.</td><td>저장소 근거만으로 세부 동작 미확정.</td></tr>
+<tr><td>Kafka.Consume.GroupId</td><td>appSetting (read but missing)</td><td>not defined; ConstCrawler.cs:11</td><td>missing -&gt; CRAWLER_NEWS_DATA</td><td>ConfigurationManager direct read / see source search</td><td>런타임 구성값.</td><td>저장소 근거만으로 세부 동작 미확정.</td></tr>
+<tr><td>CoinAlarmStartTime / CoinAlarmEndTime</td><td>appSetting (read but commented)</td><td>App.config:95-96</td><td>commented out</td><td>AppSetting.cs:282-526; CrawlerUtil.cs:202-242; CrawlerSiteRepository.cs:952-992</td><td>채널별 발송 가능 시간 창. 범위 밖이면 메시지 전송 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+<tr><td>GameFocusAlarmStartTime / GameFocusAlarmEndTime</td><td>appSetting (read but commented)</td><td>App.config:97-98</td><td>commented out</td><td>AppSetting.cs:282-526; CrawlerUtil.cs:202-242; CrawlerSiteRepository.cs:952-992</td><td>채널별 발송 가능 시간 창. 범위 밖이면 메시지 전송 생략.</td><td>누락 또는 HHmmss 형식 오류는 worktime 평가 시 예외 가능.</td></tr>
+</table>
+<h3>appsettings.json 옵션</h3><table>
+<tr><th>옵션</th><th>정의 위치</th><th>바인딩/사용</th><th>영향</th></tr>
+<tr><td>Serilog.MinimumLevel</td><td>appsettings.json:10-11</td><td>App.xaml.cs:36-38</td><td>Serilog 최소 로그 레벨(Debug).</td></tr>
+<tr><td>Serilog.WriteTo[0].Name</td><td>appsettings.json:12-15</td><td>App.xaml.cs:36-38</td><td>File sink 선택.</td></tr>
+<tr><td>Serilog.WriteTo[0].Args.path</td><td>appsettings.json:15-16</td><td>App.xaml.cs:36-38</td><td>Serilog 파일 경로 ./logs/news_.log.</td></tr>
+<tr><td>Serilog.WriteTo[0].Args.rollingInterval</td><td>appsettings.json:17</td><td>App.xaml.cs:36-38</td><td>시간 단위 rolling.</td></tr>
+<tr><td>Serilog.WriteTo[0].Args.retainedFileCountLimit</td><td>appsettings.json:18</td><td>App.xaml.cs:36-38</td><td>168개 파일 보관 제한.</td></tr>
+<tr><td>ConnectionStrings.DBThemeRadar / MongoNews / Kafka</td><td>appsettings.json:2-8</td><td>현재 미사용. App.xaml.cs:60-64는 주석</td><td>실제 DB/Mongo/Kafka는 App.config의 DBThemeRadar, MongoConnectionNews, ConnectionKafka 사용.</td></tr>
+<tr><td>TelegramConfig.*</td><td>appsettings.json:23-35</td><td>현재 미사용. App.xaml.cs:67은 주석</td><td>실제 Telegram token/chat id는 App.config:34-49 사용.</td></tr>
+<tr><td>CrawlerConfig.SendToTelegram / SendToKafka</td><td>appsettings.json:36-38</td><td>현재 미사용</td><td>실제 토글은 SendNewsCrawlerTelegram/SendNewsCrawlerKafka App.config 키.</td></tr>
+<tr><td>CrawlerConfig.CrawlTime.*</td><td>appsettings.json:39-52</td><td>현재 미사용</td><td>실제 crawl 시간은 App.config:69-82. JSON 변경은 크롤러 시간에 영향 없음.</td></tr>
+<tr><td>CrawlerConfig.AlarmTime.*</td><td>appsettings.json:53-66</td><td>현재 미사용</td><td>실제 alarm 시간은 App.config:85-100. JSON에는 Coin/GameFocus 값이 있으나 App.config는 주석 처리되어 불일치.</td></tr>
+<tr><td>CrawlerConfig.IntervalSec.* / IncludeFilterCacheExpireMin / TitleLengthFilterValue</td><td>appsettings.json:67-72</td><td>현재 미사용</td><td>실제 값은 App.config:103-111 사용.</td></tr>
+</table></section>
+<section><h2>옵션별 상세 분석</h2>
+<h3>설정값 변경 시 런타임 영향</h3><ul>
+<li><span class="fact">사실</span>: <code>appsettings.json</code>은 reloadOnChange=true이나, Serilog 외 옵션은 주석 처리된 Configure 코드에만 연결되어 있다. 근거: <code>App.xaml.cs:32</code>, <code>App.xaml.cs:58-68</code>.</li>
+<li><span class="infer">추론</span>: 실행 중 <code>appsettings.json</code>의 <code>CrawlerConfig</code>, <code>TelegramConfig</code>, <code>ConnectionStrings</code>를 바꿔도 현재 크롤러 동작은 바뀌지 않는다.</li>
+<li><span class="fact">사실</span>: <code>AppSetting</code>의 DB/Kafka/Proxy/Telegram 값 일부는 static initializer로 읽는다(<code>AppSetting.cs:10-22</code>, <code>49-61</code>). 이런 값은 최초 접근 후 고정된다.</li>
+<li><span class="fact">사실</span>: 시간/필터 값 다수는 getter에서 <code>OpenExeConfiguration</code> 또는 <code>AppSettings</code>를 다시 읽는다(<code>AppSetting.cs:65-677</code>). 단 <code>HtsFilter</code>처럼 생성 시 field에 복사하면 이후 변경 반영이 제한된다(<code>HtsFilter.cs:25-26</code>).</li>
+</ul>
+<h3>전송 토글</h3><p><code>SendNewsCrawlerTelegram</code>은 <code>CrawlerUtil.SendMessageList</code>의 Telegram 전송을 막는다(<code>CrawlerUtil.cs:131-132</code>). <code>SendNewsCrawlerKafka</code>는 같은 유틸 경로의 Kafka 발행에만 적용된다(<code>CrawlerUtil.cs:123-129</code>). 하지만 HTS/KoreaBriefing을 형태소 분석기로 보내는 <code>CrawlerSiteRepository.SendKafka</code> 경로는 이 토글과 독립적으로 실행된다(<code>CrawlerSiteRepository.cs:531-536</code>, <code>574-578</code>, <code>697-711</code>).</p>
+<h3>시간 창</h3><p>크롤링 시간은 site별 요청 전에 검사된다(<code>CrawlerSiteRepository.cs:178-183</code>, <code>CrawlerUtil.cs:244-280</code>). 발송 시간은 메시징 단계에서 검사된다(<code>CrawlerSiteRepository.cs:523-628</code>, <code>CrawlerUtil.cs:202-242</code>). Debug 빌드에서는 <code>GetWorkTime</code>이 즉시 true를 반환한다(<code>CrawlerUtil.cs:186-190</code>, <code>CrawlerSiteRepository.cs:936-940</code>).</p>
+<h3>DB 기반 동적 구성</h3><p>활성 크롤링 대상은 파일이 아니라 DB의 <code>T_CrawlerSite</code>에서 온다(<code>SqlCrawlerDac.cs:8-27</code>, <code>CrawlerSiteRepository.cs:95-108</code>). 필터 단어와 언론사/이미지 필터도 DB에서 조회한다(<code>BaseFilter.cs:18-24</code>, <code>HtsFilter.cs:32-46</code>, <code>SqlCrawlerDac.cs:61-73</code>, <code>151-200</code>).</p>
+</section>
+<section><h2>전체 실행 플로우</h2><ol>
+<li>WPF WinExe 프로세스 시작 -&gt; App.xaml Startup 이벤트 호출.</li>
+<li>Application_Startup에서 appsettings.json 로드 및 Serilog 초기화.</li>
+<li>ServiceCollection 등록 후 BuildServiceProvider 실행.</li>
+<li>MainWindow resolve/show. MainViewModel 생성 및 DataContext 설정.</li>
+<li>MainViewModel.Init: TimeDuration 초기화, CrawlerSiteRepository 생성, DispatcherTimer 시작.</li>
+<li>CrawlerSiteMorpheme.Init: Kafka consumer, Mongo/SQL DAC, 형태소 중복 캐시 준비 후 HTS_NEWS_PROCESS consume task 시작.</li>
+<li>DEBUGGER_PONG consumer와 3초 주기 DEBUGGER_PING producer task 시작.</li>
+<li>DispatcherTimer tick마다 TimeDuration 감소. 0이고 RUNNING이 아니면 operation history START 기록 후 Task.Run으로 _biz.Run 실행.</li>
+<li>CrawlerSiteRepository.Run: StockData.SetStockData, QCrawlerSiteList, Mongo collection 준비, siteList 생성.</li>
+<li>CrawlingParallel: 채널별 bag 생성, 휴장일 조회, MaxDegreeOfParallelism=10으로 사이트별 처리.</li>
+<li>사이트 처리: crawl 시간 검사, TypeContents에 따라 XML/HTML/JSON 요청, Type switch로 전용 crawler GetNews 호출.</li>
+<li>필터링: HTS/KoreaBriefing/SpecialStock 필터 적용, 원본 목록 Mongo InsertMany.</li>
+<li>메시징: 휴장일/발송 시간 검사 후 Kafka 형태소 topic 또는 CrawlerUtil.SendMessageList 호출.</li>
+<li>형태소 consumer: base64 decode, JSON parse, Mongo morpheme update, 중복 형태소 필터, CrawlerUtil.SendMessageList로 발송.</li>
+<li>성공 시 operation history STOP, 예외 시 ERROR 기록. 창 닫힘 시 Application.Current.Shutdown 호출.</li>
+</ol></section>
+<section><h2>주요 호출 관계</h2><pre class="mermaid">flowchart TD
+A[WPF process start] --> B[App.xaml Startup]
+B --> C[Application_Startup]
+C --> D[Load appsettings.json]
+D --> E[Serilog]
+E --> F[DI ServiceCollection]
+F --> G[MainWindow]
+G --> H[MainViewModel.Init]
+H --> I[DispatcherTimer]
+H --> J[CrawlerSiteRepository]
+H --> K[CrawlerSiteMorpheme consumer]
+H --> L[Debug Kafka tasks]
+I --> M[AutoBind_Tick]
+M --> N{TimeDuration zero and not RUNNING}
+N -->|yes| O[Task.Run _biz.Run]
+O --> P[SQL site list]
+P --> Q[Parallel site crawling]
+Q --> R[Fetch XML/HTML/JSON]
+R --> S[Site-specific GetNews]
+S --> T[Filters]
+T --> U[Mongo InsertMany]
+T --> V[Kafka/Telegram messaging]
+K --> W[Consume HTS_NEWS_PROCESS]
+W --> X[Mongo morpheme update]
+X --> Y[Morpheme duplicate filter]
+Y --> V
+G --> Z[OnClosed Shutdown]</pre></section>
+<section><h2>주요 호출 관계 상세</h2><table>
+<tr><th>영역</th><th>클래스/메서드</th><th>역할</th><th>근거</th></tr>
+<tr><td>타이머</td><td>MainViewModel.AutoBind_Tick</td><td>카운트다운, RUNNING 상태 제어, operation history 기록, _biz.Run task 시작</td><td>MainViewModel.cs:128-174</td></tr>
+<tr><td>크롤링 orchestration</td><td>CrawlerSiteRepository.Run</td><td>종목 데이터/사이트 목록/Mongo collection 준비 후 CrawlingParallel 호출</td><td>CrawlerSiteRepository.cs:84-121</td></tr>
+<tr><td>사이트별 처리</td><td>CrawlerSiteRepository.CrawlingParallel</td><td>worktime 확인, 요청, switch dispatch, channel bag 적재</td><td>CrawlerSiteRepository.cs:124-400</td></tr>
+<tr><td>HTTP/XML/JSON 요청</td><td>CrawlerUtil.GetDocumentFromURL/GetHttpResponseString, XDocument.Load</td><td>site.TypeContents에 따라 문서 로딩</td><td>CrawlerSiteRepository.cs:222-233; CrawlerUtil.cs:484-615</td></tr>
+<tr><td>crawler dispatch</td><td>NaverRapidNews, KoreaBriefing, NewsWire, SpecialStock, Upbit, CoinOne, EDaily 등</td><td>사이트별 HTML/XML/JSON 파싱</td><td>CrawlerSiteRepository.cs:242-400; crawler files GetNews methods</td></tr>
+<tr><td>필터</td><td>HtsFilter, KoreaBriefingFilter, SpecialStockFilter</td><td>제목/요약/언론사/이미지/종목 시간 필터</td><td>HtsFilter.cs:51-153; KoreaBriefingFilter.cs:16-50; SpecialStockFilter.cs:24-56</td></tr>
+<tr><td>저장</td><td>NewsCrawlerSiteDac/MongoBaseNews</td><td>News.T_NewsCrawlerSite collection insert/update</td><td>NewsCrawlerSiteDac.cs:14-21; MongoBaseNews.cs:20-44</td></tr>
+<tr><td>Kafka 발행</td><td>CrawlerSiteRepository.SendKafka, CrawlerUtil.SendKafka, Kafka/Producer</td><td>형태소 topic 또는 일반 crawler topic 메시지 발행</td><td>CrawlerSiteRepository.cs:697-711; CrawlerUtil.cs:67-75; Producer.cs:34-64</td></tr>
+<tr><td>Kafka 수신</td><td>KafkaConsumeBiz, Consumer.ReceiveAsync/ReceiveThread</td><td>형태소 결과 및 디버그 topic consume</td><td>KafkaConsumeBiz.cs:17-57; Consumer.cs:69-153</td></tr>
+<tr><td>Telegram</td><td>CrawlerUtil.SendMessageAsync</td><td>채널별 chat id로 Telegram 메시지 전송, HttpRequestException retry</td><td>CrawlerUtil.cs:303-407</td></tr>
+</table></section>
+<section><h2>종료 흐름</h2><ul>
+<li><span class="fact">사실</span>: 메인 창이 닫히면 <code>MainWindow.OnClosed</code>가 <code>Application.Current.Shutdown()</code>을 호출한다. 근거: <code>MainWindow.xaml.cs:33-37</code>.</li>
+<li><span class="fact">사실</span>: <code>DispatcherTimer</code> stop, <code>PeriodicTimer.Dispose</code>, Kafka consumer cancellation, producer/consumer dispose, <code>IServiceProvider.Dispose()</code> 코드는 확인되지 않는다.</li>
+<li><span class="fact">사실</span>: Kafka consumer는 <code>while(true)</code>에서 <code>consumer.Consume()</code>을 호출하고 OperationCanceledException이면 break하지만 외부 token을 전달하지 않는다. 근거: <code>Consumer.cs:79-104</code>, <code>Consumer.cs:120-153</code>.</li>
+<li><span class="infer">추론</span>: graceful shutdown은 앱 수준에서 조율되지 않고 프로세스 종료에 의존한다. 종료 직전 fire-and-forget 메시징 task가 완료됐다는 보장은 코드상 확인되지 않는다.</li>
+</ul></section>
+<section><h2>리스크와 확인 필요 사항</h2>
+<div class="risk">appsettings.json의 ConnectionStrings/TelegramConfig/CrawlerConfig는 실제 런타임 크롤러 설정이 아니다. 운영자가 이 파일만 수정하면 효과가 없을 가능성이 높다. 근거: App.xaml.cs:58-68.</div>
+<div class="risk">AppSetting static initializer가 많은 필수 키를 직접 읽는다. 누락/형식 오류가 실제 사용 전 앱 시작 경로를 중단할 수 있다. 근거: AppSetting.cs:10-22,49-61.</div>
+<div class="risk">CoinAlarmStartTime/CoinAlarmEndTime/GameFocusAlarmStartTime/GameFocusAlarmEndTime은 코드가 읽지만 App.config에서는 주석 처리되어 있다. Release에서 해당 발송 경로 실행 시 예외 가능. 근거: App.config:95-98; AppSetting.cs:435-494; CrawlerSiteRepository.cs:602-615.</div>
+<div class="risk">Parallel.ForEach에 async lambda가 사용된다. EDaily.GetNewsAsync 같은 await 작업을 Parallel.ForEach가 제대로 기다리지 않는 구조일 수 있다. 근거: CrawlerSiteRepository.cs:171,373-376.</div>
+<div class="risk">Kafka/Telegram 발송이 여러 곳에서 fire-and-forget Task.Run으로 시작되어 Run 완료/operation history STOP보다 늦게 끝날 수 있다. 근거: CrawlerSiteRepository.cs:531-536,574-590,598-623.</div>
+<div class="risk">형태소 캐시 prewarm은 Morpheme == null 조회 후 Morpheme == null이면 continue 하는 구조라 기존 형태소를 캐시에 넣지 못할 가능성이 있다. 근거: CrawlerSiteMorpheme.cs:73-103.</div>
+<div class="risk">window close 외 graceful shutdown 경로가 없다. consumer loop/timer/provider dispose가 확인되지 않는다. 근거: MainWindow.xaml.cs:33-37; Consumer.cs:79-153.</div>
+<div class="risk">App.config/appsettings.json에 DB/Kafka endpoint, Telegram token, proxy credential 등 민감 설정이 들어 있다. 이 보고서에서는 값을 마스킹했다.</div>
+</section>
+<section><h2>검증 및 한계</h2><ul>
+<li>코드 파일은 수정하지 않았다. 생성한 파일은 이 HTML 보고서뿐이다.</li>
+<li>앱 실행/빌드는 수행하지 않았다. 빌드는 bin/obj 갱신 가능성이 있어 읽기 전용 분석 목적과 분리했다.</li>
+<li>외부 DB의 실제 사이트/필터 데이터, Kafka topic 상태, Telegram API 응답은 저장소만으로 확인할 수 없다.</li>
+<li>중요 주장은 파일 경로와 라인 번호 근거를 함께 표기했다.</li>
+</ul></section>
+</main><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs"; mermaid.initialize({startOnLoad:true,theme:"default"});</script></body></html>

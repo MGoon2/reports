@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FinUp.StockData.Price.App StartUp Flow Analysis</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --ink: #1f2933;
+      --muted: #5b6673;
+      --line: #d9dee5;
+      --accent: #0f766e;
+      --accent-soft: #e6f4f1;
+      --warn: #9a5b00;
+      --warn-soft: #fff5dd;
+      --danger: #9f1d1d;
+      --danger-soft: #ffe8e8;
+      --code: #eef2f6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Segoe UI", Arial, sans-serif;
+      line-height: 1.55;
+    }
+    header {
+      background: #13212f;
+      color: #fff;
+      padding: 34px 42px 30px;
+    }
+    header h1 {
+      margin: 0 0 10px;
+      font-size: 30px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+    header p { margin: 4px 0; color: #d7e0ea; }
+    main {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 28px 28px 56px;
+    }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 24px;
+      margin: 0 0 22px;
+    }
+    h2 { margin: 0 0 14px; font-size: 22px; }
+    h3 { margin: 24px 0 10px; font-size: 17px; }
+    p { margin: 8px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 11px;
+      vertical-align: top;
+    }
+    th {
+      background: #eef2f6;
+      text-align: left;
+      font-weight: 700;
+    }
+    code {
+      background: var(--code);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 0.95em;
+    }
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .auto { background: var(--accent-soft); color: var(--accent); }
+    .manual { background: #edf0ff; color: #3541a5; }
+    .mixed { background: var(--warn-soft); color: var(--warn); }
+    .note {
+      border-left: 4px solid var(--accent);
+      background: var(--accent-soft);
+      padding: 12px 14px;
+      margin: 14px 0;
+      border-radius: 6px;
+    }
+    .warning {
+      border-left: 4px solid var(--warn);
+      background: var(--warn-soft);
+      padding: 12px 14px;
+      margin: 14px 0;
+      border-radius: 6px;
+    }
+    .danger {
+      border-left: 4px solid var(--danger);
+      background: var(--danger-soft);
+      padding: 12px 14px;
+      margin: 14px 0;
+      border-radius: 6px;
+    }
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+      margin: 12px 0;
+    }
+    .step {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfcfe;
+    }
+    .step strong { display: block; margin-bottom: 4px; }
+    .small { color: var(--muted); font-size: 13px; }
+    ul { margin-top: 8px; padding-left: 22px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FinUp.StockData.Price.App StartUp Flow Analysis</h1>
+    <p>Project: <code>C:\Dev\FinUp.StockData.Price.App</code></p>
+    <p>Output: <code>C:\reports\kiwoom\FinUp.StockData.Price.App_startup_flow.html</code></p>
+    <p>Analysis date: 2026-05-07 / Current config basis: <code>StartUp=KR</code></p>
+  </header>
+
+  <main>
+    <section>
+      <h2>Executive Summary</h2>
+      <div class="note">
+        <p><strong>The authoritative StartUp option list is the if/else chain in <code>Program.cs</code>, not the stale comment in <code>App.config</code>.</strong> <code>Program.cs:20-48</code> maps 14 option values to WinForms entry points.</p>
+      </div>
+      <ul>
+        <li>The current setting is <code>StartUp=KR</code> at <code>App.config:75</code>, which starts <code>SchedulerKiwoomReal</code>.</li>
+        <li><code>KR</code>, <code>KT</code>, <code>X</code>, and <code>M</code> start automatic schedules on form load.</li>
+        <li><code>FC</code>, <code>F</code>, <code>FO</code>, <code>CC</code>, <code>XO</code>, <code>EMI</code>, <code>KMI</code>, <code>KBM</code>, and <code>T</code> are mostly manual operator tools.</li>
+        <li><code>S</code> looks like the Xing TR scheduler, but its automatic schedule is currently disabled by an early <code>return</code> after market-info loading.</li>
+      </ul>
+      <div class="danger">
+        <p><strong>Runtime risk:</strong> <code>KiwoomStartDelay</code> is declared twice in <code>App.config</code> at lines <code>91</code> and <code>100</code>. This can cause configuration loading errors or ambiguous effective behavior in .NET Framework app settings.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Common Entry Flow</h2>
+      <div class="flow">
+        <div class="step"><strong>1. Main starts</strong><code>Application.EnableVisualStyles()</code> and compatibility setup<br><span class="small">Evidence: <code>Program.cs:17-18</code></span></div>
+        <div class="step"><strong>2. Read config</strong><code>ConfigurationManager.AppSettings["StartUp"].ToUpper()</code><br><span class="small">Evidence: <code>Program.cs:20</code></span></div>
+        <div class="step"><strong>3. Dispatch</strong>if/else maps values such as <code>S</code>, <code>KR</code>, and <code>X</code><br><span class="small">Evidence: <code>Program.cs:21-48</code></span></div>
+        <div class="step"><strong>4. No match</strong>No default branch; the application exits without running a form</div>
+      </div>
+      <div class="warning">
+        <p>If <code>StartUp</code> is missing, <code>ToUpper()</code> can throw a <code>NullReferenceException</code>. If the value is unknown, the app exits silently.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Option Matrix</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>StartUp</th>
+            <th>Class</th>
+            <th>Mode</th>
+            <th>Primary flow</th>
+            <th>Main dependencies</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>S</code></td><td><code>SchedulerXingTR</code></td><td><span class="badge mixed">Auto disabled</span></td><td>Loads market info, then returns before <code>InitSchedule()</code>. Manual buttons can start stock, daily candle, index, investor, after-close, VI, and Redis cache jobs.</td><td>Xing API, SQL/WebAPI, some Redis cache jobs</td></tr>
+          <tr><td><code>FC</code></td><td><code>FinancialCrawling</code></td><td><span class="badge manual">Manual</span></td><td>Start button schedules stock collection at market close, then crawls WiseFn financial summary pages and saves parsed data.</td><td>Xing API, WiseFn, SQL/WebAPI</td></tr>
+          <tr><td><code>F</code></td><td><code>Financial</code></td><td><span class="badge manual">Manual</span></td><td>Start button parses stored financial crawl sources for the requested crawl date and saves quarterly/yearly summaries.</td><td>SQL</td></tr>
+          <tr><td><code>FO</code></td><td><code>FinancialCompanyOverview</code></td><td><span class="badge manual">Manual</span></td><td>Start button iterates stock codes, loads WiseFn pages, extracts company overview text, and updates the stock record.</td><td>WiseFn, SQL</td></tr>
+          <tr><td><code>KR</code></td><td><code>SchedulerKiwoomReal</code></td><td><span class="badge auto">Automatic</span></td><td>Schedules the next Kiwoom real-time session and starts <code>KiwoomRedis</code> for price/hoga/trader events.</td><td>Kiwoom OpenAPI, Redis/Valkey, optional MongoDB, operation log SQL</td></tr>
+          <tr><td><code>KT</code></td><td><code>SchedulerKiwoomTR</code></td><td><span class="badge auto">Automatic</span></td><td>Schedules <code>TraderDayKiwoom</code> for market close plus 3.5 hours, then restarts on completion.</td><td>Kiwoom OpenAPI, SQL/WebAPI</td></tr>
+          <tr><td><code>X</code></td><td><code>SchedulerXingReal</code></td><td><span class="badge auto">Automatic</span></td><td>Collects stocks before market open, starts Xing real-time hoga/trader capture, stops after market close, then restarts.</td><td>Xing API, MongoDB</td></tr>
+          <tr><td><code>T</code></td><td><code>Test.TraderDay</code></td><td><span class="badge manual">Manual</span></td><td>Test/migration form for stock collection, KRX trader-day execution, Mongo deletion/move, and SQL temporary loading.</td><td>Xing API, MongoDB, SQL</td></tr>
+          <tr><td><code>M</code></td><td><code>SchedulerHogaTraderMove</code></td><td><span class="badge auto">Automatic</span></td><td>Schedules nightly hoga/trader migration from daily temp collections to main Mongo collections.</td><td>MongoDB</td></tr>
+          <tr><td><code>CC</code></td><td><code>CompanyCrawling</code></td><td><span class="badge manual">Manual</span></td><td>Start button schedules stock collection and company/financial crawling after market close.</td><td>Xing API, WiseFn, SQL</td></tr>
+          <tr><td><code>XO</code></td><td><code>XingOrder</code></td><td><span class="badge manual">Manual</span></td><td>Manual Xing login, order execution, and account query UI.</td><td>Xing API</td></tr>
+          <tr><td><code>EMI</code></td><td><code>eBestMig</code></td><td><span class="badge manual">Manual</span></td><td>Manual eBest/Xing migration form for stock, index, and trader-day jobs.</td><td>Xing API, SQL</td></tr>
+          <tr><td><code>KMI</code></td><td><code>KiwoomMig</code></td><td><span class="badge manual">Manual</span></td><td>Manual Kiwoom trader-day migration; restarts on completion.</td><td>Kiwoom OpenAPI, SQL/WebAPI</td></tr>
+          <tr><td><code>KBM</code></td><td><code>KiwoomBackupMig</code></td><td><span class="badge manual">Manual</span></td><td>Restores price data from backup files and rebuilds Mongo minute candles.</td><td>File system, MongoDB</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Current KR Flow</h2>
+      <div class="flow">
+        <div class="step"><strong>1. Dispatch</strong><code>StartUp=KR</code> starts <code>SchedulerKiwoomReal</code><br><span class="small"><code>Program.cs:29-30</code>, <code>App.config:75</code></span></div>
+        <div class="step"><strong>2. Load</strong>Read <code>MarketType</code>, <code>FIDType</code>, <code>KiwoomStartDelay</code>; initialize schedule<br><span class="small"><code>SchedulerKiwoomReal.cs:84-90</code></span></div>
+        <div class="step"><strong>3. Market schedule</strong><code>GetScheduleNextMarket(_startDelay, WebAPIAddress)</code><br><span class="small"><code>SchedulerKiwoomReal.cs:116-139</code></span></div>
+        <div class="step"><strong>4. Start real-time</strong>Create <code>KiwoomRedis</code> and call <code>Start()</code><br><span class="small"><code>SchedulerKiwoomReal.cs:142-180</code></span></div>
+        <div class="step"><strong>5. Stop/restart</strong>Stop at market close plus 31 minutes, wait 60 seconds, restart<br><span class="small"><code>SchedulerKiwoomReal.cs:196-214</code></span></div>
+      </div>
+
+      <h3>Redis/Mongo Conditions in KR</h3>
+      <table>
+        <thead><tr><th>Setting</th><th>Current value</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td><code>FIDType=PRICE</code></td><td><code>App.config:94</code></td><td>Price-event path. Redis handler is created only when <code>RedisDistribute=true</code>. Mongo handler object is created only when <code>MongoSaveData=true</code>, but its consumer start line is commented out.</td></tr>
+          <tr><td><code>RedisDistribute=false</code></td><td><code>App.config:98</code></td><td>The current KR/PRICE flow does not create the Redis price distribution handler.</td></tr>
+          <tr><td><code>MongoSaveData=false</code></td><td><code>App.config:99</code></td><td>The current KR/PRICE flow does not create the Mongo price handler.</td></tr>
+          <tr><td><code>FIDType != PRICE</code></td><td>Hoga/trader path</td><td>The Redis hoga handler is created regardless of <code>RedisDistribute</code>. Mongo hoga creation/start remains commented.</td></tr>
+        </tbody>
+      </table>
+      <p class="small">Evidence: <code>KiwoomRedis.cs:37-95</code>, <code>KiwoomRedis.cs:115-140</code>, <code>KiwoomRedis.cs:170-185</code>.</p>
+    </section>
+
+    <section>
+      <h2>Automatic Scheduler Details</h2>
+      <h3><code>KT</code> - Kiwoom TR Trader Day</h3>
+      <p><code>SchedulerKiwoomTR</code> initializes on load, schedules <code>TraderDayKiwoom("거래원일별")</code> for market close plus 3.5 hours, and restarts the process on completion. Evidence: <code>SchedulerKiwoomTR.cs:43-49</code>, <code>96-143</code>, <code>158-165</code>.</p>
+
+      <h3><code>X</code> - Xing Real-time Hoga/Trader</h3>
+      <p><code>SchedulerXingReal</code> logs into Xing and collects stocks before market open, then starts <code>Job.XingReal.HogaTrader</code>. The job creates daily MongoDB temp collections such as <code>T_Hoga_yyyyMMdd</code> and <code>T_Trader_yyyyMMdd</code>. Evidence: <code>SchedulerXingReal.cs:43-62</code>, <code>94-199</code>, <code>214-232</code>, <code>Job.XingReal\HogaTrader.cs:57-87</code>, <code>279-325</code>.</p>
+
+      <h3><code>M</code> - Hoga/Trader Migration</h3>
+      <p><code>SchedulerHogaTraderMove</code> schedules <code>HogaTraderMove</code> at 23:55 for the next trading day context. The job copies MongoDB data from <code>StockDataTemp</code> daily collections into <code>StockData.T_Hoga</code> and <code>StockData.T_Trader</code>. Evidence: <code>SchedulerHogaTraderMove.cs:24-89</code>, <code>Job.XingReal\HogaTraderMove.cs:30-47</code>, <code>58-163</code>.</p>
+
+      <h3><code>S</code> - Xing TR Scheduler State</h3>
+      <p><code>SchedulerXingTR</code> currently returns before its schedule is initialized. If that early return is removed, <code>InitSchedule()</code> would schedule a broad TR workload: stock list, daily cache, validation, gap close, stock status, VI real-time, index real-time, daily candles, index, deposit trend, investor, and after-close jobs. Evidence: <code>SchedulerXingTR.cs:67-83</code>, <code>133-320</code>.</p>
+    </section>
+
+    <section>
+      <h2>Kafka, Redis/Valkey, MongoDB Notes</h2>
+      <ul>
+        <li><strong>Kafka:</strong> No StartUp branch directly starts Kafka. Kafka is part of the logging subsystem controlled by <code>UseLog</code>, <code>LogCommunication=kafka</code>, and <code>KafkaUrl</code>. With <code>UseLog=false</code>, it is effectively inactive at runtime.</li>
+        <li><strong>Redis/Valkey:</strong> The configured Redis endpoint is an AWS Valkey-style endpoint. In the current <code>KR/PRICE</code> flow, <code>RedisDistribute=false</code> disables price distribution. Some <code>S</code> jobs, such as <code>TickRedis</code>, can still use Redis when run.</li>
+        <li><strong>MongoDB:</strong> <code>KR</code> currently disables Mongo price saving, but <code>X</code>, <code>M</code>, <code>KBM</code>, and <code>T</code> use MongoDB directly and should be prioritized for a PostgreSQL migration analysis.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Recommendations</h2>
+      <ol>
+        <li>Document allowed <code>StartUp</code> values from <code>Program.cs</code> and update the stale <code>App.config</code> comment.</li>
+        <li>Remove the duplicate <code>KiwoomStartDelay</code> key before relying on the <code>KR</code> schedule.</li>
+        <li>Classify <code>KR</code>, <code>KT</code>, <code>X</code>, and <code>M</code> as production-style automatic schedulers; keep the rest as manual operator tools unless intentionally promoted.</li>
+        <li>For MongoDB-to-PostgreSQL work, prioritize <code>X</code>, <code>M</code>, <code>KBM</code>, and <code>T</code> before the currently disabled Mongo branch in <code>KR</code>.</li>
+        <li>Kafka removal is primarily a project reference and logging-library cleanup task rather than a StartUp runtime-flow change under the current <code>UseLog=false</code> setting.</li>
+      </ol>
+    </section>
+  </main>
+</body>
+</html>

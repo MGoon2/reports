@@ -1,0 +1,2439 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>레거시 CS → 신규 Java URL 라우팅 정리 (2026-05-07)</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --panel-2: #334155;
+    --ink: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --warn: #fbbf24;
+    --danger: #f87171;
+    --ok: #4ade80;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.6; margin: 0; }
+  body { max-width: 1280px; margin: 0 auto; padding: 24px 32px 64px; }
+  h1 { font-size: 28px; margin: 0 0 4px; }
+  h2 { font-size: 22px; margin: 36px 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--panel-2); scroll-margin-top: 16px; }
+  h3 { font-size: 17px; margin: 22px 0 10px; color: var(--accent); scroll-margin-top: 16px; }
+  h4 { font-size: 15px; margin: 16px 0 8px; color: var(--ok); }
+  p { margin: 8px 0; }
+  strong { color: #f1f5f9; }
+  code, .mono { font-family: var(--mono); font-size: 12.5px; background: var(--panel); padding: 1px 6px; border-radius: 4px; color: #f1f5f9; }
+  pre { background: var(--panel); padding: 12px 16px; border-radius: 6px; overflow-x: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.5; border: 1px solid var(--panel-2); }
+  pre code { background: transparent; padding: 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .meta { color: var(--muted); font-size: 13px; }
+  .banner { background: linear-gradient(90deg, #1e3a8a33, #0f766e33); border: 1px solid var(--panel-2); border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; }
+  blockquote.note { border-left: 3px solid var(--accent); background: #0369a118; margin: 12px 0; padding: 8px 14px; border-radius: 4px; color: var(--ink); }
+  blockquote.note p { margin: 4px 0; }
+  .table-wrap { overflow-x: auto; margin: 12px 0; border-radius: 6px; }
+  table { border-collapse: collapse; font-size: 13px; width: max-content; min-width: 100%; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--panel-2); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; background: var(--panel); white-space: nowrap; }
+  tr:hover td { background: #1e293bcc; }
+  tr.tier-ok td:first-child, tr.tier-ok th:first-child { border-left: 3px solid var(--ok); }
+  tr.tier-warn td:first-child, tr.tier-warn th:first-child { border-left: 3px solid var(--warn); }
+  tr.tier-danger td:first-child, tr.tier-danger th:first-child { border-left: 3px solid var(--danger); }
+  ul, ol { padding-left: 22px; }
+  li { margin: 4px 0; }
+  details { margin: 8px 0; background: var(--panel); border: 1px solid var(--panel-2); border-radius: 6px; padding: 0 14px; }
+  details[open] { padding-bottom: 12px; }
+  summary { cursor: pointer; padding: 10px 0; font-weight: 600; color: var(--accent); }
+  summary:hover { color: #7dd3fc; }
+  nav.toc { background: var(--panel); border: 1px solid var(--panel-2); border-radius: 6px; padding: 12px 18px; margin: 16px 0; }
+  nav.toc.collapsed > div.toc { display: none; }
+  nav.toc summary.toc-toggle { cursor: pointer; padding: 0; font-weight: 700; color: var(--accent); list-style: none; }
+  nav.toc summary.toc-toggle::-webkit-details-marker { display: none; }
+  nav.toc summary.toc-toggle::before { content: "▾ "; display: inline-block; transition: transform .15s; }
+  nav.toc details:not([open]) summary.toc-toggle::before { transform: rotate(-90deg); }
+  nav.toc .toctitle { display: none; }
+  nav.toc ul { list-style: none; padding-left: 0; margin: 4px 0; }
+  nav.toc ul ul { padding-left: 18px; font-size: 12.5px; color: var(--muted); }
+  nav.toc a { display: inline-block; padding: 2px 0; }
+  hr { border: none; border-top: 1px solid var(--panel-2); margin: 28px 0; }
+  footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--panel-2); color: var(--muted); font-size: 12px; }
+  /* tier legend */
+  .legend { display: flex; gap: 12px; margin: 8px 0 16px; flex-wrap: wrap; font-size: 13px; }
+  .legend span { padding: 2px 10px; border-radius: 4px; }
+  .legend .l-ok    { background: #04663622; color: var(--ok);    border-left: 3px solid var(--ok); }
+  .legend .l-warn  { background: #78350f22; color: var(--warn);  border-left: 3px solid var(--warn); }
+  .legend .l-danger{ background: #7c2d1222; color: var(--danger);border-left: 3px solid var(--danger); }
+  .legend .l-info  { background: #0369a122; color: var(--accent);border-left: 3px solid var(--accent); }
+  /* compact metric cards for §9 */
+  @media (max-width: 768px) {
+    body { padding: 16px; }
+  }
+  @media print {
+    body { background: white; color: black; max-width: 100%; }
+    .banner, pre, code, table th, details { background: #f5f5f5 !important; color: black !important; border-color: #ccc; }
+    a { color: #0369a1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <h1>레거시 CS → 신규 Java URL 라우팅 정리</h1>
+  <p class="meta">
+    <strong>기준일</strong> 2026-05-07 KST ·
+    <strong>계정</strong> <code>326539043145</code> ·
+    <strong>리전</strong> <code>ap-northeast-2</code> ·
+    <strong>모드</strong> read-only (AWS describe/list, Route53 record set, ALB access log + CloudWatch)
+  </p>
+  <p class="meta">선행 자료: <code>docs/infra/asis-tobe-matrix-20260506-supplement.md</code> (5/6 보강), <code>00-overview.md</code> ~ <code>08-monitoring.md</code></p>
+  <div class="legend">
+    <span class="l-ok">🟢 Tier 1 — 즉시 다운 가능 (외부 영향 0)</span>
+    <span class="l-warn">🟡 Tier 2 — DNS 전환 후 다운 가능</span>
+    <span class="l-danger">🔴 Tier 3 — 활성 C# 의존 (지금 다운 불가)</span>
+    <span class="l-info">ℹ️ 트래픽 실측 결과 §9 참조</span>
+  </div>
+</div>
+
+<nav class="toc">
+  <details open>
+    <summary class="toc-toggle">목차</summary>
+    <div class="toc">
+<ul>
+<li><a href="#0-tldr">0. 결론 (TL;DR)</a></li>
+<li><a href="#1">1. 외부 요청 플로우 (확정)</a></li>
+<li><a href="#2-alb-listener-rule">2. 레거시 ALB Listener Rule 전체</a><ul>
+<li><a href="#21-elbmaininternal-80-60-rule-prod">2.1 ELBMainInternal :80 — 60 rule (실제 prod 분기)</a></li>
+<li><a href="#22-elbmaininternal-8443-39-rule-prod-api">2.2 ELBMainInternal :8443 — 39 rule (대부분 prod API용)</a></li>
+<li><a href="#23-elbmainexternal-80443-passthrough">2.3 ELBMainExternal :80/:443 (passthrough)</a></li>
+<li><a href="#24-elbmarsexternal-80443">2.4 ELBMarsExternal :80/:443</a></li>
+</ul>
+</li>
+<li><a href="#3-tg-ec2">3. 레거시 TG → EC2 → 솔루션 매핑</a><ul>
+<li><a href="#31-tg-healthy">3.1 활성 TG (healthy)</a></li>
+<li><a href="#32-tg-0-healthy-targets">3.2 죽은 TG (0 healthy targets)</a></li>
+</ul>
+</li>
+<li><a href="#4-route53">4. Route53 외부 도메인 매핑</a><ul>
+<li><a href="#41-zone-alias">4.1 zone별 ALIAS 향방</a></li>
+<li><a href="#42">4.2 핵심 발견</a></li>
+</ul>
+</li>
+<li><a href="#5-cs-java">5. cs/ ↔ java/ 솔루션 대응표</a><ul>
+<li><a href="#51-url-cs">5.1 운영 호스팅 솔루션 (URL 보유 cs/ 솔루션)</a></li>
+<li><a href="#52-cs-url">5.2 백그라운드/배치 cs/ 솔루션 (URL 없음, 프로세스 운영)</a></li>
+<li><a href="#53-java-alb-internal-api">5.3 신규 java/ 서비스 별 운영 상태 (alb-internal-api 기준)</a></li>
+</ul>
+</li>
+<li><a href="#6-url-tier-123">6. URL Tier 분류 (1차/2차/3차)</a><ul>
+<li><a href="#61-url-tier-1-0">6.1 🟢 URL Tier 1 — 즉시 다운 가능 (외부 영향 0)</a></li>
+<li><a href="#62-url-tier-2-dnslistener">6.2 🟡 URL Tier 2 — DNS/listener 전환 후 다운 가능</a></li>
+<li><a href="#63-url-tier-3-c">6.3 🔴 URL Tier 3 — 활성 C# 의존 (지금 다운 불가)</a></li>
+<li><a href="#64-9">6.4 분류 요약 (§9 트래픽 실측 후 갱신)</a></li>
+</ul>
+</li>
+<li><a href="#7-tier-57">7. 인프라 Tier 표 5/7 라이브 재검증</a><ul>
+<li><a href="#71-56-57">7.1 5/6 → 5/7 변동 (라이브 재검증 완료)</a></li>
+<li><a href="#72-url-tier">7.2 URL 정리와 인프라 Tier의 교차</a></li>
+</ul>
+</li>
+<li><a href="#8">8. 권장 액션 시퀀스</a><ul>
+<li><a href="#81-2026-05-0758">8.1 즉시 (2026-05-07~5/8 — 이번 주)</a></li>
+<li><a href="#82-58515">8.2 다음 단계 (5/8~5/15 — 클라이언트 컨펌 필요)</a></li>
+<li><a href="#83-515-phase-bd">8.3 중기 (5/15+ — Phase B/D 의존)</a></li>
+</ul>
+</li>
+<li><a href="#9-2026-05-06">9. 트래픽 실측 (2026-05-06 기준)</a><ul>
+<li><a href="#91-tg-requestcount-cloudwatch-7">9.1 레거시 TG별 RequestCount (CloudWatch, 7일 합)</a></li>
+<li><a href="#92-host-elbmainexternal-1h-peak-slice-1400-kst-56">9.2 host별 외부 트래픽 (ELBMainExternal 1h peak slice, 14:00 KST 5/6)</a></li>
+<li><a href="#93-0-tier-3-tier-1">9.3 ⭐ 트래픽 0 — Tier 3 → Tier 1 승격 후보</a></li>
+<li><a href="#94">9.4 추가 발견</a></li>
+</ul>
+</li>
+<li><a href="#10">10. 알 수 없거나 클라이언트 컨펌 필요 항목</a></li>
+</ul>
+</div>
+
+  </details>
+</nav>
+
+<h1 id="cs-java-url-2026-05-07">레거시 CS → 신규 Java URL 라우팅 정리 (2026-05-07)</h1>
+<blockquote class="note">
+<p>목적: 신규 Java/React 전환은 진행됐으나 레거시 CS 시스템이 아직 운영 중. 레거시를 단계적으로 내리기 위해 URL/도메인 단위 1차/2차/3차 분류와 인프라(AWS 리소스) 단위 분류를 별도로 작성.</p>
+<p>기준일: 2026-05-07 KST · 모드: read-only (AWS describe/list, Route53 record set)
+선행 자료: <code>asis-tobe-matrix-20260506-supplement.md</code> (5/6 보강), <code>00-overview.md</code> ~ <code>08-monitoring.md</code></p>
+</blockquote>
+<hr />
+<h2 id="0-tldr">0. 결론 (TL;DR)</h2>
+<ol>
+<li><strong>외부 요청 플로우</strong>는 사용자 정보로 확정됨: <code>Route53 → ELBMainExternal → FINUP WAF EC2(2대) → ELBMainInternal → 레거시 CS EC2 또는 신규 TG</code>. ELBMainExternal/MarsExternal은 거의 패스스루이고 <strong>실제 URL 분기는 ELBMainInternal에 집중</strong> (포트 80/8443에 99 rules + 2 default).</li>
+<li><strong>이미 신규 TG로 라우팅되는 URL이 13개</strong>: <code>www/finup/biz/finance/mfinance/m/mstock/mobileappstock/stock/stockdata/mentorstock/company/freechat.finup.co.kr</code> — 레거시 ALB는 통과만 하고 백엔드는 신규 React/Java. <strong>Tier 2의 1순위 후보</strong>.</li>
+<li><strong>신규 Java API 도메인이 별도로 존재</strong> (<code>api-admin/api-chat/api-finance/api-mentor/api-radar/api-realtime/api-stock/api-stockdata.finup.co.kr</code> 8개) — 이미 alb-internal-api 신규 ALB로 가고 있음. 단, 클라이언트 앱은 여전히 <strong>레거시 도메인</strong> (<code>apistock/apiauth/apiradar/apilog/apipush.finup.co.kr</code>)을 호출하고 있을 가능성 높음. 클라이언트 앱 cutover 확인 필수.</li>
+<li><strong>레거시 CS EC2는 22대</strong> (Windows). WAF 2 + 메인 WEB 2 + API 2 + 카테고리별 8 + Mars 1 + Staging 3 + 기타 4. 솔루션 단위로 보면 약 15개의 레거시 사이트가 IIS 다중 호스팅으로 운영 중.</li>
+<li><strong>트래픽 실측(§9)으로 Tier 3 → Tier 1 승격 10건 발견</strong>: handsup.co.kr / beglam.co.kr / ajk.co.kr root / themeradar root / stockpoint root / financeup 6개 외부 zone + apilgu/apiwiseinvest/channeldata/apilogtest 4건 — <strong>24시간 트래픽 0</strong>. 외부 zone retire 가능 (클라이언트/SEO 컨펌 후).</li>
+<li><strong>CloudWatch 트래픽 0 TG 4건</strong>: <code>ELBMainInternalTargetApiStock</code> (EC2 healthy인데 호출 0), <code>stgChannel</code> (Staging Chat healthy인데 호출 0), <code>ELBMainInternalTargetApiLogTest</code>, dead TG 2개 — 즉시 정리 가능. EC2 <code>i-0be041fae3e9dd412 API StockData</code> + <code>i-0ebb153e94715dea6 Staging Chat</code> retire 후보 추가.</li>
+<li><strong>URL Tier 1 (즉시 다운, 외부 영향 0): ~110건</strong> (§9 보강 후) — redirect-only · staging URL · <em>terminal VPN-DNS · dead TG · pre-</em> · 외부 zone retire · 레거시 dead API.</li>
+<li><strong>URL Tier 2 (DNS 전환 후 다운): 13 prod + 10 pre + 8 이미 신규 ALB</strong>. 신규 외부 ALB 또는 ELBMainExternal에 신규 TG 직결 결정 필요.</li>
+<li><strong>URL Tier 3 (활성 C# 의존): ~25건</strong> (Tier 1 승격분 차감). 핵심 부담은 <code>apilog.finup.co.kr</code> (7일 258만 req — Java logbot 배포 ROI 가장 큼), <code>chatimg/chatapi/apipush/apistock/apiauth/apiradar</code> 등 모바일·앱 클라이언트 의존 API.</li>
+<li><strong>인프라 Tier (5/6 → 5/7 재검증)</strong>: 5/6 보강본 Tier 1 10건 / Tier 2 6건 / Tier 3 9건 분류 라이브 확인 결과 <strong>변동 0건</strong> (§7 참조).</li>
+</ol>
+<hr />
+<h2 id="1">1. 외부 요청 플로우 (확정)</h2>
+<pre><code>외부 사용자
+  ↓ DNS (Route53)
+ELBMainExternal (internet-facing ALB, sg-72ba6a19)
+  ├─ HTTP :80  → 31 rule (대부분 HTTPS:443 redirect)
+  └─ HTTPS :443 → 24 rule (도메인 정규화 redirect 11건 + 일부 forward)
+       │ default → TG ELBMainExternalTarget
+       │
+       ↓ TG ELBMainExternalTarget (port 80)
+       ▼
+FINUP WAF EC2 × 2 (Linux m6i.xlarge)
+  ├─ FinUp-EC2-WAF1-N (10.0.5.26, AZ-a)
+  └─ FinUp-EC2-WAF2-N (10.0.6.113, AZ-c)
+       │ (포트 변경 가능: 8443 등)
+       ↓
+ELBMainInternal (internal ALB, sg-0295a55ac523676cd)
+  ├─ HTTP :80   → 60 rule + default
+  └─ HTTP :8443 → 39 rule + default
+       │ default → TG ELBMainInternalTarget (WEB1/WEB2 — 메인 IIS)
+       │
+       ↓ Host-header 매칭 → 레거시 TG 또는 신규 TG-front-*-prod
+       ▼
+레거시 CS EC2 (Windows, 약 17대) 또는 신규 React Node SSR EC2
+</code></pre>
+<p><strong>Mars 스택 (병렬 경로)</strong>:</p>
+<pre><code>외부 → ELBMarsExternal (HTTP/HTTPS, 5 rule, 모두 도메인 정규화 redirect)
+       default → TG ELBMarsExternalTarget (WAF EC2 2대, 단 unhealthy 상태)
+       (실제 prod 트래픽은 INT_80 rule 58 `*.2mars.kr` → MainInternalTargetMars TG → WEB Mars EC2 i-0e4471ea282e9301f 로 들어가는 것으로 보임)
+</code></pre>
+<blockquote class="note">
+<p>⚠️ ELBMarsExternalTarget이 WAF EC2 2대를 타겟하는데 둘 다 <strong>unhealthy</strong>. Mars는 INT_80 rule을 통해 ELBMainInternal 경로로 처리되고 있음.</p>
+</blockquote>
+<hr />
+<h2 id="2-alb-listener-rule">2. 레거시 ALB Listener Rule 전체</h2>
+<h3 id="21-elbmaininternal-80-60-rule-prod">2.1 ELBMainInternal :80 — 60 rule (실제 prod 분기)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: right;">Pri</th>
+<th>Host (matched)</th>
+<th>→ Forward TG</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">2</td>
+<td><code>mentorstock.finup.co.kr</code></td>
+<td><strong>TG-front-mentor</strong></td>
+<td>신규 React</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td><code>biz.finup.co.kr</code></td>
+<td><strong>TG-front-admin-prod</strong></td>
+<td>신규 React</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td><code>company.finup.co.kr</code></td>
+<td><strong>TG-front-company-prod</strong></td>
+<td>신규 React</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td><code>finance.finup.co.kr</code></td>
+<td><strong>TG-front-finance-prod</strong></td>
+<td>신규 React</td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td><code>partners</code> <code>bizpartners</code> <code>bizguide</code></td>
+<td>ELBMainInternalTarget</td>
+<td>레거시 (WEB1/WEB2)</td>
+</tr>
+<tr>
+<td style="text-align: right;">7</td>
+<td><code>freechat.finup.co.kr</code></td>
+<td><strong>TG-front-freechat-prod</strong></td>
+<td>신규 React</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td><code>www.finup.co.kr</code></td>
+<td><strong>TG-front-general-prod</strong></td>
+<td>신규 React</td>
+</tr>
+<tr>
+<td style="text-align: right;">9</td>
+<td><code>mfinance.finup.co.kr</code></td>
+<td><strong>TG-front-mweb-finance-prod</strong></td>
+<td>신규 React</td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td><code>m.finup.co.kr</code></td>
+<td><strong>TG-front-mweb-general-prod</strong></td>
+<td>신규 React</td>
+</tr>
+<tr>
+<td style="text-align: right;">11</td>
+<td><code>mstock</code> <code>mobileappstock</code></td>
+<td><strong>TG-front-mweb-stock-prod</strong></td>
+<td>신규 React</td>
+</tr>
+<tr>
+<td style="text-align: right;">12</td>
+<td><code>stock.finup.co.kr</code></td>
+<td><strong>TG-front-stock-prod</strong></td>
+<td>신규 React</td>
+</tr>
+<tr>
+<td style="text-align: right;">13</td>
+<td><code>stockdata.finup.co.kr</code></td>
+<td><strong>TG-front-stockdata-prod</strong></td>
+<td>신규 React (단 rule 43와 중복)</td>
+</tr>
+<tr>
+<td style="text-align: right;">14</td>
+<td><code>apivms.finup.co.kr</code></td>
+<td>ELBMainInternalTargetApi</td>
+<td>레거시 API1/API2</td>
+</tr>
+<tr>
+<td style="text-align: right;">15</td>
+<td><code>chatimg.finup.co.kr</code></td>
+<td>ELBMainInternalTargetChatIMG</td>
+<td>레거시 Chat File1</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td><code>pre.financeup.co.kr</code> <code>pre-m</code> <code>pre-bizfinanceup</code></td>
+<td>StagingWEBAPI</td>
+<td>레거시 Staging WEB/API (unhealthy)</td>
+</tr>
+<tr>
+<td style="text-align: right;">17</td>
+<td><code>partners.finup.co.kr</code></td>
+<td>redirect → finuppartners.imweb.me</td>
+<td>외부 imweb로 이전</td>
+</tr>
+<tr>
+<td style="text-align: right;">18</td>
+<td><code>starter</code> <code>pre-starter</code></td>
+<td>redirect → /HelpDesk/NoticeView.aspx</td>
+<td>서비스 종료 안내</td>
+</tr>
+<tr>
+<td style="text-align: right;">19</td>
+<td><code>funding.finup.co.kr</code></td>
+<td>redirect → /HelpDesk/NoticeView.aspx</td>
+<td>서비스 종료 안내</td>
+</tr>
+<tr>
+<td style="text-align: right;">20</td>
+<td><code>pre-apichat</code> <code>pre-chatapi</code> <code>pre-chatweb</code></td>
+<td>StagingChatAPI</td>
+<td>레거시 Staging Chat API (unhealthy)</td>
+</tr>
+<tr>
+<td style="text-align: right;">21</td>
+<td><code>pre-chatbadgeapi</code> <code>pre-chatpushapi</code></td>
+<td>StagingChatAPI</td>
+<td>unhealthy</td>
+</tr>
+<tr>
+<td style="text-align: right;">24</td>
+<td><code>pre-bizchat.finup.co.kr</code></td>
+<td>StagingChatAPI</td>
+<td>unhealthy</td>
+</tr>
+<tr>
+<td style="text-align: right;">27</td>
+<td><code>pre-channel</code> <code>pre-channel1~3</code></td>
+<td>stgChannel</td>
+<td>Staging Chat (healthy)</td>
+</tr>
+<tr>
+<td style="text-align: right;">28</td>
+<td><code>pre-chatchannel</code> <code>pre-chatchannelview</code> <code>pre-chatchannelfinance</code></td>
+<td>stgChannel</td>
+<td></td>
+</tr>
+<tr>
+<td style="text-align: right;">30</td>
+<td><code>pre-chat</code> <code>pre-apiitsyou</code> <code>itsyou</code> <code>finit</code> <code>apifinit</code></td>
+<td>StagingWEBAPI</td>
+<td>unhealthy</td>
+</tr>
+<tr>
+<td style="text-align: right;">31</td>
+<td><code>urlapi.finup.co.kr</code></td>
+<td>ELBMainInternalTargetApiUrl</td>
+<td>레거시 API URL2</td>
+</tr>
+<tr>
+<td style="text-align: right;">32</td>
+<td><code>stockdatar.finup.co.kr</code></td>
+<td>ApiStockDataRealtime</td>
+<td>레거시 Realtime/Realtime2</td>
+</tr>
+<tr>
+<td style="text-align: right;">34</td>
+<td><code>apilgu</code> <code>apiwiseinvest</code></td>
+<td>ELBMainInternalTargetApi</td>
+<td>레거시 API1/API2</td>
+</tr>
+<tr>
+<td style="text-align: right;">35</td>
+<td><code>apilog.finup.co.kr</code></td>
+<td>ELBMainInternalTargetApiLog</td>
+<td>레거시 API Log1/Log2</td>
+</tr>
+<tr>
+<td style="text-align: right;">36</td>
+<td><code>channeldata.finup.co.kr</code></td>
+<td>ELBMainInternalTargetApiStock</td>
+<td>레거시 API StockData</td>
+</tr>
+<tr>
+<td style="text-align: right;">37</td>
+<td><code>apichat</code> <code>chatapi</code> <code>bizchat</code></td>
+<td>APIChat</td>
+<td>레거시 API Chat1</td>
+</tr>
+<tr>
+<td style="text-align: right;">38</td>
+<td><code>apibadge.finup.co.kr</code></td>
+<td>ELBMainInternalTargetApi3</td>
+<td><strong>TG 0 healthy targets</strong></td>
+</tr>
+<tr>
+<td style="text-align: right;">39</td>
+<td><code>api.themeradar.co.kr</code></td>
+<td>ELBMainInternalTargetApi</td>
+<td>레거시</td>
+</tr>
+<tr>
+<td style="text-align: right;">40</td>
+<td><code>apistock.ajk.co.kr</code></td>
+<td>ELBMainInternalTargetApiStock</td>
+<td>레거시</td>
+</tr>
+<tr>
+<td style="text-align: right;">42</td>
+<td><code>api.stockpoint.co.kr</code></td>
+<td>ELBMainInternalTargetApi</td>
+<td>레거시</td>
+</tr>
+<tr>
+<td style="text-align: right;">43</td>
+<td><code>stockdata.finup.co.kr</code></td>
+<td>ELBMainInternalTargetApiStock</td>
+<td>rule 13과 중복 (priority 43이 늦음 → React가 먼저 매치)</td>
+</tr>
+<tr>
+<td style="text-align: right;">44</td>
+<td><code>pre-img</code> <code>pre-hiddenimg</code></td>
+<td>ELBMainInternalTargetIMG</td>
+<td>레거시 IMG1</td>
+</tr>
+<tr>
+<td style="text-align: right;">45</td>
+<td><code>pre-chatimg.finup.co.kr</code></td>
+<td>ELBMainInternalTargetIMG</td>
+<td>레거시</td>
+</tr>
+<tr>
+<td style="text-align: right;">46</td>
+<td><code>apithemeradar.finup.co.kr</code></td>
+<td>ELBMainInternalTargetApi</td>
+<td>레거시</td>
+</tr>
+<tr>
+<td style="text-align: right;">47</td>
+<td><code>apistock.finup.co.kr</code></td>
+<td>ELBMainInternalTargetApi</td>
+<td>레거시</td>
+</tr>
+<tr>
+<td style="text-align: right;">48</td>
+<td><code>apiradar.finup.co.kr</code></td>
+<td>ELBMainInternalTargetApi</td>
+<td>레거시</td>
+</tr>
+<tr>
+<td style="text-align: right;">49</td>
+<td><code>apipush</code> <code>chatpushapi</code> <code>chatbadgeapi</code></td>
+<td>ELBMainInternalTargetApiPush</td>
+<td>레거시 API Push</td>
+</tr>
+<tr>
+<td style="text-align: right;">50</td>
+<td><code>apiauth.finup.co.kr</code></td>
+<td>ELBMainInternalTargetApi</td>
+<td>레거시</td>
+</tr>
+<tr>
+<td style="text-align: right;">51</td>
+<td><code>img.finup.co.kr</code> <code>hiddenimg.finup.co.kr</code></td>
+<td>ELBMainInternalTargetIMG</td>
+<td>레거시 IMG1 (단 R53는 CloudFront로 직접)</td>
+</tr>
+<tr>
+<td style="text-align: right;">52</td>
+<td><code>api.finup.co.kr</code></td>
+<td>ELBMainInternalTargetApi</td>
+<td>레거시</td>
+</tr>
+<tr>
+<td style="text-align: right;">53</td>
+<td><code>channel</code> <code>freechat</code> <code>chatchannel</code> <code>chatchannelview</code> <code>chatchannelfinance</code></td>
+<td>Channel</td>
+<td>레거시 Chat Channel1 ⚠ rule 7과 freechat 충돌</td>
+</tr>
+<tr>
+<td style="text-align: right;">54</td>
+<td><code>chatweb.finup.co.kr</code></td>
+<td>WebChat</td>
+<td>레거시 Web Chat</td>
+</tr>
+<tr>
+<td style="text-align: right;">56</td>
+<td><code>trade</code> <code>biztrade</code> <code>tradeapi</code></td>
+<td>ELBMainInternalTargetTrade</td>
+<td><strong>TG 0 targets</strong></td>
+</tr>
+<tr>
+<td style="text-align: right;">58</td>
+<td><code>www.2mars.kr</code> <code>biz.2mars.kr</code> <code>api.2mars.kr</code> <code>llm.2mars.kr</code></td>
+<td>MainInternalTargetMars</td>
+<td>레거시 WEB Mars</td>
+</tr>
+<tr>
+<td style="text-align: right;">59-70</td>
+<td><code>pre-biz/mentorstock/stock/mstock/company/finance/mfinance/m/freechat</code>, <code>pre.finup.co.kr</code></td>
+<td><strong>TG-front-*-pre</strong></td>
+<td>신규 React 프리프로덕션</td>
+</tr>
+<tr>
+<td style="text-align: right;">default</td>
+<td>*</td>
+<td>ELBMainInternalTarget</td>
+<td>WEB1/WEB2 (메인 IIS)</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote class="note">
+<p>⚠️ Rule 7(<code>freechat.finup.co.kr</code> → TG-front-freechat-prod) vs Rule 53(<code>freechat.finup.co.kr</code> → Channel). 7이 priority 낮으므로 freechat는 신규 React로 감. Channel rule의 freechat는 dead alternative.</p>
+<p>⚠️ Rule 13 vs 43 stockdata.finup.co.kr: 13(신규 React) 우선. rule 43은 dead.</p>
+</blockquote>
+<h3 id="22-elbmaininternal-8443-39-rule-prod-api">2.2 ELBMainInternal :8443 — 39 rule (대부분 prod API용)</h3>
+<p>거의 INT_80과 미러. 차이점:
+- :80에 있는 신규 React TG-front-<em>-prod 9개 rule이 </em><em>:8443에 없음</em><em> (즉 신규 prod React는 :80만 받음)
+- :8443에는 prod API + pre-</em>가 주로 매핑 (구 클라이언트가 8443으로 호출)
+- <code>apilogtest.finup.co.kr</code> rule 28만 :8443에 존재 (TG ELBMainInternalTargetApiLogTest, API Log2 공유)
+- <code>*.financeup.co.kr</code> <code>pre.financeup.co.kr</code> rule 6 → StagingWEBAPI (unhealthy)
+- <code>preapi.stockpoint.co.kr</code> rule 36 → StagingWEBAPI (unhealthy)</p>
+<blockquote class="note">
+<p>외부 → WAF EC2 → ELBMainInternal:80 또는 :8443 어느 포트로 forwarding되는지 패턴은 WAF 설정에 달림. WAF 측에서 <code>apistock</code>/<code>apiauth</code> 등은 :8443으로, 일반 웹은 :80으로 분기시키는 것으로 추정 (별도 확인 필요).</p>
+</blockquote>
+<h3 id="23-elbmainexternal-80443-passthrough">2.3 ELBMainExternal :80/:443 (passthrough)</h3>
+<ul>
+<li>:80 — 30 rule이 모두 HTTPS 301 redirect. 단순 80→443 정책.</li>
+<li>:443 — 24 rule (대부분 도메인 통합 redirect: <code>financeup.co.kr</code> → <code>www.financeup.co.kr</code>, <code>stockpoint.co.kr</code> → <code>stock.finup.co.kr</code> 등). 실제 forward는 4건만:</li>
+<li><code>grafana.finup.co.kr</code> → TG-monitoring-grafana (rule 16, 19, 21, 22, 23 5중 등록)</li>
+<li><code>apistock.finup.co.kr</code> <code>/api/chat/weblogin*</code> → TG-api-stock-external (rule 18)</li>
+<li><code>apistock.finup.co.kr</code> <code>/api/chat/signal</code> <code>/api/chat/signal/last*</code> → TG-api-stock-external (rule 100, 101)</li>
+<li><code>apistock</code>/<code>mstock</code>/<code>mobileappstock</code> <code>/Stock/Banner/*</code> → redirect <code>img.finup.co.kr</code> (rule 14)</li>
+<li>그 외 모두 default → ELBMainExternalTarget → WAF EC2</li>
+</ul>
+<blockquote class="note">
+<p><strong>TG-api-stock-external은 신규 Java api-stock 서비스로 보임.</strong> 일부 chat 관련 endpoint(<code>/api/chat/weblogin</code>, <code>/api/chat/signal</code>)가 외부 ALB에서 직접 라우팅됨. Bypassing WAF — 의도적인지 확인 필요.</p>
+</blockquote>
+<h3 id="24-elbmarsexternal-80443">2.4 ELBMarsExternal :80/:443</h3>
+<ul>
+<li>:80 3 rule (<code>www.2mars.kr</code>/<code>2mars.kr</code> → HTTPS redirect, <code>biz.2mars.kr</code> → HTTPS redirect, default → ELBMarsExternalTarget)</li>
+<li>:443 2 rule (<code>2mars.kr</code> → www redirect, default → ELBMarsExternalTarget)</li>
+<li>ELBMarsExternalTarget이 WAF EC2 2대를 가리키지만 둘 다 unhealthy → 사실상 rule 58(<code>*.2mars.kr</code> → MainInternalTargetMars) 경로만 살아있음.</li>
+</ul>
+<hr />
+<h2 id="3-tg-ec2">3. 레거시 TG → EC2 → 솔루션 매핑</h2>
+<h3 id="31-tg-healthy">3.1 활성 TG (healthy)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>TG</th>
+<th>EC2 (Name, IP, Type)</th>
+<th>Health Check</th>
+<th>추정 cs/ 솔루션 (IIS 다중 사이트)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ELBMainExternalTarget</td>
+<td>FinUp-EC2-WAF1-N (10.0.5.26, m6i.xlarge), WAF2-N (10.0.6.113, m6i.xlarge)</td>
+<td><code>/health.html</code></td>
+<td>(FINUP WAF — Linux. 자체 솔루션 아님)</td>
+</tr>
+<tr>
+<td>ELBMainInternalTarget</td>
+<td>WEB1 (10.0.0.55, m5.large), WEB2 (10.0.1.215, m5.large)</td>
+<td><code>/Health.aspx</code></td>
+<td><strong>FinUp.Stock.Web</strong> + <strong>FinUp.Finance.Web</strong> + <strong>FinUp.General.Web</strong> + FinUp.Stock.Mentor + FinUp.Stock.MobileWeb + FinUp.Finance.MobileWeb + FinUp.General.MobileWeb (Host-header로 IIS 사이트 다중 호스팅)</td>
+</tr>
+<tr>
+<td>ELBMainInternalTargetApi</td>
+<td>API1 (10.0.0.21, m5.large), API2 (10.0.20.96, m5.large)</td>
+<td><code>/Health.aspx</code></td>
+<td><strong>FinUp.Stock.Api</strong> + <strong>FinUp.Auth.Api</strong> + <strong>FinUp.Radar.Api</strong> + FinUp.Mars.Api + FinUp.Guide + FinUp.Guide.Admin (다중)</td>
+</tr>
+<tr>
+<td>ELBMainInternalTargetApiLog</td>
+<td>API Log1 (10.0.0.26, m5.xlarge), API Log2 (10.0.15.31, m6i.xlarge)</td>
+<td><code>/health.html</code></td>
+<td><strong>FinUp.LogData.Api</strong></td>
+</tr>
+<tr>
+<td>ELBMainInternalTargetApiLogTest</td>
+<td>API Log2 공유 (10.0.15.31)</td>
+<td><code>/health.html</code></td>
+<td>FinUp.LogData.Api (테스트 사이트)</td>
+</tr>
+<tr>
+<td>ELBMainInternalTargetApiPush</td>
+<td>API Push (10.0.0.205, t3.large)</td>
+<td><code>/health.html</code></td>
+<td><strong>FinUp.Chat.NET.Api.Push</strong></td>
+</tr>
+<tr>
+<td>ELBMainInternalTargetApiStock</td>
+<td>API StockData (10.0.15.112, m6i.xlarge)</td>
+<td><code>/health.html</code></td>
+<td><strong>FinUp.StockData.Price.Api</strong> + FinUp.StockData.Biz</td>
+</tr>
+<tr>
+<td>ELBMainInternalTargetApiUrl</td>
+<td>API URL2 (10.0.15.43, t3.large)</td>
+<td><code>/health.html</code></td>
+<td>(URL 단축/리다이렉트 서비스 추정 — 솔루션 디렉토리 미식별)</td>
+</tr>
+<tr>
+<td>ELBMainInternalTargetChatIMG</td>
+<td>Chat File1 (10.0.15.51, t3.large)</td>
+<td><code>/health.html</code></td>
+<td><strong>FinUp.Chat.NET.Api.ChannerView</strong> (파일/이미지)</td>
+</tr>
+<tr>
+<td>ELBMainInternalTargetIMG</td>
+<td>IMG1 (10.0.0.12, t3.large)</td>
+<td><code>/health.html</code></td>
+<td>(이미지 호스팅 IIS — 솔루션 미식별, 정적 파일 서버)</td>
+</tr>
+<tr>
+<td>APIChat</td>
+<td>API Chat1 (10.0.0.42, t3.large)</td>
+<td><code>/Health.aspx</code></td>
+<td><strong>FinUp.Chat.NET.Api</strong> + FinUp.Chat.NET.Api.Badge</td>
+</tr>
+<tr>
+<td>ApiStockDataRealtime</td>
+<td>API StockData Realtime (10.0.15.170), Realtime2 (10.0.16.182)</td>
+<td><code>/health.html</code></td>
+<td><strong>FinUp.StockData.Price.Api.RealTime</strong></td>
+</tr>
+<tr>
+<td>Channel</td>
+<td>Chat Channel1 (10.0.0.7, t3.large)</td>
+<td><code>/health.html</code></td>
+<td><strong>FinUp.Chat.NET.Api.Channel</strong></td>
+</tr>
+<tr>
+<td>WebChat</td>
+<td>Web Chat (10.0.15.85, m5.large)</td>
+<td><code>/health.html</code></td>
+<td><strong>FinUp.Chat.Web.React</strong> + FinUp.Chat.NET.Blazor.*</td>
+</tr>
+<tr>
+<td>MainInternalTargetMars</td>
+<td>WEB Mars (10.0.0.14, m6i.xlarge)</td>
+<td><code>/</code></td>
+<td><strong>FinUp.Mars.Web</strong> + FinUp.Mars.Api + FinUp.Mars.Admin + FinUp.Mars.LLM</td>
+</tr>
+<tr>
+<td>stgChannel</td>
+<td>Staging Chat (10.0.0.109, t3.large)</td>
+<td><code>/</code></td>
+<td>(Staging Channel)</td>
+</tr>
+<tr>
+<td>ELBMarsExternalTarget</td>
+<td>WAF EC2 2대</td>
+<td><code>/health.html</code></td>
+<td><strong>둘 다 unhealthy — TG 사실상 dead</strong></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="32-tg-0-healthy-targets">3.2 죽은 TG (0 healthy targets)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>TG</th>
+<th>상태</th>
+<th>매핑된 URL</th>
+<th>영향</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ELBMainInternalTargetApi3</td>
+<td>0 targets registered</td>
+<td>apibadge.finup.co.kr</td>
+<td>apibadge 호출 시 503. 클라이언트 의존 확인 필요</td>
+</tr>
+<tr>
+<td>ELBMainInternalTargetTrade</td>
+<td>0 targets registered</td>
+<td>trade.finup.co.kr / biztrade / tradeapi</td>
+<td>503. 거래 기능 미사용 추정</td>
+</tr>
+<tr>
+<td>StagingChatAPI</td>
+<td>1 target i-099534d10716f145f (unhealthy)</td>
+<td>pre-apichat / pre-chatapi / pre-chatweb / pre-chatbadgeapi / pre-chatpushapi / pre-bizchat</td>
+<td>Staging 환경 미가동</td>
+</tr>
+<tr>
+<td>StagingWEBAPI</td>
+<td>1 target i-02d59e6e3fcbb0d64 (unhealthy)</td>
+<td>pre.financeup / pre-m.financeup / pre-bizfinanceup / pre-chat / pre-apiitsyou / itsyou / finit / apifinit / preapi.stockpoint</td>
+<td>Staging 환경 미가동</td>
+</tr>
+<tr>
+<td>ELBMarsExternalTarget</td>
+<td>2 unhealthy</td>
+<td>(사용 안 됨, INT_80 rule 58 경로 사용)</td>
+<td>passthrough도 안 됨</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="4-route53">4. Route53 외부 도메인 매핑</h2>
+<h3 id="41-zone-alias">4.1 zone별 ALIAS 향방</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Zone (records)</th>
+<th style="text-align: right;">→ ELBMainExternal</th>
+<th style="text-align: right;">→ alb-internal-finup (신규 dev)</th>
+<th style="text-align: right;">→ alb-internal-api (신규 prod API)</th>
+<th style="text-align: right;">→ ELBMarsExternal</th>
+<th style="text-align: right;">→ CloudFront</th>
+<th style="text-align: right;">→ 외부/직IP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>finup.co.kr (256)</strong></td>
+<td style="text-align: right;">~110</td>
+<td style="text-align: right;">1 (<code>*.internal</code>)</td>
+<td style="text-align: right;">8 (api-admin/chat/finance/mentor/radar/realtime/stock/stockdata)</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3 (img/cdn/img.internal)</td>
+<td style="text-align: right;">50+ <code>*terminal</code> (10.x.x.x), 1 <code>langchain</code> (3.38.212.154), 6 CNAME(hiworks/wisefn/danal/mongolia)</td>
+</tr>
+<tr>
+<td><strong>stockpoint.co.kr (29)</strong></td>
+<td style="text-align: right;">9 (root/biz/league/m/mentor/mobile/real-biz/www/api)</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">7 dev (121.133.210.228), <code>futurewiz</code> (180.68.207.59), 4 wisefn CNAME</td>
+</tr>
+<tr>
+<td><strong>themeradar.co.kr (14)</strong></td>
+<td style="text-align: right;">6 (root/admin/api/preapi/testapi/www)</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3 dev (121.x), 1 ACM</td>
+</tr>
+<tr>
+<td><strong>handsup.co.kr (5)</strong></td>
+<td style="text-align: right;">4 (root/api/biz/www)</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">mail (211.234)</td>
+</tr>
+<tr>
+<td><strong>financeup.co.kr (9)</strong></td>
+<td style="text-align: right;">6 (root/m/pre*/www)</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1 ACM</td>
+</tr>
+<tr>
+<td><strong>ajk.co.kr (18)</strong></td>
+<td style="text-align: right;">6 (root/api/apistock/pre/routing/www)</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2 dev (121.x), 4 hiworks CNAME, 1 ACM</td>
+</tr>
+<tr>
+<td><strong>hrinvestment.co.kr (11)</strong></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1 dev (121.x), 5 hiworks(mail)</td>
+</tr>
+<tr>
+<td><strong>beglam.co.kr (10)</strong></td>
+<td style="text-align: right;">5 (root/stock01-04)</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">stock/www (3.34.12.147 — 외부 IP)</td>
+</tr>
+<tr>
+<td><strong>2mars.kr (10)</strong></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">5 (root/api/biz/llm/www)</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1 ACM</td>
+</tr>
+<tr>
+<td><strong>kookandcook.com (6)</strong></td>
+<td style="text-align: right;">3 (root/m/www)</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1 ACM</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="42">4.2 핵심 발견</h3>
+<ul>
+<li><strong>신규 Java API용 alb-internal-api로 이미 8개 도메인 분리됨</strong>: <code>api-admin/api-chat/api-finance/api-mentor/api-radar/api-realtime/api-stock/api-stockdata.finup.co.kr</code>. 단, 클라이언트 앱(웹/모바일)이 이 도메인을 사용 중인지 별도 확인 필수 — 만약 여전히 <code>apistock.finup.co.kr</code> (레거시)를 부르고 있다면 신규 API 도메인은 미사용 상태.</li>
+<li><strong><code>*terminal.finup.co.kr</code> 51건 (<code>appstockterminal</code>, <code>apilog2terminal</code>, <code>chatlogterminal</code> 등)</strong>: 모두 사설 IP(10.0.x.x)를 가리키며 외부에서 도달 불가. <strong>VPN 사용자가 EC2를 이름으로 식별하기 위한 DNS shortcut</strong>. URL 라우팅이 아니므로 EC2 자체가 retire되면 이 record도 함께 삭제하면 됨. URL Tier 1 분류.</li>
+<li><strong>handsup.co.kr 4건</strong>(api/biz/root/www) → ELBMainExternal로 가지만 listener rule 미일치 → default → WEB1/WEB2 IIS. <strong>handsup이 어떤 IIS 사이트로 처리되는지 별도 확인 필요</strong> (FinUp.Handsup 솔루션 미식별).</li>
+<li><strong>beglam stock/www → 3.34.12.147</strong> 외부 IP. AWS EC2 EIP인지 외부 GABIA 호스팅인지 확인 필요.</li>
+<li><strong>stockpoint.co.kr 7개 dev domain (<code>dev.*</code>/<code>devm.*</code>/...) → 121.133.210.228</strong> 사무실 IP. 외부 노출 안되는 dev 환경.</li>
+<li><strong>hrinvestment.co.kr</strong> 은 mail/hiworks만 — 웹 서비스 없음. 5/6 보강본 #19에서 "회사 메일 인프라"로 분류됨 그대로 유효.</li>
+<li><strong>kookandcook.com</strong> 5/6 보강본 Tier 2 #16. dig 결과 ELBMainExternal로 매달려있음. listener rule 미일치 → default(WEB1/WEB2). 실제 해당 사이트가 IIS에 살아있는지 확인 필요.</li>
+</ul>
+<hr />
+<h2 id="5-cs-java">5. cs/ ↔ java/ 솔루션 대응표</h2>
+<h3 id="51-url-cs">5.1 운영 호스팅 솔루션 (URL 보유 cs/ 솔루션)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>카테고리</th>
+<th>cs/ 솔루션 (운영)</th>
+<th>호스팅 EC2</th>
+<th>신규 java/* 대응</th>
+<th>신규 frontend/* 대응</th>
+<th>운영 cutover</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>메인 웹</strong></td>
+<td>FinUp.Stock.Web</td>
+<td>WEB1/2</td>
+<td>(Java API 분리)</td>
+<td>front-stock</td>
+<td>✅ stock.finup.co.kr → TG-front-stock-prod</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.Finance.Web</td>
+<td>WEB1/2</td>
+<td></td>
+<td>front-finance</td>
+<td>✅ finance.finup.co.kr → TG-front-finance-prod</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.General.Web</td>
+<td>WEB1/2</td>
+<td></td>
+<td>front-general</td>
+<td>✅ www.finup.co.kr → TG-front-general-prod</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.Stock.MobileWeb</td>
+<td>WEB1/2</td>
+<td></td>
+<td>front-mweb-stock</td>
+<td>✅ mstock/mobileappstock → TG-front-mweb-stock-prod</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.Finance.MobileWeb</td>
+<td>WEB1/2</td>
+<td></td>
+<td>front-mweb-finance</td>
+<td>✅ mfinance → TG-front-mweb-finance-prod</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.General.MobileWeb</td>
+<td>WEB1/2</td>
+<td></td>
+<td>front-mweb-general</td>
+<td>✅ m.finup.co.kr → TG-front-mweb-general-prod</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.Stock.Mentor</td>
+<td>WEB1/2</td>
+<td></td>
+<td>front-mentor</td>
+<td>✅ mentorstock → TG-front-mentor</td>
+</tr>
+<tr>
+<td><strong>Admin</strong></td>
+<td>FinUp.Stock.Admin / FinUp.Finance.Admin / FinUp.General.Admin</td>
+<td>WEB1/2 (?)</td>
+<td>api-admin</td>
+<td>front-admin</td>
+<td>✅ biz.finup.co.kr → TG-front-admin-prod</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.Mars.Admin / FinUp.Radar.Web.Admin</td>
+<td>WEB Mars / API1/2</td>
+<td>(미이관)</td>
+<td>(미이관)</td>
+<td>❌ Mars 풀스택 (Tier 3)</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.Finance</td>
+<td>(관리)</td>
+<td>(미이관)</td>
+<td>front-company</td>
+<td>✅ company.finup.co.kr → TG-front-company-prod</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.Guide / FinUp.Guide.Admin</td>
+<td>API1/2</td>
+<td>(미이관)</td>
+<td>bizguide.finup.co.kr default → WEB1/2</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>API</strong></td>
+<td>FinUp.Stock.Api</td>
+<td>API1/2</td>
+<td>api-stock</td>
+<td>—</td>
+<td>⚠ apistock.finup.co.kr 여전히 레거시 (신규 api-stock.finup.co.kr 별도 운영)</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.Auth.Api</td>
+<td>API1/2</td>
+<td>(api-stock 흡수?)</td>
+<td>—</td>
+<td>⚠ apiauth.finup.co.kr 레거시</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.Radar.Api</td>
+<td>API1/2</td>
+<td>api-radar</td>
+<td>—</td>
+<td>⚠ apiradar.finup.co.kr 레거시 (신규 api-radar.finup.co.kr 별도)</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.LogData.Api</td>
+<td>API Log1/2</td>
+<td>(logbot 미배포)</td>
+<td>—</td>
+<td>❌ apilog.finup.co.kr 레거시. logbot 배포가 prereq</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.Mars.Api</td>
+<td>API1/2</td>
+<td>(미이관)</td>
+<td>—</td>
+<td>❌ Mars 풀스택 (Tier 3)</td>
+</tr>
+<tr>
+<td><strong>Chat</strong></td>
+<td>FinUp.Chat.NET.Api</td>
+<td>API Chat1</td>
+<td>service-chat</td>
+<td>—</td>
+<td>⚠ apichat.finup.co.kr 레거시 (신규 api-chat.finup.co.kr 별도)</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.Chat.NET.Api.Badge</td>
+<td>API Chat1</td>
+<td>(미이관)</td>
+<td>—</td>
+<td>❌ apibadge.finup.co.kr (TG dead)</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.Chat.NET.Api.Push</td>
+<td>API Push</td>
+<td>pushapp (미배포)</td>
+<td>—</td>
+<td>❌ apipush.finup.co.kr 레거시</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.Chat.NET.Api.Channel</td>
+<td>Chat Channel1</td>
+<td>(미이관)</td>
+<td>—</td>
+<td>❌ channel.finup.co.kr 레거시</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.Chat.NET.Api.ChannerView</td>
+<td>Chat File1</td>
+<td>(미이관)</td>
+<td>—</td>
+<td>❌ chatimg.finup.co.kr 레거시 (이미지)</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.Chat.Web.React + Blazor</td>
+<td>Web Chat</td>
+<td>—</td>
+<td>front-freechat / front-winapp-chat</td>
+<td>✅ freechat (React 부분), ⚠ chatweb.finup.co.kr (Blazor 미이관)</td>
+</tr>
+<tr>
+<td><strong>StockData</strong></td>
+<td>FinUp.StockData.Price.Api</td>
+<td>API StockData</td>
+<td>stockdata-core</td>
+<td>front-stockdata</td>
+<td>✅ stockdata.finup.co.kr → TG-front-stockdata-prod (rule 13 vs 43 중복)</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.StockData.Price.Api.RealTime</td>
+<td>Realtime/Realtime2</td>
+<td>stockdata-realtime</td>
+<td>—</td>
+<td>⚠ stockdatar.finup.co.kr 레거시 (신규 api-realtime.finup.co.kr 별도)</td>
+</tr>
+<tr>
+<td><strong>Mars</strong></td>
+<td>FinUp.Mars.Web/Api/Admin/LLM</td>
+<td>WEB Mars</td>
+<td>(미이관)</td>
+<td>(미이관)</td>
+<td>❌ 2mars.kr 도메인 (Tier 3, 클라이언트 컨펌 필수)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="52-cs-url">5.2 백그라운드/배치 cs/ 솔루션 (URL 없음, 프로세스 운영)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>카테고리</th>
+<th>cs/ 솔루션</th>
+<th>호스팅 EC2 (추정)</th>
+<th>신규 java/*</th>
+<th>상태</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AlphaBot</td>
+<td>FinUp.CollectData.App.AlphaBot</td>
+<td>(Windows EC2)</td>
+<td>api-collectdata</td>
+<td>api-collectdata 배포 완료 (4/13 Kafka 제거 포함). C# AlphaBot 4종 잔존 — 5/4 메일 사고 후속 결정 대기</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.Radar.App.AlphaBot</td>
+<td></td>
+<td>(미이관)</td>
+<td>❌</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.Stock.App.AlphaBot</td>
+<td></td>
+<td>(미이관)</td>
+<td>❌</td>
+</tr>
+<tr>
+<td></td>
+<td>FinUp.Finance.APP.AlphaBot</td>
+<td></td>
+<td>(미이관)</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Crawler</td>
+<td>FinUp.CollectData.App.Crawler.News / News.Biz / RSS / RSS.Master / Biz / Morpheme</td>
+<td>(Windows EC2)</td>
+<td>api-collectdata + api-news</td>
+<td>부분 이관</td>
+</tr>
+<tr>
+<td>Analysis</td>
+<td>FinUp.Analysis.News.Filter.App / Theme.App / Theme.App.Aggregate</td>
+<td></td>
+<td>(미이관)</td>
+<td>❌ (api-theme이 신규 작성 중?)</td>
+</tr>
+<tr>
+<td>LogData 백엔드</td>
+<td>FinUp.LogData.App.Main / FinUp.LogData.MongoDB</td>
+<td>(Windows EC2)</td>
+<td>(logbot 미배포)</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>StockData 가격</td>
+<td>FinUp.StockData.Price.App / Price.Kiwoom / Price.Middleware.App / DataMapper / ChartCapture.App</td>
+<td>(Windows EC2)</td>
+<td>stockdata-core/realtime + 신규 KRX 직접 write 진행 중</td>
+<td>⚠ 부분 이관</td>
+</tr>
+<tr>
+<td>StockData 데이터</td>
+<td>FinUp.StockData.Biz / Biz.Mapper / Biz.MongoDB / Biz.Redis / Fundamentals / RoboAnalysis.App / Ticker.App.py</td>
+<td></td>
+<td>stockdata-core/stockdata-admin</td>
+<td>⚠ 부분 이관</td>
+</tr>
+<tr>
+<td>Stock 모바일</td>
+<td>FinUp.Stock.Android / Stock.Ios / Stock.App</td>
+<td>(App 빌드 산출물)</td>
+<td>(Android/iOS 네이티브 — 별도 트랙)</td>
+<td>⚠ 클라이언트 앱은 여전히 레거시 API 호출할 가능성</td>
+</tr>
+<tr>
+<td>Mars 백엔드</td>
+<td>(Mars LLM / Admin)</td>
+<td>WEB Mars</td>
+<td>(미이관)</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Common Lib</td>
+<td>FinUp.Core.* (NET/AWS/Data/Diagnostics/DS/Fundamentals/Ios.SSE/Jwt/Log/Telegram/Wpf 등 27개)</td>
+<td>(라이브러리 — 컴파일 시 참조)</td>
+<td>common-core (?)</td>
+<td>라이브러리는 모든 cs/ 앱이 retire되어야 의미 사라짐</td>
+</tr>
+<tr>
+<td>DB 스키마</td>
+<td>FinUp.DB.SQLServer.* (Chat/DbStockPoint/FinUp/StockData/StockInssa/SystemData/ThemeRadar 7개)</td>
+<td>RDS maindb</td>
+<td>PG 이관 (dualwrite 진행)</td>
+<td>⚠ 부분 이관 (10개 도메인 dualwrite)</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote class="note">
+<p>라이브러리(Core.*) + DB 스키마는 운영 cs/ 앱이 retire되면 따라서 의미 잃음. 솔루션 디렉토리는 retire 대상이 아니라 코드 베이스 정리 대상.</p>
+</blockquote>
+<h3 id="53-java-alb-internal-api">5.3 신규 java/ 서비스 별 운영 상태 (alb-internal-api 기준)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>java/ 서비스</th>
+<th>prod URL</th>
+<th>운영 트래픽</th>
+<th>레거시 cs/ 대응</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>api-admin</td>
+<td>api-admin.finup.co.kr</td>
+<td>활성 (alb-internal-api rule 1)</td>
+<td>FinUp.*.Admin</td>
+<td>어드민 통합</td>
+</tr>
+<tr>
+<td>api-mentor</td>
+<td>api-mentor.finup.co.kr</td>
+<td>활성</td>
+<td>(신규 영역)</td>
+<td>dev-only도 가능</td>
+</tr>
+<tr>
+<td>api-finance</td>
+<td>api-finance.finup.co.kr</td>
+<td>활성</td>
+<td>FinUp.Finance</td>
+<td></td>
+</tr>
+<tr>
+<td>api-stock</td>
+<td>api-stock.finup.co.kr</td>
+<td>활성</td>
+<td>FinUp.Stock.Api</td>
+<td>단 클라이언트 앱이 apistock.finup.co.kr (레거시)를 호출하면 신규 트래픽 0</td>
+</tr>
+<tr>
+<td>api-chat</td>
+<td>api-chat.finup.co.kr</td>
+<td>활성</td>
+<td>FinUp.Chat.NET.Api (= service-chat)</td>
+<td></td>
+</tr>
+<tr>
+<td>api-radar</td>
+<td>api-radar.finup.co.kr</td>
+<td>활성</td>
+<td>FinUp.Radar.Api</td>
+<td>apiradar.finup.co.kr 레거시 잔존</td>
+</tr>
+<tr>
+<td>api-stockdata</td>
+<td>api-stockdata.finup.co.kr</td>
+<td>활성 (= stockdata-core-prod)</td>
+<td>FinUp.StockData.Price.Api</td>
+<td></td>
+</tr>
+<tr>
+<td>api-realtime</td>
+<td>api-realtime.finup.co.kr</td>
+<td>활성 (= stockdata-realtime-prod)</td>
+<td>FinUp.StockData.Price.Api.RealTime</td>
+<td>stockdatar.finup.co.kr 레거시 잔존</td>
+</tr>
+<tr>
+<td>api-collectdata</td>
+<td>(URL 없음, 백엔드 워커)</td>
+<td>-</td>
+<td>AlphaBot/Crawler 일부</td>
+<td>4/13 Kafka 제거 완료</td>
+</tr>
+<tr>
+<td>api-news</td>
+<td>dev only</td>
+<td>-</td>
+<td>News.Biz</td>
+<td>prod 미배포</td>
+</tr>
+<tr>
+<td>api-company</td>
+<td>dev only</td>
+<td>-</td>
+<td>(신규)</td>
+<td>prod 미배포</td>
+</tr>
+<tr>
+<td>api-theme</td>
+<td>(개발 중?)</td>
+<td>-</td>
+<td>Analysis.Theme.*</td>
+<td>dualwrite 진행</td>
+</tr>
+<tr>
+<td>logbot</td>
+<td>dev only</td>
+<td>-</td>
+<td>LogData.*</td>
+<td><strong>prod 미배포</strong> — MSK retire 결정 임계점</td>
+</tr>
+<tr>
+<td>pushapp</td>
+<td>dev only</td>
+<td>-</td>
+<td>Chat.Push</td>
+<td>prod 미배포</td>
+</tr>
+<tr>
+<td>service-chat</td>
+<td>(api-chat에 통합?)</td>
+<td>-</td>
+<td>Chat.NET.Api</td>
+<td></td>
+</tr>
+<tr>
+<td>stockdata-admin</td>
+<td>dev only?</td>
+<td>-</td>
+<td>StockData.Biz</td>
+<td>KRX 직접 write 진행</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="6-url-tier-123">6. URL Tier 분류 (1차/2차/3차)</h2>
+<blockquote class="note">
+<p>기준:
+- <strong>1차 (즉시 다운)</strong>: URL 자체가 dead/redirect-only/staging-unhealthy/internal-VPN. 외부 영향 0건.
+- <strong>2차 (URL 전환 후 영향도 확인)</strong>: 신규 java/frontend 백엔드가 prod에 살아있고 레거시 ALB가 통과 라우팅만 함. Route53 ALIAS 또는 listener rule 분리 후 트래픽 0 확인하면 다운 가능.
+- <strong>3차 (지금 다운 불가)</strong>: C# 백엔드만 활성. 클라이언트 앱이 레거시 도메인을 직접 호출하므로 단절 위험.</p>
+</blockquote>
+<h3 id="61-url-tier-1-0">6.1 🟢 URL Tier 1 — 즉시 다운 가능 (외부 영향 0)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>URL / 패턴</th>
+<th>현재 동작</th>
+<th>근거 / 액션</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td><code>starter.finup.co.kr</code> <code>pre-starter.finup.co.kr</code></td>
+<td>redirect → /HelpDesk/NoticeView.aspx</td>
+<td>"서비스 종료 안내" 자체가 운영 종료 메시지. Route53 record + INT_80 rule 18 + EXT_HTTP rule 17 모두 제거 가능</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td><code>funding.finup.co.kr</code> <code>pre-funding.finup.co.kr</code></td>
+<td>redirect → /HelpDesk/NoticeView.aspx</td>
+<td>동일. Route53 record <code>funding/funding01/funding02</code> + INT_80 rule 19 + EXT_HTTP rule 14 + INT_8443 rule 10 제거</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td><code>leaguestock.finup.co.kr</code> <code>pre-leaguestock.finup.co.kr</code> <code>league.finup.co.kr</code> <code>pre-league.finup.co.kr</code></td>
+<td>redirect → tssa.finup.co.kr/</td>
+<td>자체 콘텐츠 없음. league/leaguestock 4건 + EXT_HTTP rule 23 제거</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td><code>partners.finup.co.kr</code> <code>pre-partners.finup.co.kr</code></td>
+<td>redirect → finuppartners.imweb.me</td>
+<td>외부 imweb로 이전 완료. INT_80 rule 17 + INT_8443 rule 8 + EXT_HTTP rule 4 제거</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td><code>kookandcook.com</code> <code>www.kookandcook.com</code> <code>m.kookandcook.com</code></td>
+<td>EXT_HTTP rule 29/30 redirect (자기 자신 HTTPS), default → WEB1/2</td>
+<td>5/6 Tier 2 #16. dig + 사이트 살아있는지 확인 후 zone 자체 retire (<code>Z00346022PS3P4TEXC3UT</code>) + ALIAS record 제거</td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td><code>apilogtest.finup.co.kr</code></td>
+<td>INT_8443 rule 28 → ApiLogTest TG (API Log2 공유)</td>
+<td>"테스트" URL. apilog.finup.co.kr 와 동일 EC2. 트래픽 확인 후 rule + record + TG 제거</td>
+</tr>
+<tr>
+<td style="text-align: right;">7</td>
+<td><code>pre-apilog.finup.co.kr</code></td>
+<td>A → 10.0.0.174 (직접)</td>
+<td>사설 IP 직결 (DNS rule + ALB rule 모두 없음). 어차피 외부 도달 불가. record 삭제</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td><code>apilog1terminal</code> <code>apilog2terminal</code> ... <code>*terminal.finup.co.kr</code> (51건)</td>
+<td>A → 10.0.x.x</td>
+<td>VPN 전용 DNS shortcut. URL 라우팅 아님. 해당 EC2 retire 시 함께 삭제. 즉시 추출/문서화는 가능</td>
+</tr>
+<tr>
+<td style="text-align: right;">9</td>
+<td><code>pre-bizfunding</code> <code>pre-vms</code> <code>pre-bizvms</code> <code>pre-bizpartners</code> <code>pre-bizguide</code> <code>pre-mobileapp</code> <code>pre-bizthemeradar</code> <code>pre-mthemeradar</code> <code>pre-bizstarter</code> <code>pre-biztssa</code> <code>pre-bizstock</code> <code>pre-bizfinance</code> <code>pre-bizradar</code> <code>pre-tssa</code> <code>pre-mtssa</code> <code>pre-radar</code> <code>pre-mradar</code> <code>pre-stockdata</code> <code>pre-stockdatar</code> <code>pre-themeradar</code> <code>pre-mobileappstock</code> <code>pre-apivms</code> <code>pre-apithemeradar</code> <code>pre-apiwiseinvest</code> <code>pre-apiitsyou</code> <code>pre-apiauth</code> <code>pre-apipush</code> <code>pre-apiradar</code> <code>pre-apistock</code> <code>pre-apibadge</code> <code>pre-api</code> <code>pre-bizchat</code> <code>pre-channel2</code> <code>pre-channel3</code> <code>pre-channeldata</code> <code>pre-chatimg</code> <code>pre-hoga</code> <code>pre-hiddenimg</code> <code>pre-img</code> <code>pre-urlapi</code> <code>pre-chatchannel</code> <code>pre-chatchannelview</code> <code>pre-chatchannelfinance</code> <code>pre-chatpushapi</code> <code>pre-chatbadgeapi</code> (40+건)</td>
+<td>listener rule 미일치 → default → WEB1/2 또는 unhealthy Staging TG</td>
+<td>pre-<em> 도메인은 모두 staging 환경용. Staging EC2(WEB/API + Chat API + Mongo) 5대가 5/6 Tier 3 #21에 포함되어 retire 보류 중이지만, </em><em>URL은 사용 안되는 게 명확</em><em> (대부분 ALB rule도 없음). Route53 record + 일치하는 INT_80/8443 rule 제거. </em><em>EC2 자체는 5/6 매트릭스 Tier 3 따름</em>*</td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td><code>apibadge.finup.co.kr</code></td>
+<td>INT_80 rule 38 / INT_8443 rule 33 → TG ELBMainInternalTargetApi3 (0 targets)</td>
+<td>TG에 EC2 없어서 503 반환 중. 호출 흔적 없으면 rule + TG + record 제거. 클라이언트 호출 확인 필요 (chat 모바일 앱)</td>
+</tr>
+<tr>
+<td style="text-align: right;">11</td>
+<td><code>trade.finup.co.kr</code> <code>biztrade.finup.co.kr</code> <code>tradeapi.finup.co.kr</code></td>
+<td>INT_80 rule 56 → TG ELBMainInternalTargetTrade (0 targets)</td>
+<td>TG dead. 거래 기능 미사용 추정. record 미존재 (rule 자체는 host 매칭만) → rule + TG 제거</td>
+</tr>
+<tr>
+<td style="text-align: right;">12</td>
+<td><code>finit.finup.co.kr</code> <code>apifinit.finup.co.kr</code> <code>itsyou.finup.co.kr</code> <code>apiitsyou</code> (4건)</td>
+<td>INT_80 rule 30 → StagingWEBAPI (unhealthy)</td>
+<td>"Finit"/"itsyou" 서비스 자체 미가동 추정. Route53 record + rule 제거</td>
+</tr>
+<tr>
+<td style="text-align: right;">13</td>
+<td><code>pre.financeup.co.kr</code> <code>pre-m.financeup.co.kr</code> <code>pre-bizfinanceup.financeup.co.kr</code> (3건)</td>
+<td>INT_80 rule 16, INT_8443 rule 6 → StagingWEBAPI (unhealthy)</td>
+<td>동일</td>
+</tr>
+<tr>
+<td style="text-align: right;">14</td>
+<td><code>preapi.stockpoint.co.kr</code></td>
+<td>INT_8443 rule 36 → StagingWEBAPI (unhealthy)</td>
+<td>동일</td>
+</tr>
+<tr>
+<td style="text-align: right;">15</td>
+<td><code>mobileapp.finup.co.kr</code></td>
+<td>listener rule 미일치 → default(WEB1/2)</td>
+<td>모바일앱 가입 도메인 — 사용 여부 확인 필요. 미사용이면 1차</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td><code>mobilewisefn.finup.co.kr</code> <code>wisefn.finup.co.kr</code> <code>mobile.wisefn.stockpoint.co.kr</code> <code>mobilewisefn.stockpoint.co.kr</code> <code>wisefn.stockpoint.co.kr</code></td>
+<td>CNAME → wisereport.co.kr</td>
+<td>외부 wisereport 의존. 자체 운영 종료되면 record 자체 제거 가능 (wisereport 계약 종료 시)</td>
+</tr>
+<tr>
+<td style="text-align: right;">17</td>
+<td><code>testdanal.finup.co.kr</code></td>
+<td>CNAME → danal123-ALB-…amazonaws.com</td>
+<td>외부 danal 결제 테스트. 운영 종료/이전 시 제거</td>
+</tr>
+<tr>
+<td style="text-align: right;">18</td>
+<td><code>langchain.finup.co.kr</code></td>
+<td>A → 3.38.212.154 (외부 IP)</td>
+<td>단발 LangChain 실험용. 5/6 Dev sweep <code>finup-ec2-LangChain-dev-sg</code> 와 연관 추정. 미사용이면 1차</td>
+</tr>
+<tr>
+<td style="text-align: right;">19</td>
+<td><code>dev.*</code> <code>devm.*</code> <code>devapi.*</code> <code>devbiz.*</code> (stockpoint/themeradar/ajk/hrinvestment 7+건)</td>
+<td>A → 121.133.210.228 (사무실 IP)</td>
+<td>dev 환경 사내 접속용. URL 라우팅 아님. record는 해당 사내 환경 retire 시</td>
+</tr>
+<tr>
+<td style="text-align: right;">20</td>
+<td><code>routing.ajk.co.kr</code> <code>pre.ajk.co.kr</code> <code>www.ajk.co.kr</code></td>
+<td>listener rule 미일치 → default(WEB1/2)</td>
+<td>ajk 회사 내부 도메인. 운영 트래픽 확인 후 정리</td>
+</tr>
+<tr>
+<td style="text-align: right;">21</td>
+<td><code>realapitest.stockpoint.co.kr</code></td>
+<td>A → 54.180.44.54</td>
+<td>외부 IP, 명확치 않음</td>
+</tr>
+<tr>
+<td style="text-align: right;">22</td>
+<td>grafana 5중 등록</td>
+<td>EXT_HTTPS rule 16/19/21/22/23</td>
+<td>rule 중복. 1개만 남기고 4개 제거 (cleanup)</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote class="note">
+<p>액션 시 영향: <strong>외부 트래픽 0</strong>. Route53 ALIAS/CNAME record 제거 + 해당 listener rule 제거 + (해당되는 경우) TG 제거. 단 *terminal 51건은 EC2 retire와 함께 묶어서.</p>
+</blockquote>
+<h3 id="62-url-tier-2-dnslistener">6.2 🟡 URL Tier 2 — DNS/listener 전환 후 다운 가능</h3>
+<blockquote class="note">
+<p>신규 java/frontend prod가 살아있고 레거시 ALB가 통과 라우팅만 하는 케이스. 액션 순서: ① Route53 ALIAS 신규 ALB로 전환 → ② 레거시 ALB rule 트래픽 모니터링 1주 → ③ 트래픽 0 확인 → ④ rule 제거 → ⑤ 모든 prod URL이 빠져나오면 ELBMainInternal/External 자체 retire.</p>
+</blockquote>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>URL</th>
+<th>현재 라우팅</th>
+<th>신규 백엔드</th>
+<th>차단 게이트</th>
+<th>추정 트래픽</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">23</td>
+<td><code>www.finup.co.kr</code> <code>finup.co.kr</code></td>
+<td>R53 → ELBMainExternal → WAF → INT_80 rule 8 → <strong>TG-front-general-prod</strong></td>
+<td>front-general (React Node SSR)</td>
+<td>(1) Route53 ALIAS를 신규 외부 ALB로 — 단 신규 외부 ALB가 아직 없음 (alb-internal-* 모두 internal). 신규 외부 ALB 생성 또는 기존 ELBMainExternal에 신규 TG 직접 등록 필요</td>
+<td>High</td>
+</tr>
+<tr>
+<td style="text-align: right;">24</td>
+<td><code>biz.finup.co.kr</code></td>
+<td>INT_80 rule 3 → <strong>TG-front-admin-prod</strong></td>
+<td>front-admin</td>
+<td>동일</td>
+<td>High</td>
+</tr>
+<tr>
+<td style="text-align: right;">25</td>
+<td><code>finance.finup.co.kr</code></td>
+<td>INT_80 rule 5 → <strong>TG-front-finance-prod</strong></td>
+<td>front-finance</td>
+<td>동일</td>
+<td>High</td>
+</tr>
+<tr>
+<td style="text-align: right;">26</td>
+<td><code>mfinance.finup.co.kr</code></td>
+<td>INT_80 rule 9 → <strong>TG-front-mweb-finance-prod</strong></td>
+<td>front-mweb-finance</td>
+<td>동일</td>
+<td>Mid</td>
+</tr>
+<tr>
+<td style="text-align: right;">27</td>
+<td><code>m.finup.co.kr</code></td>
+<td>INT_80 rule 10 → <strong>TG-front-mweb-general-prod</strong></td>
+<td>front-mweb-general</td>
+<td>동일</td>
+<td>High</td>
+</tr>
+<tr>
+<td style="text-align: right;">28</td>
+<td><code>mstock.finup.co.kr</code> <code>mobileappstock.finup.co.kr</code></td>
+<td>INT_80 rule 11 → <strong>TG-front-mweb-stock-prod</strong></td>
+<td>front-mweb-stock</td>
+<td>동일</td>
+<td>High</td>
+</tr>
+<tr>
+<td style="text-align: right;">29</td>
+<td><code>stock.finup.co.kr</code></td>
+<td>INT_80 rule 12 → <strong>TG-front-stock-prod</strong></td>
+<td>front-stock</td>
+<td>동일</td>
+<td>High</td>
+</tr>
+<tr>
+<td style="text-align: right;">30</td>
+<td><code>stockdata.finup.co.kr</code></td>
+<td>INT_80 rule 13 → <strong>TG-front-stockdata-prod</strong> (rule 43 dead)</td>
+<td>front-stockdata</td>
+<td>동일. rule 43은 즉시 제거 가능 (dead)</td>
+<td>Mid</td>
+</tr>
+<tr>
+<td style="text-align: right;">31</td>
+<td><code>mentorstock.finup.co.kr</code></td>
+<td>INT_80 rule 2 → <strong>TG-front-mentor</strong></td>
+<td>front-mentor</td>
+<td>동일</td>
+<td>Mid</td>
+</tr>
+<tr>
+<td style="text-align: right;">32</td>
+<td><code>company.finup.co.kr</code></td>
+<td>INT_80 rule 4 → <strong>TG-front-company-prod</strong></td>
+<td>front-company</td>
+<td>동일</td>
+<td>Low</td>
+</tr>
+<tr>
+<td style="text-align: right;">33</td>
+<td><code>freechat.finup.co.kr</code></td>
+<td>INT_80 rule 7 → <strong>TG-front-freechat-prod</strong></td>
+<td>front-freechat</td>
+<td>동일. 단 rule 53도 freechat host에 매칭(Channel TG로 가는 dead alternative) — rule 53에서 freechat 제거 필요</td>
+<td>Mid</td>
+</tr>
+<tr>
+<td style="text-align: right;">34</td>
+<td><code>pre.finup.co.kr</code> <code>pre-biz</code> <code>pre-mentorstock</code> <code>pre-stock</code> <code>pre-mstock</code> <code>pre-company</code> <code>pre-finance</code> <code>pre-mfinance</code> <code>pre-m</code> <code>pre-freechat</code> (10건)</td>
+<td>INT_80 rule 59~70 → <strong>TG-front-*-pre</strong></td>
+<td>front-* (pre 환경)</td>
+<td>pre는 dev/QA 영역 — 신규 alb-internal-finup으로 이미 같은 host가 운영되고 있는지 확인. 이미 운영 중이면 레거시 ALB rule만 제거</td>
+<td>dev</td>
+</tr>
+<tr>
+<td style="text-align: right;">35</td>
+<td><code>img.finup.co.kr</code></td>
+<td>R53 → <strong>CloudFront</strong> d2f9m9bc00sci.cloudfront.net (직결)</td>
+<td>S3 finup-files-prod via CloudFront</td>
+<td>INT_80 rule 51 (<code>img.finup.co.kr</code> → ELBMainInternalTargetIMG)는 dead route. <strong>R53는 이미 CloudFront로 가니까 rule 51 자체가 무효</strong>. rule 51 + IMG1 EC2 retire 검토 — 단 hiddenimg.finup.co.kr 가 같은 rule 매칭이라 hiddenimg 처리 후</td>
+<td>(대부분 CloudFront)</td>
+</tr>
+<tr>
+<td style="text-align: right;">36</td>
+<td><code>cdn.internal.finup.co.kr</code> <code>img.internal.finup.co.kr</code></td>
+<td>CloudFront 직결</td>
+<td>S3</td>
+<td>이미 신규 — 레거시 영향 없음. (Tier 2 액션 불필요, 정상 운영)</td>
+<td>High</td>
+</tr>
+<tr>
+<td style="text-align: right;">37</td>
+<td><code>api-admin/api-chat/api-finance/api-mentor/api-radar/api-realtime/api-stock/api-stockdata.finup.co.kr</code> (8건)</td>
+<td>R53 → <strong>alb-internal-api</strong> (직결)</td>
+<td>java/api-*</td>
+<td>이미 신규 ALB. 레거시 영향 없음 — 단 클라이언트 앱이 이 URL을 호출하는지 확인 필수 (만약 여전히 <code>apistock.finup.co.kr</code> 호출이면 Tier 3로 회귀)</td>
+<td>?</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="63-url-tier-3-c">6.3 🔴 URL Tier 3 — 활성 C# 의존 (지금 다운 불가)</h3>
+<blockquote class="note">
+<p>Java 대체 서비스 유무와 무관하게 <strong>클라이언트가 레거시 도메인을 호출하는 한</strong> 차단 시 단절 발생.</p>
+</blockquote>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>URL</th>
+<th>백엔드</th>
+<th>Java 대체</th>
+<th>차단 위험</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">38</td>
+<td><code>apistock.finup.co.kr</code></td>
+<td>API1/API2 (FinUp.Stock.Api)</td>
+<td>api-stock (별도 도메인 api-stock.finup.co.kr)</td>
+<td><strong>앱 다운로드 버전이 apistock 호출</strong> 가능. Phase 4 cutover 필수</td>
+</tr>
+<tr>
+<td style="text-align: right;">39</td>
+<td><code>apiauth.finup.co.kr</code></td>
+<td>API1/API2 (FinUp.Auth.Api)</td>
+<td>(api-stock 흡수 또는 별도?)</td>
+<td>인증 단절 위험</td>
+</tr>
+<tr>
+<td style="text-align: right;">40</td>
+<td><code>apiradar.finup.co.kr</code></td>
+<td>API1/API2 (FinUp.Radar.Api)</td>
+<td>api-radar (별도 도메인)</td>
+<td>동일</td>
+</tr>
+<tr>
+<td style="text-align: right;">41</td>
+<td><code>api.finup.co.kr</code> <code>apivms.finup.co.kr</code> <code>apilgu.finup.co.kr</code> <code>apiwiseinvest.finup.co.kr</code> <code>apithemeradar.finup.co.kr</code> <code>api.themeradar.co.kr</code> <code>apistock.ajk.co.kr</code> <code>api.stockpoint.co.kr</code> <code>apifinit.finup.co.kr</code> (9건)</td>
+<td>API1/API2 다양</td>
+<td>일부만 (theme 등)</td>
+<td>외부 파트너 통합 가능성. 클라이언트 컨펌 필수</td>
+</tr>
+<tr>
+<td style="text-align: right;">42</td>
+<td><code>apilog.finup.co.kr</code></td>
+<td>API Log1/Log2 (FinUp.LogData.Api)</td>
+<td>logbot (미배포)</td>
+<td>logbot 배포 또는 producer 차단이 prereq (5/6 §3)</td>
+</tr>
+<tr>
+<td style="text-align: right;">43</td>
+<td><code>apipush.finup.co.kr</code> <code>chatpushapi.finup.co.kr</code> <code>chatbadgeapi.finup.co.kr</code></td>
+<td>API Push (FinUp.Chat.NET.Api.Push)</td>
+<td>pushapp (미배포)</td>
+<td>Push 알림 단절</td>
+</tr>
+<tr>
+<td style="text-align: right;">44</td>
+<td><code>apichat.finup.co.kr</code> <code>chatapi.finup.co.kr</code> <code>bizchat.finup.co.kr</code></td>
+<td>API Chat1 (FinUp.Chat.NET.Api)</td>
+<td>service-chat (api-chat.finup.co.kr)</td>
+<td>클라이언트 cutover 확인</td>
+</tr>
+<tr>
+<td style="text-align: right;">45</td>
+<td><code>channel.finup.co.kr</code> <code>chatchannel.finup.co.kr</code> <code>chatchannelview.finup.co.kr</code> <code>chatchannelfinance.finup.co.kr</code></td>
+<td>Chat Channel1</td>
+<td>(미이관)</td>
+<td>채팅 채널 단절</td>
+</tr>
+<tr>
+<td style="text-align: right;">46</td>
+<td><code>chatweb.finup.co.kr</code></td>
+<td>Web Chat (Blazor)</td>
+<td>(미이관)</td>
+<td>채팅 웹 UI 단절</td>
+</tr>
+<tr>
+<td style="text-align: right;">47</td>
+<td><code>chatimg.finup.co.kr</code></td>
+<td>Chat File1</td>
+<td>(미이관)</td>
+<td>채팅 이미지</td>
+</tr>
+<tr>
+<td style="text-align: right;">48</td>
+<td><code>urlapi.finup.co.kr</code></td>
+<td>API URL2</td>
+<td>(미이관)</td>
+<td>URL 단축 — 외부 노출 링크 단절</td>
+</tr>
+<tr>
+<td style="text-align: right;">49</td>
+<td><code>channeldata.finup.co.kr</code></td>
+<td>API StockData</td>
+<td>(미이관)</td>
+<td></td>
+</tr>
+<tr>
+<td style="text-align: right;">50</td>
+<td><code>stockdatar.finup.co.kr</code></td>
+<td>Realtime/Realtime2 (FinUp.StockData.Price.Api.RealTime)</td>
+<td>stockdata-realtime (api-realtime.finup.co.kr 별도)</td>
+<td>동일</td>
+</tr>
+<tr>
+<td style="text-align: right;">51</td>
+<td><code>hiddenimg.finup.co.kr</code></td>
+<td>IMG1</td>
+<td>(미이관)</td>
+<td>51 rule에서 함께 처리 — rule 분리 필요</td>
+</tr>
+<tr>
+<td style="text-align: right;">52</td>
+<td><code>partners.finup.co.kr</code> (rule 6, 17과 별개) <code>bizpartners.finup.co.kr</code> <code>bizguide.finup.co.kr</code></td>
+<td>WEB1/2 (default IIS site)</td>
+<td>(미이관)</td>
+<td>rule 17은 redirect, rule 6은 forward. 우선순위 점검 필요</td>
+</tr>
+<tr>
+<td style="text-align: right;">53</td>
+<td><code>vms.finup.co.kr</code> <code>bizvms.finup.co.kr</code> <code>bizfinance.finup.co.kr</code> <code>bizfunding.finup.co.kr</code> <code>bizradar.finup.co.kr</code> <code>bizstarter.finup.co.kr</code> <code>bizstock.finup.co.kr</code> <code>bizthemeradar.finup.co.kr</code> <code>biztssa.finup.co.kr</code> <code>bizfinanceup.finup.co.kr</code> <code>hoga.finup.co.kr</code> <code>mthemeradar.finup.co.kr</code> <code>mtssa.finup.co.kr</code> <code>mradar.finup.co.kr</code> <code>themeradar.finup.co.kr</code> <code>tssa.finup.co.kr</code> <code>radar.finup.co.kr</code> <code>routing.finup.co.kr</code> <code>lgu.finup.co.kr</code> <code>bizfunding.finup.co.kr</code> (20+건)</td>
+<td>listener rule 미일치 → default → WEB1/2 IIS</td>
+<td>일부 (radar/themeradar는 리다이렉트)</td>
+<td>운영 트래픽 확인 필요. 일부는 redirect-only로 Tier 1 후보</td>
+</tr>
+<tr>
+<td style="text-align: right;">54</td>
+<td><code>2mars.kr</code> <code>www.2mars.kr</code> <code>biz.2mars.kr</code> <code>api.2mars.kr</code> <code>llm.2mars.kr</code> (5건)</td>
+<td>INT_80 rule 58 → MainInternalTargetMars (WEB Mars)</td>
+<td>(미이관)</td>
+<td>5/6 Top 10 #3 — 클라이언트 컨펌 필수</td>
+</tr>
+<tr>
+<td style="text-align: right;">55</td>
+<td><code>beglam.co.kr</code> <code>stock01-04.beglam.co.kr</code> (5건)</td>
+<td>listener rule 미일치 → default(WEB1/2)</td>
+<td>(미이관)</td>
+<td>화이트라벨 추정. 5/6 Top 10 #9 — 클라이언트 컨펌 필수</td>
+</tr>
+<tr>
+<td style="text-align: right;">56</td>
+<td><code>handsup.co.kr</code> <code>api.handsup.co.kr</code> <code>biz.handsup.co.kr</code> <code>www.handsup.co.kr</code> (4건)</td>
+<td>listener rule 미일치 → default(WEB1/2)</td>
+<td>(미이관)</td>
+<td><strong>handsup의 IIS 사이트 미식별</strong> — 별도 확인 필요</td>
+</tr>
+<tr>
+<td style="text-align: right;">57</td>
+<td><code>ajk.co.kr</code> <code>www.ajk.co.kr</code> <code>api.ajk.co.kr</code> <code>pre.ajk.co.kr</code> <code>routing.ajk.co.kr</code> (5건)</td>
+<td>listener rule 미일치 → default(WEB1/2)</td>
+<td>(미이관)</td>
+<td>ajk 사내. 운영 트래픽 확인</td>
+</tr>
+<tr>
+<td style="text-align: right;">58</td>
+<td><code>stockpoint.co.kr</code> <code>www.stockpoint.co.kr</code> <code>m.stockpoint.co.kr</code> <code>mobile.stockpoint.co.kr</code> <code>biz.stockpoint.co.kr</code> <code>mentor.stockpoint.co.kr</code> <code>league.stockpoint.co.kr</code> <code>real-biz.stockpoint.co.kr</code> (8건)</td>
+<td>EXT_HTTPS rule 3-6 redirect → finup.co.kr 도메인</td>
+<td>(미이관, redirect만)</td>
+<td>자체 콘텐츠 없음. <strong>redirect만 한다면 stockpoint 도메인 자체를 retire 가능 (Tier 1 후보로 재분류 가능)</strong> — 단 SEO/인입링크 영향 확인</td>
+</tr>
+<tr>
+<td style="text-align: right;">59</td>
+<td><code>themeradar.co.kr</code> <code>www.themeradar.co.kr</code> (2건)</td>
+<td>EXT_HTTPS rule 8 redirect → radar.finup.co.kr</td>
+<td>(미이관)</td>
+<td>동일. redirect-only면 Tier 1 후보</td>
+</tr>
+<tr>
+<td style="text-align: right;">60</td>
+<td><code>financeup.co.kr</code> <code>www.financeup.co.kr</code> <code>m.financeup.co.kr</code> (3건)</td>
+<td>EXT_HTTPS rule 1, 12, 13 redirect → finance/mfinance.finup.co.kr</td>
+<td>(이미 Tier 2 대상)</td>
+<td>redirect-only — Tier 1 후보</td>
+</tr>
+<tr>
+<td style="text-align: right;">61</td>
+<td><code>grafana.finup.co.kr</code></td>
+<td>EXT_HTTPS rule 16(이외 4중) → TG-monitoring-grafana</td>
+<td>(모니터링)</td>
+<td>운영 중. 단 5중 rule은 cleanup 필요 (Tier 1 #22)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="64-9">6.4 분류 요약 (§9 트래픽 실측 후 갱신)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Tier</th>
+<th style="text-align: right;">URL/도메인 건수</th>
+<th>주요 그룹</th>
+</tr>
+</thead>
+<tbody>
+<tr class="tier-ok">
+<td>🟢 Tier 1</td>
+<td style="text-align: right;">~110</td>
+<td>redirect-only · staging unhealthy · <em>terminal VPN-DNS · dead TG · pre-</em> · <strong>외부 zone retire(handsup/beglam/ajk root/themeradar root/stockpoint root/financeup) ⬅ 트래픽 0 확정</strong> · <strong>레거시 dead API(apilgu/apiwiseinvest/channeldata/apilogtest)</strong></td>
+</tr>
+<tr class="tier-warn">
+<td>🟡 Tier 2</td>
+<td style="text-align: right;">13 (prod URL) + 10 (pre-front) + 8 (이미 신규 ALB) + 1 (kookandcook)</td>
+<td>finup.co.kr 메인 13건 prod + pre 10건 + api-* 8건(이미 분리됨) + www.kookandcook (활성 65/h, 검증 후 처리)</td>
+</tr>
+<tr class="tier-danger">
+<td>🔴 Tier 3</td>
+<td style="text-align: right;">~25 (트래픽 실측 후 차감)</td>
+<td><strong>활성 API</strong>: apilog(2.58M/7d 매우 활성) · chatimg(1.1M/7d) · APIChat · apistock/apiauth/apiradar · apipush/chatpushapi/chatbadgeapi · channel/chatchannel/chatweb · stockdatar · urlapi · IMG(hiddenimg만) · default(WEB1/2 IIS의 vms/biz<em>/hoga 등) · </em><em>Mars 풀스택</em><em> · </em><em>MSSQL maindb</em>*</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="7-tier-57">7. 인프라 Tier 표 5/7 라이브 재검증</h2>
+<blockquote class="note">
+<p>5/6 보강본 §1B의 분류 (🟢 10건 / 🟡 6건 / 🔴 9건)와의 변동분만 반영. 라이브 read는 EC2/RDS/SG/TG 핵심 항목 한해서 수행.</p>
+</blockquote>
+<h3 id="71-56-57">7.1 5/6 → 5/7 변동 (라이브 재검증 완료)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Tier</th>
+<th style="text-align: right;">#</th>
+<th>항목</th>
+<th>5/6</th>
+<th>5/7 라이브</th>
+<th>Δ</th>
+</tr>
+</thead>
+<tbody>
+<tr class="tier-ok">
+<td>🟢</td>
+<td style="text-align: right;">1</td>
+<td>CW alarm 2 (<code>devdb</code>/<code>devfinupedudb</code>)</td>
+<td>INSUFFICIENT_DATA</td>
+<td>INSUFFICIENT_DATA (둘 다)</td>
+<td>same</td>
+</tr>
+<tr class="tier-ok">
+<td>🟢</td>
+<td style="text-align: right;">2</td>
+<td>RDS <code>db-from-maindb-at-202603221548</code></td>
+<td>available, db.m5.large</td>
+<td>available, db.m5.large</td>
+<td>same</td>
+</tr>
+<tr class="tier-ok">
+<td>🟢</td>
+<td style="text-align: right;">3</td>
+<td>ECR <code>sykim/test</code></td>
+<td>잔존</td>
+<td>잔존</td>
+<td>same</td>
+</tr>
+<tr class="tier-ok">
+<td>🟢</td>
+<td style="text-align: right;">4</td>
+<td>IAM <code>S3FullAccessUser</code> AccessKey × 2</td>
+<td>Active 2020-02 / 2020-12</td>
+<td>Active 2020-02 / 2020-12</td>
+<td>same</td>
+</tr>
+<tr class="tier-ok">
+<td>🟢</td>
+<td style="text-align: right;">5</td>
+<td>EIP unattached × 24</td>
+<td>24</td>
+<td><strong>24</strong></td>
+<td>same</td>
+</tr>
+<tr class="tier-ok">
+<td>🟢</td>
+<td style="text-align: right;">6</td>
+<td>SG orphan × 5 (DevDB/Linux Dev Test/WebDev/ChannelDevSG/LangChain-dev-sg)</td>
+<td>0 ENI</td>
+<td><strong>0 ENI 전부</strong></td>
+<td>same</td>
+</tr>
+<tr class="tier-ok">
+<td>🟢</td>
+<td style="text-align: right;">7</td>
+<td>TG 미사용 × 2 (TG-logbot-dev/TG-pushapp-dev)</td>
+<td>0 healthy</td>
+<td><strong>0 healthy 전부</strong></td>
+<td>same</td>
+</tr>
+<tr class="tier-ok">
+<td>🟢</td>
+<td style="text-align: right;">8</td>
+<td>EBS <code>vol-08ae89bc00570edb5</code></td>
+<td>available, 100GB</td>
+<td>available, 100GB</td>
+<td>same</td>
+</tr>
+<tr class="tier-ok">
+<td>🟢</td>
+<td style="text-align: right;">9</td>
+<td>EC2 <code>i-06239eec26ddc7201 APP Log Dev (구)</code></td>
+<td>running, 2020-07</td>
+<td>running, 2020-07</td>
+<td>same</td>
+</tr>
+<tr class="tier-ok">
+<td>🟢</td>
+<td style="text-align: right;">10</td>
+<td>snapshot × 3 (2018/2020/2023)</td>
+<td>잔존</td>
+<td>잔존 (3건 전부, 100GB)</td>
+<td>same</td>
+</tr>
+<tr class="tier-danger">
+<td>🔴</td>
+<td style="text-align: right;">17</td>
+<td>Mars 풀스택 (<code>i-0e4471ea282e9301f WEB Mars</code> + ALB + 2mars.kr)</td>
+<td>활성</td>
+<td><strong>i-0e4471ea282e9301f running, MainInternalTargetMars healthy, INT_80 rule 58 활성, 2mars.kr 5 ALIAS 잔존</strong></td>
+<td>same</td>
+</tr>
+<tr class="tier-danger">
+<td>🔴</td>
+<td style="text-align: right;">21</td>
+<td>Staging EC2 × 5</td>
+<td>5대 running</td>
+<td><strong>i-099534(StagingChatAPI TG unhealthy), i-02d59e(StagingWEBAPI TG unhealthy), i-0ebb15(stgChannel TG healthy) 라이브 확인</strong></td>
+<td>same (단 i-099534/02d59e는 TG 측에서 unhealthy 보고)</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote class="note">
+<p><strong>5/6 → 5/7 destructive 작업 0건 확정.</strong> 5/6 보강본의 "Phase A 진행률 0%" 진단은 5/7도 동일하게 유효.</p>
+</blockquote>
+<h3 id="72-url-tier">7.2 URL 정리와 인프라 Tier의 교차</h3>
+<p>URL Tier 처리가 인프라 Tier에 미치는 영향:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>URL Tier 액션</th>
+<th>인프라 Tier 효과</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>URL Tier 1 #1, #2, #3 (starter/funding/league redirect 제거)</td>
+<td>영향 없음 (rule만 제거)</td>
+</tr>
+<tr>
+<td>URL Tier 1 #10 (apibadge TG)</td>
+<td>인프라 Tier 1에 <strong>TG ELBMainInternalTargetApi3 추가</strong> 가능</td>
+</tr>
+<tr>
+<td>URL Tier 1 #11 (Trade TG)</td>
+<td>인프라 Tier 1에 <strong>TG ELBMainInternalTargetTrade 추가</strong> 가능</td>
+</tr>
+<tr>
+<td>URL Tier 1 *terminal 51건</td>
+<td>인프라 Tier 1에 <strong>Route53 record 51건 cleanup 추가</strong> (해당 EC2 retire와 묶음)</td>
+</tr>
+<tr>
+<td>URL Tier 1 pre-* 40건</td>
+<td>EC2 <code>i-099534d10716f145f</code>(StagingChatAPI), <code>i-02d59e6e3fcbb0d64</code>(StagingWEBAPI), <code>i-0ebb153e94715dea6</code>(stgChannel) — 5/6 Tier 3 #21에서 Tier 2/1로 일부 승격 가능 (URL이 사용 안 되면 EC2 자체도 retire 가능)</td>
+</tr>
+<tr>
+<td>URL Tier 2 #23-33 (13건 신규 React)</td>
+<td><strong>EC2 WEB1/WEB2</strong> 의존 부분 제거. 단 WEB1/2은 default action(레거시 IIS 사이트)도 받기 때문에 모든 default 트래픽이 Tier 3 처리되어야 retire 가능</td>
+</tr>
+<tr>
+<td>URL Tier 2 #35 (img/hiddenimg ALB rule)</td>
+<td>EC2 <code>i-056f97ae08276ced3 IMG1</code> retire 가능 (CloudFront로 이미 전환)</td>
+</tr>
+<tr>
+<td>URL Tier 2 모두 + Tier 3 cutover 완료</td>
+<td><strong>ELBMainExternal/MainInternal 자체 retire</strong> 가능 (절감: ALB 2대 + WAF EC2 2대 m6i.xlarge — 월 ~$300+)</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="8">8. 권장 액션 시퀀스</h2>
+<h3 id="81-2026-05-0758">8.1 즉시 (2026-05-07~5/8 — 이번 주)</h3>
+<ol>
+<li><strong>redirect-only 도메인 정리</strong> (외부 영향 0) — URL Tier 1 #1, #2, #3, #4
+   - Route53 record 제거: <code>funding/funding01/funding02/leaguestock/leaguestock01/leaguestock02/league/partners/pre-partners/pre-leaguestock/pre-league/pre-starter/pre-funding/starter/starter01/starter02</code> (16건)
+   - INT_80 rule 17, 18, 19 + INT_8443 rule 8, 9, 10 + EXT_HTTP rule 4, 14, 17, 23 + EXT_HTTPS rule 6, 7 제거</li>
+<li><strong>Dead TG 정리</strong> — URL Tier 1 #10, #11
+   - INT_80 rule 38, 56 제거 (rule 38은 chat 모바일 앱 호출 흔적 확인 후)
+   - INT_8443 rule 33 제거 (rule 38과 동일 host)
+   - TG <code>ELBMainInternalTargetApi3</code>, <code>ELBMainInternalTargetTrade</code> 제거</li>
+<li><strong>Grafana rule 중복 정리</strong> — URL Tier 1 #22
+   - EXT_HTTPS rule 16, 19, 21, 22, 23 중 4개 제거 (1개만 유지)</li>
+<li><strong>Staging 환경 URL 정리</strong> — URL Tier 1 #12, #13, #14
+   - finit/itsyou/apifinit/pre-apiitsyou/pre-chat/pre-financeup 도메인 record + rule 제거
+   - 그 후 5/6 Tier 3 #21의 Staging EC2 5대 일부 (특히 Staging WEB/API 02d59e, Staging Chat API 099534)는 retire 후보 승격 검토</li>
+</ol>
+<h3 id="82-58515">8.2 다음 단계 (5/8~5/15 — 클라이언트 컨펌 필요)</h3>
+<ol start="5">
+<li><strong>prod URL DNS 전환</strong> — URL Tier 2 #23~33 (13건)
+   - 신규 외부 ALB 생성 또는 ELBMainExternal에 신규 TG-front-*-prod 직접 등록 (WAF 우회 또는 신규 WAF 구성)
+   - Route53 ALIAS 변경 → 1주 모니터링 → 트래픽 0 확인 → 레거시 INT_80 rule 2-13 제거</li>
+<li><strong>클라이언트 앱 cutover 확인</strong> — URL Tier 3
+   - <code>apistock.finup.co.kr</code> vs <code>api-stock.finup.co.kr</code> 호출 비율 확인 (액세스 로그)
+   - 모바일 앱 신/구 버전 분포 확인
+   - 이 결과에 따라 Tier 3 → Tier 2 승격 가능</li>
+</ol>
+<h3 id="83-515-phase-bd">8.3 중기 (5/15+ — Phase B/D 의존)</h3>
+<ol start="7">
+<li><strong>외부 도메인 retire</strong> — Tier 3 #58, 59, 60 (stockpoint/themeradar/financeup redirect-only)
+   - SEO 영향 평가 → 단순 redirect만 한다면 zone 자체 retire 가능</li>
+<li><strong>MSK retire</strong> (5/6 §3)
+   - C# <code>FinUp.LogData.Api</code> 운영 종료 + service-chat producer 차단 + logbot 배포 결정</li>
+<li><strong>Mars 풀스택 retire</strong> (5/6 Top 10 #3)</li>
+<li><strong>MSSQL maindb retire</strong> (5/6 §7.1 Stage 3)</li>
+</ol>
+<hr />
+<h2 id="9-2026-05-06">9. 트래픽 실측 (2026-05-06 기준)</h2>
+<blockquote class="note">
+<p>두 가지 데이터 소스로 교차 확인:
+- <strong>CloudWatch RequestCount</strong> (TG 단위, 항상 활성): 7일/24시간 요청 수
+- <strong>ELBMainExternal access log</strong> (S3 <code>finuplog/alb-access</code>, 활성): host 단위 — Internal/Mars ALB는 access log OFF이므로 host 단위는 External만</p>
+<p>⚠️ 1시간 샘플(2026-05-06 14:00-15:00 KST = peak hour)과 24시간 1-file/hour 샘플 모두 활용. 1h는 정확한 절대수, 24h는 분포 균형 확인.</p>
+</blockquote>
+<h3 id="91-tg-requestcount-cloudwatch-7">9.1 레거시 TG별 RequestCount (CloudWatch, 7일 합)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>TG</th>
+<th style="text-align: right;">Req(7d)</th>
+<th style="text-align: right;">Req(1d)</th>
+<th style="text-align: right;">5XX(7d)</th>
+<th style="text-align: right;">Targets</th>
+<th>판정</th>
+</tr>
+</thead>
+<tbody>
+<tr class="tier-danger">
+<td><strong>ELBMainExternalTarget</strong> (WAF EC2)</td>
+<td style="text-align: right;"><strong>26,393,884</strong></td>
+<td style="text-align: right;">6,439,883</td>
+<td style="text-align: right;">3,938</td>
+<td style="text-align: right;">2</td>
+<td>🔴 외부 메인 — 모든 외부 트래픽</td>
+</tr>
+<tr class="tier-danger">
+<td><strong>ELBMainInternalTargetApiLog</strong></td>
+<td style="text-align: right;"><strong>2,576,814</strong></td>
+<td style="text-align: right;">447,105</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
+<td>🔴 매우 활성 (FinUp.LogData.Api)</td>
+</tr>
+<tr class="tier-danger">
+<td><strong>ELBMainInternalTargetChatIMG</strong></td>
+<td style="text-align: right;"><strong>1,106,670</strong></td>
+<td style="text-align: right;">275,150</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">1</td>
+<td>🔴 매우 활성 (Chat 이미지)</td>
+</tr>
+<tr class="tier-danger">
+<td><strong>ApiStockDataRealtime</strong></td>
+<td style="text-align: right;">381,363</td>
+<td style="text-align: right;">6,237</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
+<td>🔴 활성</td>
+</tr>
+<tr class="tier-danger">
+<td><strong>APIChat</strong></td>
+<td style="text-align: right;">225,175</td>
+<td style="text-align: right;">70,412</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">1</td>
+<td>🔴 활성</td>
+</tr>
+<tr class="tier-danger">
+<td><strong>ELBMainInternalTargetApi</strong></td>
+<td style="text-align: right;">195,319</td>
+<td style="text-align: right;">54,810</td>
+<td style="text-align: right;">134</td>
+<td style="text-align: right;">2</td>
+<td>🔴 활성 (apistock/apiauth/apiradar)</td>
+</tr>
+<tr class="tier-danger">
+<td><strong>ELBMainInternalTarget</strong> (default WEB1/2)</td>
+<td style="text-align: right;">102,819</td>
+<td style="text-align: right;">17,558</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
+<td>🔴 default routing 살아있음</td>
+</tr>
+<tr class="tier-danger">
+<td><strong>ELBMainInternalTargetApiPush</strong></td>
+<td style="text-align: right;">75,029</td>
+<td style="text-align: right;">20,706</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td>🔴 활성</td>
+</tr>
+<tr>
+<td><strong>StagingWEBAPI</strong></td>
+<td style="text-align: right;"><strong>50,684</strong></td>
+<td style="text-align: right;">7,259</td>
+<td style="text-align: right;">47</td>
+<td style="text-align: right;">1(unhealthy)</td>
+<td>⚠️ unhealthy인데도 호출 받음 (5XX 47건)</td>
+</tr>
+<tr>
+<td><strong>ELBMarsExternalTarget</strong></td>
+<td style="text-align: right;">42,554</td>
+<td style="text-align: right;">1,601</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2(unhealthy)</td>
+<td>⚠️ Mars 외부 ALB 받음</td>
+</tr>
+<tr class="tier-danger">
+<td><strong>Channel</strong></td>
+<td style="text-align: right;">36,190</td>
+<td style="text-align: right;">10,974</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td>🔴 활성</td>
+</tr>
+<tr class="tier-danger">
+<td><strong>ELBMainInternalTargetApiUrl</strong></td>
+<td style="text-align: right;">33,525</td>
+<td style="text-align: right;">8,987</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td>🔴 활성</td>
+</tr>
+<tr class="tier-warn">
+<td><strong>WebChat</strong></td>
+<td style="text-align: right;">14,112</td>
+<td style="text-align: right;">2,165</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td>🟡 활성 (낮음)</td>
+</tr>
+<tr>
+<td><strong>StagingChatAPI</strong></td>
+<td style="text-align: right;">10,102</td>
+<td style="text-align: right;">1,442</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1(unhealthy)</td>
+<td>⚠️ unhealthy인데도 받음</td>
+</tr>
+<tr class="tier-warn">
+<td><strong>MainInternalTargetMars</strong></td>
+<td style="text-align: right;"><strong>4,906</strong></td>
+<td style="text-align: right;">511</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td>🟡 Mars 활성 (매우 낮음, 700/일)</td>
+</tr>
+<tr class="tier-ok">
+<td><strong>ELBMainInternalTargetIMG</strong></td>
+<td style="text-align: right;"><strong>58</strong></td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+<td>🟢 거의 0 — CloudFront 전환 완료 (단 hiddenimg 잔존)</td>
+</tr>
+<tr class="tier-ok">
+<td><strong>ELBMainInternalTargetApiStock</strong></td>
+<td style="text-align: right;"><strong>0</strong></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1(healthy)</td>
+<td>🟢 <strong>트래픽 0</strong> — 즉시 정리 가능</td>
+</tr>
+<tr class="tier-ok">
+<td><strong>ELBMainInternalTargetApiLogTest</strong></td>
+<td style="text-align: right;"><strong>0</strong></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td>🟢 트래픽 0</td>
+</tr>
+<tr class="tier-ok">
+<td><strong>ELBMainInternalTargetApi3</strong></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td>🟢 (TG dead, target도 0)</td>
+</tr>
+<tr class="tier-ok">
+<td><strong>ELBMainInternalTargetTrade</strong></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td>🟢 (TG dead)</td>
+</tr>
+<tr class="tier-ok">
+<td><strong>stgChannel</strong></td>
+<td style="text-align: right;"><strong>0</strong></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1(healthy)</td>
+<td>🟢 <strong>healthy인데 트래픽 0</strong></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="92-host-elbmainexternal-1h-peak-slice-1400-kst-56">9.2 host별 외부 트래픽 (ELBMainExternal 1h peak slice, 14:00 KST 5/6)</h3>
+<blockquote class="note">
+<p>1시간 = 253,753 요청. 외부 ALB만이라 Mars/내부 트래픽은 별도.</p>
+</blockquote>
+<p><strong>높음 (Java 신규 백엔드)</strong>:
+- finance.finup.co.kr: <strong>145,916</strong> (전체의 58%) — Java front-finance prod
+- stock.finup.co.kr: 21,863
+- mfinance.finup.co.kr: 19,158
+- mstock.finup.co.kr: 8,853
+- www.finup.co.kr: 8,838
+- m.finup.co.kr: 2,380
+- biz.finup.co.kr: 1,941
+- stockdata.finup.co.kr: 929
+- mentorstock.finup.co.kr: 297
+- mobileappstock.finup.co.kr: 220
+- freechat.finup.co.kr: 184 (24h-sample은 87K — 시간 편차 큼)
+- company.finup.co.kr: 5</p>
+<p><strong>높음 (레거시 백엔드, Tier 3)</strong>:
+- apilog.finup.co.kr: <strong>17,712</strong> (logbot 미배포 코스트)
+- chatimg.finup.co.kr: 15,345
+- chatapi.finup.co.kr: 2,664
+- apistock.finup.co.kr: 1,095
+- urlapi.finup.co.kr: 873
+- apiradar.finup.co.kr: 761
+- chatbadgeapi.finup.co.kr: 495
+- chatchannel.finup.co.kr: 480
+- routing.finup.co.kr: 262 (default IIS)
+- stockdatar.finup.co.kr: 142
+- apiauth.finup.co.kr: 97
+- vms.finup.co.kr: 60
+- bizvms.finup.co.kr: 60
+- partners.finup.co.kr: 58 (redirect 트래픽)
+- chatpushapi.finup.co.kr: 24
+- chatweb.finup.co.kr: 12
+- apithemeradar.finup.co.kr: 5
+- bizstock.finup.co.kr: 4
+- mtssa.finup.co.kr / mobileapp.finup.co.kr / chatchannelfinance.finup.co.kr / api.finup.co.kr: 1 each</p>
+<p><strong>낮음 (외부 도메인)</strong>:
+- www.kookandcook.com: 69 (24h-sample 65) — <strong>사용 중!</strong> Tier 2 후보 → Tier 3 회귀
+- pre-finance.finup.co.kr: 998 — pre 환경이 외부 노출 받음
+- pre-stock.finup.co.kr: 39
+- pre-bizguide.finup.co.kr: 1</p>
+<p><strong>특수</strong>:
+- grafana.finup.co.kr: 246 (모니터링 — 운영 유지)
+- tssa.finup.co.kr: 159 (leaguestock redirect target — Tier 1 처리해도 tssa는 별도)</p>
+<h3 id="93-0-tier-3-tier-1">9.3 ⭐ 트래픽 0 — Tier 3 → Tier 1 승격 후보</h3>
+<p>24시간 access log 샘플(외부 ALB만)에서 <strong>단 한 번도 호출 안 받은 도메인</strong>:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>도메인</th>
+<th>5/6 분류</th>
+<th>24h 트래픽</th>
+<th>5/7 재분류</th>
+</tr>
+</thead>
+<tbody>
+<tr class="tier-ok">
+<td><code>handsup.co.kr</code> <code>www/api/biz.handsup.co.kr</code></td>
+<td>Tier 3 #56</td>
+<td><strong>0</strong></td>
+<td>🟢 <strong>Tier 1</strong> (zone 컨펌 후 retire 가능)</td>
+</tr>
+<tr class="tier-ok">
+<td><code>beglam.co.kr</code> <code>stock01-04.beglam.co.kr</code> <code>www.beglam.co.kr</code></td>
+<td>Tier 3 #55</td>
+<td><strong>0</strong></td>
+<td>🟢 <strong>Tier 1</strong> (5/6 보강본 #18에서 "stock 화이트라벨"로 추정 — 트래픽 0이면 retire 안전)</td>
+</tr>
+<tr class="tier-ok">
+<td><code>ajk.co.kr</code> <code>www/api/pre/routing.ajk.co.kr</code></td>
+<td>Tier 3 #57</td>
+<td><strong>0</strong></td>
+<td>🟢 <strong>Tier 1</strong> (apistock.ajk.co.kr 만 별도 확인 필요 — 1h sample에서도 0이지만 batch job 가능성)</td>
+</tr>
+<tr class="tier-ok">
+<td><code>themeradar.co.kr</code> <code>www.themeradar.co.kr</code></td>
+<td>Tier 3 #59</td>
+<td><strong>0</strong></td>
+<td>🟢 <strong>Tier 1</strong> (root만, api.themeradar.co.kr는 별도 활성)</td>
+</tr>
+<tr class="tier-ok">
+<td><code>stockpoint.co.kr</code> <code>www/biz/league/mentor/mobile/real-biz.stockpoint.co.kr</code></td>
+<td>Tier 3 #58</td>
+<td><strong>0</strong> (m.stockpoint 4건 제외)</td>
+<td>🟢 <strong>Tier 1</strong> (모두 redirect → finup 도메인. SEO/인입링크 영향 평가 후)</td>
+</tr>
+<tr class="tier-ok">
+<td><code>financeup.co.kr</code> <code>www/m.financeup.co.kr</code> <code>pre-bizfinanceup.financeup.co.kr</code></td>
+<td>Tier 3 #60</td>
+<td><strong>0</strong></td>
+<td>🟢 <strong>Tier 1</strong> (모두 redirect → finance.finup.co.kr)</td>
+</tr>
+<tr class="tier-ok">
+<td><code>kookandcook.com</code> <code>m.kookandcook.com</code></td>
+<td>Tier 1 #5</td>
+<td><strong>0</strong></td>
+<td>🟢 Tier 1 유지 (단 www.kookandcook.com은 65/h 활성 → Tier 2 회귀 후 별도 검증)</td>
+</tr>
+<tr class="tier-ok">
+<td><code>starter.finup.co.kr</code> <code>pre-starter.finup.co.kr</code></td>
+<td>Tier 1 #1</td>
+<td><strong>0</strong></td>
+<td>🟢 Tier 1 유지 확정</td>
+</tr>
+<tr class="tier-ok">
+<td><code>leaguestock.finup.co.kr</code> <code>pre-leaguestock.finup.co.kr</code> <code>league.finup.co.kr</code></td>
+<td>Tier 1 #3</td>
+<td><strong>0</strong></td>
+<td>🟢 Tier 1 유지 확정</td>
+</tr>
+<tr class="tier-ok">
+<td><code>finit/apifinit/itsyou/apiitsyou/pre-apiitsyou.finup.co.kr</code></td>
+<td>Tier 1 #12</td>
+<td><strong>0</strong></td>
+<td>🟢 Tier 1 유지 확정</td>
+</tr>
+<tr class="tier-ok">
+<td><code>pre-bizfunding/pre-vms/pre-bizvms/pre-bizpartners/pre-bizguide/pre-mobileapp/...</code> (40+건)</td>
+<td>Tier 1 #9</td>
+<td>거의 0 (1-2건만)</td>
+<td>🟢 Tier 1 유지 확정</td>
+</tr>
+<tr class="tier-ok">
+<td><code>apilogtest.finup.co.kr</code></td>
+<td>Tier 1 #6</td>
+<td>0</td>
+<td>🟢 Tier 1 유지 확정 (TG도 0)</td>
+</tr>
+<tr class="tier-ok">
+<td><code>apilgu.finup.co.kr</code> <code>apiwiseinvest.finup.co.kr</code></td>
+<td>Tier 3 (rule 34/29)</td>
+<td><strong>0</strong></td>
+<td>🟢 <strong>Tier 1</strong> (rule 34/29 + record 제거 가능)</td>
+</tr>
+<tr class="tier-warn">
+<td><code>apivms.finup.co.kr</code></td>
+<td>Tier 3 (rule 14/4)</td>
+<td><strong>0</strong></td>
+<td>🟡 Tier 2 (vms 자체는 60/h 활성이므로 rule 분리 후 검증)</td>
+</tr>
+<tr class="tier-ok">
+<td><code>channeldata.finup.co.kr</code></td>
+<td>Tier 3 (rule 36/31)</td>
+<td><strong>0</strong></td>
+<td>🟢 <strong>Tier 1</strong> (rule 36/31 + record 제거 가능)</td>
+</tr>
+</tbody>
+</table></div>
+<p>⭐ <strong>24h 트래픽 0인 외부 도메인 6 zone (handsup/beglam/ajk root/themeradar root/stockpoint root/financeup) + 레거시 API 도메인 4건 (apilgu/apiwiseinvest/apilogtest/channeldata) = 10건이 추가 Tier 1 후보로 발견됨</strong>.</p>
+<h3 id="94">9.4 추가 발견</h3>
+<ol>
+<li><strong>funding.finup.co.kr</strong>: 24h 1건만 호출 (redirect → /HelpDesk/NoticeView). Tier 1 #2 유지 안전.</li>
+<li><strong>partners.finup.co.kr</strong>: 1h 60건 / 24h 58건 — redirect 자체 트래픽이 살아있음. 클라이언트 측 캐시되지 않은 호출 발생 중. Tier 1 처리 시 <strong>redirect 자체를 끊으면 partners 호출자가 imweb로 못 가는 영향 있음</strong>. 검증 필요 (1주 모니터 후 record + rule 함께 제거).</li>
+<li><strong>StagingWEBAPI / StagingChatAPI 트래픽</strong>: 60K req/7d (5XX 50건). unhealthy인데도 호출이 발생 — 모바일 앱 또는 외부 클라이언트가 staging URL을 알고 있을 가능성. record 정리 우선.</li>
+<li><strong>apilog의 부담</strong>: 7일 2.58M req → 일 ~370K. logbot 배포 ROI 매우 큼.</li>
+<li><strong>ELBMainInternalTargetApiStock = 0 req with 1 healthy target</strong>: API StockData EC2(<code>i-0be041fae3e9dd412</code>)가 healthy인데 호출 없음. INT_80 rule 13(stockdata.finup → 신규 React) 우선 매칭 + INT_80 rule 36/40/43이 dead route. <strong>EC2 자체 retire 검토 후보</strong> (단 batch/cron job 검증 필요).</li>
+<li><strong>stgChannel = 0 req with 1 healthy target</strong>: Staging Chat EC2(<code>i-0ebb153e94715dea6</code>)도 healthy인데 호출 없음. 5/6 Tier 3 #21에서 Tier 1로 승격 가능.</li>
+<li><strong>ELBMainInternalTargetIMG = 58 req/7d (~8/일)</strong>: img.finup.co.kr는 R53가 CloudFront로 가니까 0. hiddenimg.finup.co.kr만 잔존 8 req/일. 거의 retire 가능.</li>
+</ol>
+<hr />
+<h2 id="10">10. 알 수 없거나 클라이언트 컨펌 필요 항목</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>항목</th>
+<th>필요한 정보</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td><strong>WAF 포트 변경 매핑</strong></td>
+<td>FINUP WAF EC2가 어떤 host를 :80, 어떤 host를 :8443으로 forwarding하는지 (WAF 설정/nginx config)</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td><strong>API 클라이언트 호출 분포</strong></td>
+<td>Mobile/Android/iOS 앱이 <code>apistock.finup.co.kr</code>(레거시) vs <code>api-stock.finup.co.kr</code>(신규) 어느 쪽을 호출하는지</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td><strong>handsup.co.kr 백엔드</strong></td>
+<td>listener rule에 없음 → default. WEB1/WEB2 IIS의 어느 사이트가 처리하는지</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td><strong>kookandcook.com 백엔드</strong></td>
+<td>동일 default. 어느 IIS 사이트인지. dig + 사이트 살아있는지</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td><strong>default IIS 사이트 매핑</strong></td>
+<td>약 20+ Host가 listener rule 없이 default → WEB1/2로 흐름. WEB1/2 IIS의 사이트 binding 목록 (ssm 또는 직접 RDP)</td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td><strong>apibadge 호출 흔적</strong></td>
+<td>TG dead 상태인데 모바일 앱 chat 기능에서 호출 시도하는지</td>
+</tr>
+<tr>
+<td style="text-align: right;">7</td>
+<td><strong><code>*terminal.finup.co.kr</code> 사용 패턴</strong></td>
+<td>VPN 사용자가 어느 record를 실제 사용하는지. 51건 모두 retire 안전한지</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td><strong>TG-api-stock-external</strong></td>
+<td>EXT_HTTPS rule 18, 100, 101이 WAF 우회로 직접 신규 Java api-stock으로 가는데, 이게 의도된 path인지</td>
+</tr>
+<tr>
+<td style="text-align: right;">9</td>
+<td><strong>Java api-stock vs apistock 운영 대조</strong></td>
+<td>신규 도메인 <code>api-stock.finup.co.kr</code>는 활성, 레거시 <code>apistock.finup.co.kr</code>도 활성 — 둘 다 트래픽 받는지, dual-write 구성인지</td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td><strong>leaguestock vs tssa 관계</strong></td>
+<td>leaguestock은 redirect만 하고 tssa는 listener rule 미일치(default) → WEB1/2 IIS의 tssa 사이트가 살아있어야 함. 미사용이면 함께 정리</td>
+</tr>
+<tr>
+<td style="text-align: right;">11</td>
+<td><strong>finupprivate. 프라이빗 zone</strong></td>
+<td>47 record. 내부 서비스 디스커버리 — 솔루션 retire와 함께 정리 필요</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<!--
+재생성 절차:
+1. AWS profile finup-iam (account 326539043145) 권한 필요
+2. ALB 3개 listener+rule: aws elbv2 describe-listeners/describe-rules
+3. TG target health: aws elbv2 describe-target-health
+4. EC2 details: aws ec2 describe-instances
+5. Route53: aws route53 list-resource-record-sets (10 public zones)
+6. cs/ 디렉토리 ls + java/ 디렉토리 ls 비교
+관련 자료:
+- docs/infra/asis-tobe-matrix-20260506-supplement.md (5/6 보강본, 인프라 Tier 분류 권위)
+- docs/infra/00-overview.md ~ 08-monitoring.md
+- 메모리 reference_legacy_request_flow (외부 요청 hop 순서)
+- 메모리 reference_dualwrite_overview (cs↔java dualwrite 10 도메인)
+-->
+
+<footer>
+  생성: 2026-05-07 · 원본 마크다운: <code>docs/infra/legacy-url-routing-20260507.md</code> ·
+  재생성: <code>python3 /tmp/finup_md2html.py</code>
+</footer>
+</body>
+</html>

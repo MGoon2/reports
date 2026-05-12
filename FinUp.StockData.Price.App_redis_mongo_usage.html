@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FinUp.StockData.Price.App Redis and MongoDB Configuration Usage</title>
+  <style>
+    body { margin: 0; background: #f5f7fa; color: #1f2933; font-family: "Segoe UI", Arial, sans-serif; line-height: 1.58; }
+    header { background: #17212f; color: #fff; padding: 32px 42px; }
+    header h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: 0; }
+    header p { margin: 4px 0; color: #d8e1ea; }
+    main { max-width: 1180px; margin: 0 auto; padding: 28px 28px 56px; }
+    section { background: #fff; border: 1px solid #d8dee8; border-radius: 8px; padding: 24px; margin-bottom: 22px; }
+    h2 { margin: 0 0 14px; font-size: 22px; }
+    h3 { margin: 22px 0 10px; font-size: 17px; }
+    code { background: #eef2f7; border-radius: 4px; padding: 1px 5px; font-family: Consolas, "Cascadia Mono", monospace; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+    th, td { border: 1px solid #d8dee8; padding: 10px 11px; vertical-align: top; }
+    th { background: #edf1f6; text-align: left; }
+    .note { border-left: 4px solid #0f766e; background: #e7f5f2; padding: 12px 14px; border-radius: 6px; margin: 14px 0; }
+    .risk { border-left: 4px solid #a61b1b; background: #ffe8e8; padding: 12px 14px; border-radius: 6px; margin: 14px 0; }
+    .badge { display: inline-block; border-radius: 999px; padding: 2px 8px; font-size: 12px; font-weight: 700; }
+    .on { background: #e7f5f2; color: #0f766e; }
+    .partial { background: #fff4d8; color: #9a5b00; }
+    ul { padding-left: 22px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FinUp.StockData.Price.App Redis and MongoDB Configuration Usage</h1>
+    <p>Project: <code>C:\Dev\FinUp.StockData.Price.App</code></p>
+    <p>Report: <code>C:\reports\FinUp.StockData.Price.App_redis_mongo_usage.html</code></p>
+    <p>Analysis date: 2026-05-08</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>Summary</h2>
+      <div class="note">
+        <p><strong>The <code>stockdatapubsub</code> cluster is directly used for Redis pub/sub publishing of Kiwoom real-time PRICE data.</strong></p>
+      </div>
+      <ul>
+        <li><code>stockdatapubsub</code>: selected by <code>RedisStockDataHandler</code> through <code>RedisDatabase.GetSubcriber("stockdatapubsub")</code>.</li>
+        <li><code>stockdata</code>: not selected by the main Kiwoom PRICE publish path; it is a default/common Redis DB/cache cluster.</li>
+        <li><code>MongoDB</code>: used to construct <code>MongoStockDataHandler</code>, but the current PRICE path comments out the Mongo save consumer start call.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Redis Usage</h2>
+      <table>
+        <thead>
+          <tr><th>Setting</th><th>Use</th><th>Behavior</th><th>Evidence</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>cluster name="stockdatapubsub"</code></td>
+            <td><span class="badge on">Direct</span></td>
+            <td>Used by the Redis pub/sub handler for real-time stock data publication.</td>
+            <td><code>RedisStockDataHandler.cs:24-27</code></td>
+          </tr>
+          <tr>
+            <td><code>cluster name="stockdata"</code></td>
+            <td><span class="badge partial">Indirect/default</span></td>
+            <td>Available to common Redis DB/cache utilities, but not the explicit Kiwoom PRICE publish path.</td>
+            <td><code>FinUp.Core.Redis\RedisDatabase.cs</code>, <code>RedisCluster.cs</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Kiwoom PRICE Redis Publish Flow</h3>
+      <ol>
+        <li><code>StartUp=KR</code> runs <code>SchedulerKiwoomReal</code>: <code>Program.cs:29-30</code></li>
+        <li>Missing <code>RedisDistribute</code> defaults to <code>true</code>: <code>SchedulerKiwoomReal.cs:163</code></li>
+        <li><code>KiwoomRedis</code> creates <code>RedisStockDataHandler</code>: <code>KiwoomRedis.cs:71-78</code></li>
+        <li><code>RedisStockDataHandler</code> obtains the <code>stockdatapubsub</code> subscriber: <code>RedisStockDataHandler.cs:24-27</code></li>
+        <li>Price events go through <code>AddPrice</code> and are published to the <code>PRICE</code> channel: <code>KiwoomRedis.cs:182-185</code>, <code>RedisStockDataHandler.cs:108-110</code></li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>MongoDB Usage</h2>
+      <table>
+        <thead>
+          <tr><th>Setting</th><th>Use site</th><th>Runtime behavior</th><th>Evidence</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>MongoDB</code></td>
+            <td><code>KiwoomRedis</code> constructor</td>
+            <td>Read from <code>ConfigurationManager.AppSettings["MongoDB"]</code> and passed to <code>MongoStockDataHandler</code>.</td>
+            <td><code>KiwoomRedis.cs:65-66</code>, <code>KiwoomRedis.cs:80-85</code></td>
+          </tr>
+          <tr>
+            <td><code>MongoDBName</code></td>
+            <td><code>MongoStockDataHandler</code></td>
+            <td>The handler appends the current year to the DB name, for example <code>StockData2026</code>.</td>
+            <td><code>MongoStockDataHandler.cs:27-40</code></td>
+          </tr>
+          <tr>
+            <td>Collections</td>
+            <td><code>MongoStockDataHandler</code></td>
+            <td>If its consumer starts, it batch inserts into <code>T_Price</code>, <code>T_Hoga</code>, and <code>T_Trader</code>.</td>
+            <td><code>MongoStockDataHandler.cs:60-73</code>, <code>104-116</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="risk">
+        <p><strong>Important:</strong> in the current <code>FIDType=PRICE</code> path, <code>_mongoPriceHandler?.StartAsync(...)</code> is commented out. The MongoDB setting can be read and the handler can be created, but the actual Mongo save consumer is not started.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Conclusion</h2>
+      <p><code>stockdatapubsub</code> is the direct Redis connection setting for Kiwoom real-time price publication. <code>stockdata</code> should be treated as a common Redis DB/cache cluster rather than the direct publish target for this path. <code>MongoDB</code> is used to construct the Kiwoom real-time save handler, but the current PRICE code path does not start Mongo inserts.</p>
+    </section>
+  </main>
+</body>
+</html>

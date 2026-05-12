@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KiwoomReal Config-Based Analysis for FinUp.StockData.Price.App</title>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --panel: #ffffff;
+      --ink: #1f2933;
+      --muted: #5f6b7a;
+      --line: #d8dee8;
+      --accent: #0f766e;
+      --accent-bg: #e7f5f2;
+      --warn: #9a5b00;
+      --warn-bg: #fff4d8;
+      --risk: #a61b1b;
+      --risk-bg: #ffe8e8;
+      --code: #eef2f7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Segoe UI", Arial, sans-serif;
+      line-height: 1.56;
+    }
+    header {
+      background: #17212f;
+      color: #fff;
+      padding: 34px 42px 30px;
+    }
+    header h1 {
+      margin: 0 0 10px;
+      font-size: 30px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+    header p { margin: 4px 0; color: #d8e1ea; }
+    main {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 28px 28px 56px;
+    }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 24px;
+      margin: 0 0 22px;
+    }
+    h2 { margin: 0 0 14px; font-size: 22px; }
+    h3 { margin: 22px 0 10px; font-size: 17px; }
+    p { margin: 8px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 11px;
+      vertical-align: top;
+    }
+    th {
+      text-align: left;
+      background: #edf1f6;
+    }
+    code {
+      background: var(--code);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 0.95em;
+    }
+    ul, ol { padding-left: 22px; }
+    .note, .warn, .risk {
+      border-radius: 6px;
+      padding: 12px 14px;
+      margin: 14px 0;
+    }
+    .note { border-left: 4px solid var(--accent); background: var(--accent-bg); }
+    .warn { border-left: 4px solid var(--warn); background: var(--warn-bg); }
+    .risk { border-left: 4px solid var(--risk); background: var(--risk-bg); }
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .on { background: var(--accent-bg); color: var(--accent); }
+    .off { background: #eef0f3; color: #46515f; }
+    .danger { background: var(--risk-bg); color: var(--risk); }
+    .warn-badge { background: var(--warn-bg); color: var(--warn); }
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .step {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+      padding: 12px;
+    }
+    .step strong { display: block; margin-bottom: 4px; }
+    .small { color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>KiwoomReal Config-Based Analysis for FinUp.StockData.Price.App</h1>
+    <p>Project: <code>C:\Dev\FinUp.StockData.Price.App</code></p>
+    <p>Baseline config: <code>C:\App\Config\KiwoomReal_FinUp.StockData.Price.App.exe.config</code></p>
+    <p>Report: <code>C:\reports\kiwoom\KiwoomReal_FinUp.StockData.Price.App_config_analysis.html</code></p>
+    <p>Analysis date: 2026-05-07 / Config SHA-256: <code>7302F3615DEF2E7D74BF3FDC4D6AA360281202E2E0C1C6F260FB428903D4DA09</code></p>
+  </header>
+
+  <main>
+    <section>
+      <h2>Executive Summary</h2>
+      <div class="note">
+        <p><strong>With the uploaded executable config, <code>StartUp=KR</code> dispatches to <code>SchedulerKiwoomReal</code>, then <code>KiwoomRedis</code>, then Kiwoom real-time <code>PRICE</code> collection.</strong></p>
+      </div>
+      <ul>
+        <li><strong>Redis is active.</strong> The uploaded config does not define <code>RedisDistribute</code>, and the code defaults missing values to <code>true</code>.</li>
+        <li><strong>MongoDB is instantiated but not effectively saving PRICE data.</strong> Missing <code>MongoSaveData</code> defaults to <code>true</code>, but <code>_mongoPriceHandler.StartAsync(...)</code> is commented out.</li>
+        <li><strong>Kafka is inactive at runtime for this config.</strong> <code>UseLog</code>, <code>System</code>, <code>SystemType</code>, and <code>KafkaUrl</code> are absent; <code>LoggerConfigModel.UseLog</code> returns <code>false</code> when <code>System</code> falls back to its anonymous default.</li>
+        <li><strong>Operation logging is active.</strong> Missing <code>UseOperationLog</code> leaves the operation-log default as <code>true</code> for <code>JobBase2</code> and <code>AliveLogger</code>.</li>
+      </ul>
+      <div class="risk">
+        <p><strong>Main difference from the repository <code>App.config</code>:</strong> the repository config explicitly sets <code>RedisDistribute=false</code>, <code>MongoSaveData=false</code>, and <code>UseOperationLog=false</code>. The uploaded executable config omits those keys, so the code defaults change behavior.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Config Interpretation</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Setting</th>
+            <th>Uploaded config</th>
+            <th>Runtime interpretation</th>
+            <th>Evidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>StartUp</code></td><td><code>KR</code></td><td>Run <code>SchedulerKiwoomReal</code>.</td><td>config line <code>32</code>, <code>Program.cs:29-30</code></td></tr>
+          <tr><td><code>MarketType</code></td><td><code>ALL</code></td><td>KOSPI and KOSDAQ collection label in the scheduler.</td><td>config line <code>41</code>, <code>SchedulerKiwoomReal.cs:48-59</code></td></tr>
+          <tr><td><code>FIDType</code></td><td><code>PRICE</code></td><td>PRICE real-time event path; <code>_oIdx=72</code>, <code>_oIdxAlive=75</code>.</td><td>config line <code>42</code>, <code>SchedulerKiwoomReal.cs:61-70</code></td></tr>
+          <tr><td><code>KiwoomStartDelay</code></td><td><span class="badge warn-badge">Missing</span></td><td>Defaults to <code>30</code>.</td><td><code>SchedulerKiwoomReal.cs:46</code></td></tr>
+          <tr><td><code>RedisDistribute</code></td><td><span class="badge warn-badge">Missing</span></td><td>Defaults to <code>true</code>.</td><td><code>SchedulerKiwoomReal.cs:163</code></td></tr>
+          <tr><td><code>MongoSaveData</code></td><td><span class="badge warn-badge">Missing</span></td><td>Defaults to <code>true</code>, but the PRICE Mongo consumer is not started.</td><td><code>SchedulerKiwoomReal.cs:164</code>, <code>KiwoomRedis.cs:128-131</code></td></tr>
+          <tr><td><code>UseOperationLog</code></td><td><span class="badge warn-badge">Missing</span></td><td>Defaults to operation logging enabled.</td><td><code>JobBase2.cs:24-33</code>, <code>AliveLogger.cs:23-38</code></td></tr>
+          <tr><td><code>UseLog</code>, <code>System</code>, <code>KafkaUrl</code></td><td><span class="badge off">Missing</span></td><td>Core.Log remains disabled and does not create Kafka DAL.</td><td><code>LoggerConfigModel.cs:56-64</code>, <code>Logger.cs:26-30</code></td></tr>
+          <tr><td>Redis clusters</td><td><code>stockdata</code> and <code>stockdatapubsub</code></td><td><code>RedisStockDataHandler</code> publishes through the <code>stockdatapubsub</code> subscriber.</td><td>config lines <code>9-21</code>, <code>RedisStockDataHandler.cs:24-27</code></td></tr>
+          <tr><td>MongoDB</td><td>Mongo endpoint and <code>MongoDBName=StockData</code> are present.</td><td>If the handler runs now, it targets <code>StockDataYYYY</code> because the handler appends the current year.</td><td>config lines <code>33-34</code>, <code>MongoStockDataHandler.cs:27-40</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Runtime Flow</h2>
+      <div class="flow">
+        <div class="step"><strong>1. Program dispatch</strong><code>StartUp=KR</code> starts <code>SchedulerKiwoomReal</code><br><span class="small"><code>Program.cs:20-30</code></span></div>
+        <div class="step"><strong>2. Scheduler setup</strong><code>MarketType=ALL</code>, <code>FIDType=PRICE</code>, default <code>KiwoomStartDelay=30</code><br><span class="small"><code>SchedulerKiwoomReal.cs:37-76</code></span></div>
+        <div class="step"><strong>3. Market schedule</strong><code>GetScheduleNextMarket(30, WebAPIAddress)</code><br><span class="small"><code>SchedulerKiwoomReal.cs:116-139</code></span></div>
+        <div class="step"><strong>4. Collection starts</strong>Create <code>KiwoomRedis</code> with default <code>RedisDistribute=true</code> and <code>MongoSaveData=true</code><br><span class="small"><code>SchedulerKiwoomReal.cs:142-180</code></span></div>
+        <div class="step"><strong>5. Kiwoom starts</strong><code>KiwoomClient.Start()</code>, then Redis PRICE consumer starts<br><span class="small"><code>KiwoomRedis.cs:115-132</code></span></div>
+        <div class="step"><strong>6. Stop/restart</strong>Stop at market close plus 31 minutes, restart after 60 seconds<br><span class="small"><code>SchedulerKiwoomReal.cs:196-214</code></span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Kafka</h2>
+      <table>
+        <thead><tr><th>Finding</th><th>Explanation</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge off">Runtime inactive</span></td><td>The uploaded config lacks <code>UseLog</code> and <code>System</code>. <code>LoggerConfigModel.UseLog</code> returns <code>false</code> when <code>System</code> is anonymous, so <code>Logger</code> never creates a Kafka logger DAL.</td><td><code>LoggerConfigModel.cs:56-64</code>, <code>Logger.cs:26-30</code></td></tr>
+          <tr><td><span class="badge warn-badge">Build dependency remains</span></td><td>The app still references <code>FinUp.Core.Log</code>. Kafka removal is therefore a reference/package cleanup topic, not a current <code>KR</code> runtime-flow topic.</td><td><code>FinUp.StockData.Price.App.csproj:476-479</code>, <code>LoggerFactory.cs:50-57</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Redis / AWS Redis</h2>
+      <table>
+        <thead><tr><th>Finding</th><th>Explanation</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge on">Active</span></td><td>Missing <code>RedisDistribute</code> defaults to <code>true</code>. In the <code>FIDType=PRICE</code> path, <code>RedisStockDataHandler</code> is created and started.</td><td><code>SchedulerKiwoomReal.cs:163</code>, <code>KiwoomRedis.cs:71-78</code>, <code>KiwoomRedis.cs:126-132</code></td></tr>
+          <tr><td><span class="badge on">PRICE publish</span></td><td>Kiwoom price events flow into <code>_redisPriceHandler.AddPrice(price)</code>. The base consumer batches and publishes to <code>RedisChannelConfig.PRICE</code> as compressed <code>RedisMessage</code> payloads.</td><td><code>KiwoomRedis.cs:182-185</code>, <code>StockDataHandlerBase.cs:64-96</code>, <code>RedisStockDataHandler.cs:31-51</code>, <code>RedisStockDataHandler.cs:108-110</code></td></tr>
+          <tr><td><span class="badge warn-badge">Valkey migration angle</span></td><td>The uploaded config uses existing AWS Redis/ElastiCache-style endpoints, while the repository config has a Valkey dev-style endpoint. Valkey work should verify replacement of the <code>stockdatapubsub</code> endpoint and publish compatibility.</td><td>config lines <code>9-21</code>, <code>RedisStockDataHandler.cs:24-27</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>MongoDB</h2>
+      <table>
+        <thead><tr><th>Finding</th><th>Explanation</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge warn-badge">Handler instantiated</span></td><td>Missing <code>MongoSaveData</code> defaults to <code>true</code>, so the PRICE path creates <code>MongoStockDataHandler</code>.</td><td><code>SchedulerKiwoomReal.cs:164</code>, <code>KiwoomRedis.cs:80-85</code></td></tr>
+          <tr><td><span class="badge off">Save consumer not started</span></td><td>The PRICE path comments out <code>_mongoPriceHandler.StartAsync(...)</code>, so Mongo collection creation and insert consumption do not run.</td><td><code>KiwoomRedis.cs:126-131</code>, <code>MongoStockDataHandler.cs:86-107</code></td></tr>
+          <tr><td><span class="badge danger">Memory risk</span></td><td>Price events still call <code>_mongoPriceHandler.AddPrice(price)</code>. Without a consumer, the base <code>BlockingCollection&lt;StockPrice&gt;</code> may grow during the trading session.</td><td><code>KiwoomRedis.cs:182-185</code>, <code>StockDataHandlerBase.cs:23</code>, <code>StockDataHandlerBase.cs:200-203</code></td></tr>
+          <tr><td><span class="badge warn-badge">PostgreSQL migration angle</span></td><td>For this <code>KR/PRICE</code> config, Mongo insert is currently blocked by code. PostgreSQL scope depends on whether the intended future behavior is to keep storage disabled or replace that dormant Mongo path with PG storage.</td><td><code>KiwoomRedis.cs:80-85</code>, <code>KiwoomRedis.cs:128-131</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Operation Logging</h2>
+      <ul>
+        <li>Missing <code>UseOperationLog</code> leaves <code>JobBase2._useOperationLog</code> at its default <code>true</code>.</li>
+        <li><code>SchedulerKiwoomReal</code> starts <code>AliveLogger</code> after schedule initialization. <code>AliveLogger</code> only stops itself when <code>UseOperationLog=false</code> is explicitly present.</li>
+        <li>This operation logging writes through <code>OperationTermHistoryBiz.USPOperationTermHistoryInsert</code> and is separate from Kafka logging.</li>
+      </ul>
+      <p class="small">Evidence: <code>SchedulerKiwoomReal.cs:94-96</code>, <code>JobBase2.cs:24-33</code>, <code>JobBase2.cs:42-79</code>, <code>AliveLogger.cs:21-38</code>.</p>
+    </section>
+
+    <section>
+      <h2>Priority Risks</h2>
+      <table>
+        <thead><tr><th>Rank</th><th>Risk</th><th>Confidence</th><th>Basis</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Redis publish is active under the uploaded config.</td><td>High</td><td>Missing-key default and Redis handler start are directly visible.</td></tr>
+          <tr><td>2</td><td>Mongo appears enabled by default, but PRICE saving is not actually started.</td><td>High</td><td>Handler creation, commented start call, and AddPrice call are visible together.</td></tr>
+          <tr><td>3</td><td>Mongo handler queues may grow without being drained.</td><td>Medium-high</td><td>BlockingCollection Add is visible; impact depends on trading-session event volume and duration.</td></tr>
+          <tr><td>4</td><td>Kafka is runtime-inactive but build dependencies remain.</td><td>High</td><td>Core.Log reference and logger disable path are visible.</td></tr>
+          <tr><td>5</td><td>Operation logging is active and can write to the DB.</td><td>High</td><td>Missing <code>UseOperationLog</code> defaults to enabled behavior.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Conclusion</h2>
+      <p>With the uploaded <code>KiwoomReal</code> executable config, the application performs Kiwoom real-time PRICE collection and Redis publishing is active. Kafka is inactive at runtime. MongoDB is the nuanced case: the handler is instantiated and receives price events, but the Mongo consumer is commented out, so data is not inserted and queued events may accumulate.</p>
+      <p>For migration work, Kafka removal has low runtime impact under this config, Redis/Valkey replacement is directly on the active path, and Mongo-to-PostgreSQL scope depends on whether the currently dormant PRICE save path should remain disabled or be reintroduced using PostgreSQL.</p>
+    </section>
+  </main>
+</body>
+</html>

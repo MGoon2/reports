@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>api-admin & front-admin 설정 및 아키텍처 분석 보고서</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid #3498db;
+        }
+        h3 {
+            color: #555;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        h4 {
+            color: #666;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        .info-box {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .warning-box {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .success-box {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .diagram {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-family: monospace;
+            white-space: pre;
+        }
+        .toc {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        .toc h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .toc ul {
+            list-style-type: none;
+            margin-left: 0;
+        }
+        .toc li {
+            margin-bottom: 8px;
+        }
+        .toc a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        .badge-java {
+            background-color: #f39c12;
+            color: white;
+        }
+        .badge-spring {
+            background-color: #6db33f;
+            color: white;
+        }
+        .badge-nextjs {
+            background-color: #000000;
+            color: white;
+        }
+        .badge-react {
+            background-color: #61dafb;
+            color: #000;
+        }
+        .badge-typescript {
+            background-color: #3178c6;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>api-admin & front-admin 설정 및 아키텍처 분석 보고서</h1>
+        
+        <div class="info-box">
+            <strong>생성일:</strong> 2026년 5월 12일<br>
+            <strong>분석 대상:</strong> api-admin (Spring Boot Backend), front-admin (Next.js Frontend)<br>
+            <strong>분석 범위:</strong> 프로젝트 구조, 설정 파일, 아키텍처, 보안, 통합 방식
+        </div>
+
+        <div class="toc">
+            <h3>목차</h3>
+            <ul>
+                <li><a href="#1-프로젝트-개요">1. 프로젝트 개요</a></li>
+                <li><a href="#2-api-admin-상세-분석">2. api-admin 상세 분석</a>
+                    <ul>
+                        <li><a href="#21-기술-스택">2.1 기술 스택</a></li>
+                        <li><a href="#22-datasource-구성">2.2 DataSource 구성</a></li>
+                        <li><a href="#23-아키텍처">2.3 아키텍처</a></li>
+                        <li><a href="#24-보안-구성">2.4 보안 구성</a></li>
+                        <li><a href="#25-주요-컴포넌트">2.5 주요 컴포넌트</a></li>
+                    </ul>
+                </li>
+                <li><a href="#3-front-admin-상세-분석">3. front-admin 상세 분석</a>
+                    <ul>
+                        <li><a href="#31-기술-스택">3.1 기술 스택</a></li>
+                        <li><a href="#32-아키텍처">3.2 아키텍처</a></li>
+                        <li><a href="#33-인증-흐름">3.3 인증 흐름</a></li>
+                        <li><a href="#34-주요-컴포넌트">3.4 주요 컴포넌트</a></li>
+                    </ul>
+                </li>
+                <li><a href="#4-통합-아키텍처">4. 통합 아키텍처</a>
+                    <ul>
+                        <li><a href="#41-bff-패턴">4.1 BFF 패턴</a></li>
+                        <li><a href="#42-인증-플로우">4.2 인증 플로우</a></li>
+                        <li><a href="#43-api-라우팅">4.3 API 라우팅</a></li>
+                    </ul>
+                </li>
+                <li><a href="#5-배포-구성">5. 배포 구성</a></li>
+                <li><a href="#6-운영-가이드">6. 운영 가이드</a></li>
+            </ul>
+        </div>
+
+        <h2 id="1-프로젝트-개요">1. 프로젝트 개요</h2>
+        
+        <div class="section">
+            <h3>api-admin</h3>
+            <p>핀업 어드민 백엔드 API 서버로, Spring Boot 기반의 Java 애플리케이션입니다. 회원, 결제, 레이더, 크롤링, 뉴스, 키워드 등 핀업 서비스의 전반적인 관리 기능을 제공합니다.</p>
+            
+            <table>
+                <tr>
+                    <th>항목</th>
+                    <th>설정</th>
+                </tr>
+                <tr>
+                    <td>프레임워크</td>
+                    <td>Spring Boot 4.0.0</td>
+                </tr>
+                <tr>
+                    <td>Java 버전</td>
+                    <td>25</td>
+                </tr>
+                <tr>
+                    <td>포트</td>
+                    <td>8086 (Application), 8186 (Actuator)</td>
+                </tr>
+                <tr>
+                    <td>빌드 도구</td>
+                    <td>Gradle</td>
+                </tr>
+                <tr>
+                    <td>레거시</td>
+                    <td>C# ASP.NET (C:\Users\sedong\workspace\legacy\cs)</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h3>front-admin</h3>
+            <p>핀업 어드민 프론트엔드 애플리케이션으로, Next.js 기반의 React 애플리케이션입니다. BFF (Backend for Frontend) 역할을 수행하며 api-admin과 통신합니다.</p>
+            
+            <table>
+                <tr>
+                    <th>항목</th>
+                    <th>설정</th>
+                </tr>
+                <tr>
+                    <td>프레임워크</td>
+                    <td>Next.js 16.1.1</td>
+                </tr>
+                <tr>
+                    <td>React 버전</td>
+                    <td>19.2.1</td>
+                </tr>
+                <tr>
+                    <td>언어</td>
+                    <td>TypeScript 5</td>
+                </tr>
+                <tr>
+                    <td>포트</td>
+                    <td>3006</td>
+                </tr>
+                <tr>
+                    <td>인증</td>
+                    <td>next-auth 4.24.13</td>
+                </tr>
+            </table>
+        </div>
+
+        <h2 id="2-api-admin-상세-분석">2. api-admin 상세 분석</h2>
+
+        <h3 id="21-기술-스택">2.1 기술 스택</h3>
+        <div class="section">
+            <h4>핵심 의존성</h4>
+            <ul>
+                <li><span class="badge badge-spring">Spring Boot</span> Web, Validation, Actuator, Security</li>
+                <li><span class="badge badge-java">MyBatis</span> Spring Boot Starter 4.0.0</li>
+                <li><span class="badge badge-java">JWT</span> io.jsonwebtoken 0.11.5</li>
+                <li><span class="badge badge-java">Database</span> MSSQL JDBC, PostgreSQL Driver, MongoDB Driver Sync</li>
+                <li><span class="badge badge-java">AWS</span> AWS SDK S3, STS</li>
+                <li><span class="badge badge-java">Monitoring</span> Micrometer Prometheus</li>
+                <li><span class="badge badge-java">Utilities</span> Apache POI 5.3.0 (Excel), Lombok</li>
+            </ul>
+        </div>
+
+        <h3 id="22-datasource-구성">2.2 DataSource 구성</h3>
+        <div class="section">
+            <div class="highlight">
+                <strong>다중 DataSource 아키텍처:</strong> api-admin은 4개의 서로 다른 데이터베이스에 연결하여 각 도메인별 데이터를 관리합니다.
+            </div>
+
+            <table>
+                <tr>
+                    <th>Bean 이름</th>
+                    <th>DB 종류</th>
+                    <th>데이터베이스</th>
+                    <th>용도</th>
+                    <th>Hikari Pool 설정</th>
+                </tr>
+                <tr>
+                    <td><code>dataSource</code> (기본)</td>
+                    <td>MSSQL</td>
+                    <td>FinUp</td>
+                    <td>회원, 결제, 운영</td>
+                    <td>max: 30, min: 5</td>
+                </tr>
+                <tr>
+                    <td><code>guideDatasource</code></td>
+                    <td>MSSQL</td>
+                    <td>FinUpGuide</td>
+                    <td>가이드 컨텐츠</td>
+                    <td>max: 30, min: 5</td>
+                </tr>
+                <tr>
+                    <td><code>stockDataDataSource</code></td>
+                    <td>MSSQL</td>
+                    <td>StockData</td>
+                    <td>스톡데이터, 뉴스콘텐츠 SP</td>
+                    <td>max: 30, min: 5</td>
+                </tr>
+                <tr>
+                    <td><code>pgDataSource</code></td>
+                    <td>PostgreSQL</td>
+                    <td>finup</td>
+                    <td>크롤러사이트필터, 키워드, 레이더</td>
+                    <td>max: 30, min: 5</td>
+                </tr>
+                <tr>
+                    <td><code>MongoDB</code></td>
+                    <td>MongoDB</td>
+                    <td>Lab</td>
+                    <td>테마 데이터 (레거시 Lab.T_ThemeScoreDisplay)</td>
+                    <td>-</td>
+                </tr>
+            </table>
+
+            <h4>HikariCP 공통 설정</h4>
+            <ul>
+                <li><code>connection-timeout</code>: 30000ms (30초)</li>
+                <li><code>idle-timeout</code>: 600000ms (10분)</li>
+                <li><code>max-lifetime</code>: 1800000ms (30분)</li>
+                <li><code>leak-detection-threshold</code>: 60000ms (1분)</li>
+            </ul>
+
+            <h4>동적 DataSource 라우팅</h4>
+            <div class="info-box">
+                <strong>DataSourceRoutingConfig:</strong> MSSQL ↔ PostgreSQL 동적 라우팅을 지원합니다.<br>
+                <ul>
+                    <li>PG <code>shared.data_source_config</code> 테이블을 60초 주기로 읽어 캐시에 유지</li>
+                    <li>재시작 없이 전환/롤백 가능</li>
+                    <li>사용법: <code>routingConfig.usePostgres("feature_key")</code> → true → PG, false → MSSQL</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 id="23-아키텍처">2.3 아키텍처</h3>
+        <div class="section">
+            <div class="diagram">
+┌─────────────────────────────────────────────────────────────┐
+│                        Client (Browser)                      │
+└────────────────────────┬────────────────────────────────────┘
+                         │ HTTP/HTTPS
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    front-admin (BFF)                         │
+│                   - Next.js 16.1.1                           │
+│                   - next-auth                                │
+│                   - API Rewrites                             │
+└────────────────────────┬────────────────────────────────────┘
+                         │ JWT + BFF HMAC
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   api-admin (Spring Boot)                    │
+│                                                              │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │  Controller  │→ │   Service    │→ │    Mapper    │      │
+│  │   Layer      │  │    Layer     │  │   (MyBatis)  │      │
+│  └──────────────┘  └──────────────┘  └──────┬───────┘      │
+│                                              │               │
+│                           ┌──────────────────┼──────────────┐│
+│                           ▼                  ▼              ▼│
+│                      ┌─────────┐       ┌─────────┐   ┌─────────┐│
+│                      │ MSSQL   │       │   PG    │   │ MongoDB ││
+│                      │ (3개)   │       │  (1개)  │   │  (1개)  ││
+│                      └─────────┘       └─────────┘   └─────────┘│
+└─────────────────────────────────────────────────────────────┘
+            </div>
+
+            <h4>계층 구조</h4>
+            <ul>
+                <li><strong>Controller Layer</strong> (<code>com.finup.admin.api</code>): HTTP 요청 처리, DTO 변환</li>
+                <li><strong>Service Layer</strong> (<code>com.finup.admin.application</code>): 비즈니스 로직, 트랜잭션 관리</li>
+                <li><strong>Persistence Layer</strong> (<code>com.finup.admin.infra.persistence</code>): MyBatis Mapper, DB 접근</li>
+                <li><strong>Security Layer</strong> (<code>com.finup.admin.security</code>): JWT, OTP, RBAC, IP 검증</li>
+                <li><strong>Config Layer</strong> (<code>com.finup.admin.config</code>): DataSource, MyBatis, Jackson 설정</li>
+            </ul>
+
+            <h4>주요 패키지 구조</h4>
+            <ul>
+                <li><code>api/</code>: REST API 컨트롤러 (auth, chat, finance, finup, stock, radar 등)</li>
+                <li><code>application/</code>: 비즈니스 서비스 (auth, chat, finance, finup, stock 등)</li>
+                <li><code>infra/persistence/</code>: MyBatis Mapper 인터페이스 및 XML</li>
+                <li><code>security/</code>: 보안 관련 (config, filter, handler, jwt, rbac)</li>
+                <li><code>config/</code>: 설정 클래스 (DataSource, MyBatis, Jackson, Mongo)</li>
+                <li><code>common/</code>: 공통 유틸리티</li>
+            </ul>
+        </div>
+
+        <h3 id="24-보안-구성">2.4 보안 구성</h3>
+        <div class="section">
+            <h4>JWT 인증</h4>
+            <table>
+                <tr>
+                    <th>설정</th>
+                    <th>값</th>
+                    <th>설명</th>
+                </tr>
+                <tr>
+                    <td>issuer</td>
+                    <td><code>https://devfinup.click</code></td>
+                    <td>토큰 발행자</td>
+                </tr>
+                <tr>
+                    <td>audience</td>
+                    <td><code>admin</code></td>
+                    <td>토큰 대상</td>
+                </tr>
+                <tr>
+                    <td>access-token-expiration-ms</td>
+                    <td>3600000 (1시간)</td>
+                    <td>액세스 토큰 만료 시간</td>
+                </tr>
+                <tr>
+                    <td>refresh-token-expiration-ms</td>
+                    <td>10800000 (3시간)</td>
+                    <td>리프레시 토큰 만료 시간</td>
+                </tr>
+                <tr>
+                    <td>rolling-threshold-ms</td>
+                    <td>600000 (10분)</td>
+                    <td>롤링 리프레시 임계값</td>
+                </tr>
+            </table>
+
+            <h4>OTP (One-Time Password)</h4>
+            <div class="warning-box">
+                <strong>OTP 화이트리스트 보안:</strong> 사내 IP에서만 OTP를 우회할 수 있습니다.
+            </div>
+            <ul>
+                <li><code>admin.otp.enabled</code>: true (OTP 활성화)</li>
+                <li><code>admin.otp.white-ips</code>: 화이트리스트 IP 목록 (사내 IP 대역)</li>
+                <li><code>admin.otp.exception-ids</code>: OTP 예외 사용자 ID (style, yulim, awesomedev)</li>
+                <li><code>admin.otp.trusted-proxies</code>: 신뢰할 수 있는 프록시 (10.0.0.0/8, 127.0.0.1/32, ::1/128)</li>
+            </ul>
+
+            <h4>BFF HMAC 인증</h4>
+            <div class="info-box">
+                <strong>BffAuthVerifier:</strong> front-admin이 보낸 요청의 신원을 검증합니다.
+            </div>
+            <ul>
+                <li><code>X-BFF-Ts</code>: 호출 시점 ms epoch</li>
+                <li><code>X-BFF-Sig</code>: HMAC-SHA256(sharedSecret, ts) — hex</li>
+                <li>시간 허용 오차: 60초 (<code>max-skew-ms</code>)</li>
+                <li>목적: 외부 공격자가 admin을 직접 호출하여 BFF인 척 위장하는 시나리오 차단</li>
+            </ul>
+
+            <h4>IP 변화 감지</h4>
+            <div class="highlight">
+                <strong>IpChangeEnforcementInterceptor:</strong> 최초 로그인 IP와 다른 현재 IP가 사내 대역에 속하지 않으면 401 NETWORK_CHANGED 응답으로 강제 로그아웃합니다.
+            </div>
+            <ul>
+                <li><code>admin.security.internal-ip-cidrs</code>: 사내 IP CIDR (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16)</li>
+                <li>운영 배포 전 회사 고정 공인 IP / VPN 풀을 반드시 추가 필요</li>
+            </ul>
+
+            <h4>Client IP 추출</h4>
+            <div class="info-box">
+                <strong>ClientIpResolver:</strong> X-Forwarded-For 위조 차단을 위한 rightmost-untrusted 알고리즘 사용
+            </div>
+            <ul>
+                <li>XFF chain의 끝에서부터 거꾸로 거슬러 올라가며 첫 untrusted IP를 client로 간주</li>
+                <li>클라이언트가 위조해 보낸 값은 chain의 앞쪽에 위치하므로 무시</li>
+                <li>직접 연결 hop이 신뢰 proxy가 아니면 XFF 무시 (외부에서 직접 들어온 케이스)</li>
+            </ul>
+        </div>
+
+        <h3 id="25-주요-컴포넌트">2.5 주요 컴포넌트</h3>
+        <div class="section">
+            <h4>AuthController</h4>
+            <ul>
+                <li><code>POST /api/auth/login</code>: 로그인 (JWT 토큰 발급)</li>
+                <li><code>POST /api/auth/refresh</code>: 토큰 갱신</li>
+                <li><code>POST /api/auth/logout</code>: 로그아웃</li>
+                <li><code>POST /api/auth/otp/setup/start</code>: OTP 설정 시작</li>
+                <li><code>POST /api/auth/otp/setup/confirm</code>: OTP 설정 확인</li>
+                <li><code>GET /api/auth/me</code>: 현재 사용자 정보</li>
+                <li><code>GET /api/auth/permissions</code>: 권한 목록</li>
+            </ul>
+
+            <h4>DataSource 설정 클래스</h4>
+            <ul>
+                <li><code>FinupDataSourceConfig</code>: 기본 MSSQL FinUp DataSource</li>
+                <li><code>GuideDataSourceConfig</code>: MSSQL FinUpGuide DataSource</li>
+                <li><code>StockDataSourceConfig</code>: MSSQL StockData DataSource</li>
+                <li><code>PostgresDataSourceConfig</code>: PostgreSQL finup DataSource</li>
+                <li><code>DataSourceRoutingConfig</code>: 동적 라우팅 (MSSQL ↔ PG)</li>
+                <li><code>MongoConfig</code>: MongoDB Lab DB 연결</li>
+                <li><code>MssqlMyBatisConfig</code>: MSSQL용 MyBatis SqlSessionFactory</li>
+                <li><code>PgMyBatisConfig</code>: PostgreSQL용 MyBatis SqlSessionFactory</li>
+            </ul>
+        </div>
+
+        <h2 id="3-front-admin-상세-분석">3. front-admin 상세 분석</h2>
+
+        <h3 id="31-기술-스택">3.1 기술 스택</h3>
+        <div class="section">
+            <h4>핵심 의존성</h4>
+            <ul>
+                <li><span class="badge badge-nextjs">Next.js</span> 16.1.1 (App Router)</li>
+                <li><span class="badge badge-react">React</span> 19.2.1</li>
+                <li><span class="badge badge-typescript">TypeScript</span> 5</li>
+                <li><span class="badge badge-react">next-auth</span> 4.24.13 (인증)</li>
+                <li><span class="badge badge-react">Radix UI</span> (컴포넌트 라이브러리)</li>
+                <li><span class="badge badge-react">Tailwind CSS</span> 4 (스타일링)</li>
+                <li><span class="badge badge-react">React Hook Form</span> 7.68.0 (폼 관리)</li>
+                <li><span class="badge badge-react">Zod</span> 4.1.13 (스키마 검증)</li>
+                <li><span class="badge badge-react">@tanstack/react-table</span> 8.21.3 (테이블)</li>
+                <li><span class="badge badge-react">date-fns</span> 4.1.0 (날짜 처리)</li>
+                <li><span class="badge badge-react">lucide-react</span> 0.559.0 (아이콘)</li>
+                <li><span class="badge badge-react">axios</span> 1.13.2 (HTTP 클라이언트)</li>
+                <li><span class="badge badge-react">@reduxjs/toolkit</span> 2.11.2 (상태 관리)</li>
+            </ul>
+        </div>
+
+        <h3 id="32-아키텍처">3.2 아키텍처</h3>
+        <div class="section">
+            <div class="diagram">
+┌─────────────────────────────────────────────────────────────┐
+│                      Browser (Client)                        │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Next.js App Router                        │
+│                                                              │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │  Page Routes │  │ API Routes   │  │  Middleware  │      │
+│  │  (app/)      │  │  (app/api/)  │  │  (auth)      │      │
+│  └──────────────┘  └──────────────┘  └──────────────┘      │
+│                                                              │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │ Components   │→ │   Hooks      │→ │    Utils     │      │
+│  │  (components)│  │   (hooks)    │  │   (utils)    │      │
+│  └──────────────┘  └──────────────┘  └──────────────┘      │
+│                                                              │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │    Store     │  │    API       │  │   Config     │      │
+│  │  (Redux/Zustand)│  (lib/api)   │  │  (lib/config)│      │
+│  └──────────────┘  └──────────────┘  └──────────────┘      │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    api-admin (Spring Boot)                   │
+└─────────────────────────────────────────────────────────────┘
+            </div>
+
+            <h4>디렉토리 구조</h4>
+            <ul>
+                <li><code>app/</code>: Next.js App Router 기반 페이지 및 API 라우트
+                    <ul>
+                        <li><code>(admin)/</code>: 어드민 페이지 그룹 (chat, finance, finup, guide, radar, stock, tssa)</li>
+                        <li><code>(popup)/</code>: 팝업 페이지 그룹</li>
+                        <li><code>api/</code>: API 라우트 (auth, download, editor, health, popup, stockchart)</li>
+                    </ul>
+                </li>
+                <li><code>components/</code>: React 컴포넌트
+                    <ul>
+                        <li><code>auth/</code>: 인증 관련 컴포넌트</li>
+                        <li><code>button/</code>: 버튼 컴포넌트</li>
+                        <li><code>chat/</code>: 채팅 관련 컴포넌트</li>
+                        <li><code>common/</code>: 공통 컴포넌트</li>
+                    </ul>
+                </li>
+                <li><code>lib/</code>: 유틸리티 및 API 클라이언트
+                    <ul>
+                        <li><code>api/</code>: API 클라이언트 (axios-instance)</li>
+                        <li><code>auth/</code>: 인증 관련 (nextAuth, AuthProvider)</li>
+                        <li><code>config/</code>: 설정 관리</li>
+                    </ul>
+                </li>
+                <li><code>hooks/</code>: React 훅 (useListPage, useListQueryState)</li>
+                <li><code>store/</code>: 상태 관리 (StoreProvider)</li>
+                <li><code>middleware.ts</code>: NextAuth 미들웨어 (라우트 가드)</li>
+            </ul>
+        </div>
+
+        <h3 id="33-인증-흐름">3.3 인증 흐름</h3>
+        <div class="section">
+            <h4>next-auth 설정</h4>
+            <ul>
+                <li><strong>Provider:</strong> CredentialsProvider (아이디/비밀번호/OTP 기반)</li>
+                <li><strong>Strategy:</strong> JWT</li>
+                <li><strong>Session MaxAge:</strong> 3시간 (백엔드 refresh token TTL과 정렬)</li>
+                <li><strong>Token Rotation:</strong> 만료 60초 전부터 자동 갱신</li>
+            </ul>
+
+            <h4>로그인 플로우</h4>
+            <div class="diagram">
+1. 사용자가 로그인 폼 제출 (loginId, password, otp)
+   ↓
+2. next-auth authorize() 호출
+   ↓
+3. BFF HMAC 헤더 생성 (X-BFF-Ts, X-BFF-Sig)
+   ↓
+4. client IP 추출 (X-Forwarded-For 위조 방지)
+   ↓
+5. api-admin /api/auth/login 호출
+   ↓
+6. api-admin: BFF 검증 → IP 추출 → OTP 검증 → JWT 발급
+   ↓
+7. JWT 토큰 저장 (accessToken, refreshToken)
+   ↓
+8. 세션 생성 (next-auth session)
+            </div>
+
+            <h4>토큰 갱신 플로우</h4>
+            <div class="diagram">
+1. JWT callback 호출 (매 요청)
+   ↓
+2. 만료까지 60초 미만 남음?
+   ↓ YES
+3. api-admin /api/auth/refresh 호출
+   ↓
+4. 새 토큰 쌍 수신 (accessToken, refreshToken)
+   ↓
+5. 세션 토큰 갱신
+   ↓ NO
+6. 기존 토큰 사용
+            </div>
+        </div>
+
+        <h3 id="34-주요-컴포넌트">3.4 주요 컴포넌트</h3>
+        <div class="section">
+            <h4>Providers</h4>
+            <ul>
+                <li><strong>NextAuthSessionProvider:</strong> next-auth 세션 전역 관리</li>
+                <li><strong>AuthProvider:</strong> 사용자 정보 및 권한 전역 관리</li>
+                <li><strong>StoreProvider:</strong> 클라이언트 상태 전역 관리</li>
+            </ul>
+
+            <h4>Middleware</h4>
+            <ul>
+                <li>라우트 가드: 비로그인 상태면 로그인 페이지로 리다이렉트</li>
+                <li>백엔드 프록시 경로: Cookie 헤더 제거 (Tomcat 8KB 헤더 한계 초과 방지)</li>
+                <li>API 호출: 401 JSON 응답 (XHR/fetch가 HTML redirect 따라가지 않도록)</li>
+            </ul>
+
+            <h4>Next Config</h4>
+            <ul>
+                <li><strong>API Rewrites:</strong> /api/admin/*, /api/system/*, /member/*, /Files/*를 api-admin으로 프록시</li>
+                <li><strong>Headers:</strong> HTML 페이지는 no-cache, 정적 빌드 산출물은 long-term cache</li>
+                <li><strong>Images:</strong> **.finup.co.kr 도메인 허용</li>
+                <li><strong>TypeScript:</strong> ignoreBuildErrors: true (빌드 오류 무시)</li>
+            </ul>
+        </div>
+
+        <h2 id="4-통합-아키텍처">4. 통합 아키텍처</h2>
+
+        <h3 id="41-bff-패턴">4.1 BFF 패턴</h3>
+        <div class="section">
+            <div class="info-box">
+                <strong>Backend for Frontend (BFF):</strong> front-admin은 단순히 UI를 렌더링하는 것이 아니라, api-admin을 위한 BFF 역할을 수행합니다.
+            </div>
+            <ul>
+                <li><strong>API 프록시:</strong> Next.js rewrites를 통해 백엔드 API에 프록시</li>
+                <li><strong>인증 중계:</strong> next-auth로 세션 관리, JWT 토큰 자동 갱신</li>
+                <li><strong>HMAC 서명:</strong> BFF 신원 검증을 위한 HMAC-SHA256 서명</li>
+                <li><strong>IP 추적:</strong> 안전한 client IP 추출 및 X-Forwarded-For 전달</li>
+            </ul>
+        </div>
+
+        <h3 id="42-인증-플로우">4.2 인증 플로우</h3>
+        <div class="section">
+            <div class="diagram">
+┌─────────────┐
+│   Browser   │
+└──────┬──────┘
+       │ 1. Login Request
+       ▼
+┌─────────────────────────────────────┐
+│      front-admin (Next.js)          │
+│  - next-auth authorize()            │
+│  - BFF HMAC Header 생성             │
+│  - Client IP 추출                   │
+└──────┬──────────────────────────────┘
+       │ 2. POST /api/auth/login
+       │    (X-BFF-Ts, X-BFF-Sig, X-Forwarded-For)
+       ▼
+┌─────────────────────────────────────┐
+│      api-admin (Spring Boot)        │
+│  - BffAuthVerifier 검증             │
+│  - ClientIpResolver IP 추출         │
+│  - OTP 검증 (화이트리스트 확인)      │
+│  - JWT 토큰 발급                    │
+└──────┬──────────────────────────────┘
+       │ 3. JWT Response (accessToken, refreshToken)
+       ▼
+┌─────────────────────────────────────┐
+│      front-admin (Next.js)          │
+│  - 세션 저장 (next-auth)            │
+│  - 토큰 자동 갱신 (60초 전)         │
+└──────┬──────────────────────────────┘
+       │ 4. Session Established
+       ▼
+┌─────────────┐
+│   Browser   │
+└─────────────┘
+            </div>
+        </div>
+
+        <h3 id="43-api-라우팅">4.3 API 라우팅</h3>
+        <div class="section">
+            <h4>front-admin → api-admin Rewrites</h4>
+            <table>
+                <tr>
+                    <th>프론트 경로</th>
+                    <th>백엔드 경로</th>
+                    <th>설명</th>
+                </tr>
+                <tr>
+                    <td><code>/api/admin/:path*</code></td>
+                    <td><code>http://localhost:8086/api/admin/:path*</code></td>
+                    <td>어드민 API</td>
+                </tr>
+                <tr>
+                    <td><code>/api/system/:path*</code></td>
+                    <td><code>http://localhost:8086/api/system/:path*</code></td>
+                    <td>시스템 API</td>
+                </tr>
+                <tr>
+                    <td><code>/api/auth/login</code></td>
+                    <td><code>http://localhost:8086/api/auth/login</code></td>
+                    <td>로그인</td>
+                </tr>
+                <tr>
+                    <td><code>/api/auth/logout</code></td>
+                    <td><code>http://localhost:8086/api/auth/logout</code></td>
+                    <td>로그아웃</td>
+                </tr>
+                <tr>
+                    <td><code>/api/auth/permissions</code></td>
+                    <td><code>http://localhost:8086/api/auth/permissions</code></td>
+                    <td>권한 조회</td>
+                </tr>
+                <tr>
+                    <td><code>/member/:path*</code></td>
+                    <td><code>http://localhost:8086/member/:path*</code></td>
+                    <td>회원 관련</td>
+                </tr>
+                <tr>
+                    <td><code>/Files/:path*</code></td>
+                    <td><code>http://localhost:8086/Files/:path*</code></td>
+                    <td>파일 다운로드</td>
+                </tr>
+            </table>
+
+            <h4>환경별 API Base URL</h4>
+            <ul>
+                <li><strong>Local:</strong> http://localhost:8086</li>
+                <li><strong>Dev:</strong> https://api-admin.internal.finup.co.kr</li>
+                <li><strong>Prod:</strong> 환경변수 <code>ADMIN_API_BASE_URL</code>로 오버라이드</li>
+            </ul>
+        </div>
+
+        <h2 id="5-배포-구성">5. 배포 구성</h2>
+
+        <h3>api-admin</h3>
+        <div class="section">
+            <h4>Dockerfile</h4>
+            <pre><code>FROM amazoncorretto:25
+ENV TZ=Asia/Seoul
+WORKDIR /app
+COPY build/libs/*.jar app.jar
+EXPOSE 8086 8186
+ENTRYPOINT ["sh","-c","java -Duser.timezone=Asia/Seoul ${JAVA_OPTS:-} -jar /app/app.jar"]</code></pre>
+
+            <h4>docker-compose.yml</h4>
+            <pre><code>services:
+  api-admin:
+    image: ${IMAGE}
+    container_name: api-admin
+    restart: always
+    ports:
+      - "8086:8086"      # Application
+      - "8186:8186"      # Actuator (health check, prometheus)
+    env_file:
+      - .env
+    environment:
+      TZ: Asia/Seoul
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=Asia/Seoul"</code></pre>
+
+            <h4>Actuator 설정</h4>
+            <ul>
+                <li><strong>Port:</strong> 8186 (별도 커넥터로 분리)</li>
+                <li><strong>Endpoints:</strong> health, prometheus</li>
+                <li><strong>목적:</strong> prometheus scrape의 broken pipe로 thread pool 고갈 시 application 요청과 health check 영향 분리</li>
+                <li><strong>Prometheus:</strong> descriptions: false (scrape payload 경량화)</li>
+            </ul>
+        </div>
+
+        <h3>front-admin</h3>
+        <div class="section">
+            <h4>docker-compose.yml</h4>
+            <pre><code>services:
+  front-admin:
+    image: ${IMAGE}
+    container_name: front-admin
+    restart: always
+    ports:
+      - "3006:3006"
+    environment:
+      PORT: "3006"
+      TZ: Asia/Seoul
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=Asia/Seoul"</code></pre>
+
+            <h4>환경 변수 (.env.dev)</h4>
+            <pre><code>NEXTAUTH_URL=https://pre-biz.finup.co.kr
+ADMIN_API_BASE_URL=https://api-admin.internal.finup.co.kr
+NEXT_PUBLIC_FINUP_ADMIN_URL=https://pre-biz.finup.co.kr
+NEXT_PUBLIC_IMAGE_URL=https://img.internal.finup.co.kr/
+USE_MOCK=false</code></pre>
+        </div>
+
+        <h2 id="6-운영-가이드">6. 운영 가이드</h2>
+
+        <h3>주의사항</h3>
+        <div class="section">
+            <div class="warning-box">
+                <strong>운영 배포 전 필수 확인:</strong>
+            </div>
+            <ul>
+                <li><code>admin.security.internal-ip-cidrs</code>에 회사 고정 공인 IP / VPN 풀 추가</li>
+                <li><code>FINUP_ADMIN_BFF_SHARED_SECRET</code> 환경변수 설정 (BFF HMAC 인증 활성화)</li>
+                <li><code>FINUP_AUTH_ADMIN_JWT_SECRET</code> 환경변수 설정 (JWT 서명)</li>
+                <li>DataSource 연결 정보 확인 (MSSQL, PostgreSQL, MongoDB)</li>
+                <li>S3 설정 확인 (<code>FINUP_S3_ENABLED</code>, <code>FINUP_S3_BUCKET</code>, <code>FINUP_S3_BASE_URL</code>)</li>
+            </ul>
+        </div>
+
+        <h3>모니터링</h3>
+        <div class="section">
+            <ul>
+                <li><strong>Health Check:</strong> http://localhost:8186/actuator/health</li>
+                <li><strong>Prometheus Metrics:</strong> http://localhost:8186/actuator/prometheus</li>
+                <li><strong>Application Logs:</strong> 표준 출력 (Docker logs)</li>
+                <li><strong>DataSource Monitoring:</strong> HikariCP leak detection (60초)</li>
+            </ul>
+        </div>
+
+        <h3>트러블슈팅</h3>
+        <div class="section">
+            <h4>로그인 실패</h4>
+            <ul>
+                <li>OTP 화이트리스트 확인 (<code>admin.otp.white-ips</code>)</li>
+                <li>BFF 시크릿 확인 (<code>FINUP_ADMIN_BFF_SHARED_SECRET</code>)</li>
+                <li>IP 변화 감지 확인 (<code>admin.security.internal-ip-cidrs</code>)</li>
+                <li>JWT TTL 정합성 확인 (front-admin maxAge vs api-admin refresh-token-expiration-ms)</li>
+            </ul>
+
+            <h4>DB 연결 실패</h4>
+            <ul>
+                <li>DataSource URL 확인 (host, port, database name)</li>
+                <li>자격 증명 확인 (username, password)</li>
+                <li>HikariCP pool 설정 확인 (max-size, min-idle)</li>
+                <li>leak detection 로그 확인</li>
+            </ul>
+
+            <h4>토큰 갱신 실패</h4>
+            <ul>
+                <li>refresh token 만료 확인 (3시간)</li>
+                <li>api-admin /api/auth/refresh 응답 확인</li>
+                <li>next-auth JWT callback 로그 확인</li>
+            </ul>
+        </div>
+
+        <div class="success-box">
+            <strong>문서 작성 완료</strong><br>
+            본 보고서는 api-admin과 front-admin의 설정 및 아키텍처를 상세하게 분석한 결과입니다. 배포 및 운영 시 본 문서를 참고하시기 바랍니다.
+        </div>
+
+        <hr>
+        <p style="text-align: center; color: #666; margin-top: 40px;">
+            <small>본 보고서는 2026년 5월 12일에 작성되었습니다.</small>
+        </p>
+    </div>
+</body>
+</html>
