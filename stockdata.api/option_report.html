@@ -1,0 +1,1249 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StockData 운영 URL 엔드포인트 사용 상세 분석 리포트</title>
+<style>
+:root {
+  --primary: #cc785c;
+  --primary-active: #a9583e;
+  --ink: #141413;
+  --body: #3d3d3a;
+  --body-strong: #252523;
+  --muted: #6c6a64;
+  --muted-soft: #8e8b82;
+  --hairline: #e6dfd8;
+  --hairline-soft: #ebe6df;
+  --canvas: #faf9f5;
+  --surface-soft: #f5f0e8;
+  --surface-card: #efe9de;
+  --surface-cream-strong: #e8e0d2;
+  --surface-dark: #181715;
+  --surface-dark-elevated: #252320;
+  --surface-dark-soft: #1f1e1b;
+  --on-dark: #faf9f5;
+  --on-dark-soft: #a09d96;
+  --accent-teal: #5db8a6;
+  --accent-amber: #e8a55a;
+  --success: #5db872;
+  --warning: #d4a017;
+  --error: #c64545;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --font-display: "Tiempos Headline", "Cormorant Garamond", "EB Garamond", Georgia, "Times New Roman", serif;
+  --font-body: "StyreneB", Inter, "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-code: "JetBrains Mono", "Cascadia Code", Consolas, ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  color: var(--body);
+  background:
+    radial-gradient(circle at 9% 2%, rgba(204, 120, 92, 0.14), transparent 26rem),
+    radial-gradient(circle at 92% 0%, rgba(93, 184, 166, 0.08), transparent 30rem),
+    var(--canvas);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.62;
+  letter-spacing: -0.005em;
+}
+
+body::before {
+  content: "StockData endpoint report";
+  display: block;
+  height: 64px;
+  padding: 20px 32px 0;
+  color: var(--ink);
+  border-bottom: 1px solid var(--hairline);
+  background: rgba(250, 249, 245, 0.88);
+  backdrop-filter: blur(12px);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 72px 32px 96px;
+  background: transparent;
+}
+
+h1, h2, h3 {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-wrap: balance;
+}
+
+h1 {
+  margin: 0 0 32px;
+  max-width: 920px;
+  font-size: clamp(44px, 7vw, 64px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+h1::before {
+  content: "REPORT";
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 20px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  background: var(--primary);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h2 {
+  margin: 64px 0 18px;
+  padding: 0;
+  border: 0;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1.1;
+  letter-spacing: -0.022em;
+}
+
+h2::before {
+  content: "*";
+  display: inline-block;
+  margin-right: 12px;
+  color: var(--primary);
+  font-family: var(--font-body);
+  font-size: 0.65em;
+  vertical-align: 0.08em;
+}
+
+h3 {
+  margin: 40px 0 16px;
+  font-size: clamp(24px, 3vw, 36px);
+  line-height: 1.15;
+  letter-spacing: -0.016em;
+}
+
+h4 {
+  margin: 28px 0 12px;
+  color: var(--body-strong);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+p {
+  max-width: 920px;
+  color: var(--body);
+}
+
+main > ul:first-of-type {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 48px;
+  padding: 24px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl);
+  background: var(--surface-card);
+  color: var(--body-strong);
+  list-style: none;
+}
+
+ul, ol { padding-left: 1.35rem; }
+li { margin: 0.35rem 0; }
+strong { color: var(--ink); font-weight: 600; }
+
+a {
+  color: var(--primary);
+  text-underline-offset: 3px;
+}
+
+a:hover { color: var(--primary-active); }
+
+code {
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  background: rgba(239, 233, 222, 0.72);
+  color: var(--body-strong);
+  padding: 0.12em 0.38em;
+  font-family: var(--font-code);
+  font-size: 0.92em;
+}
+
+pre {
+  position: relative;
+  margin: 24px 0 36px;
+  padding: 28px;
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--surface-dark), var(--surface-dark-soft));
+  color: var(--on-dark);
+  box-shadow: 0 1px 3px rgba(20, 20, 19, 0.08);
+}
+
+pre::before {
+  content: "endpoint map";
+  display: block;
+  margin-bottom: 14px;
+  color: var(--on-dark-soft);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+pre code {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+table {
+  width: 100%;
+  margin: 18px 0 36px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background: var(--canvas);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+th, td {
+  border: 0;
+  border-bottom: 1px solid var(--hairline-soft);
+  border-right: 1px solid var(--hairline-soft);
+  padding: 14px 16px;
+  vertical-align: top;
+}
+
+th:last-child, td:last-child { border-right: 0; }
+tr:last-child td { border-bottom: 0; }
+
+th {
+  background: var(--surface-dark);
+  color: var(--on-dark);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-align: left;
+}
+
+td { color: var(--body); background: rgba(250, 249, 245, 0.76); }
+tr:nth-child(even) td { background: var(--surface-soft); }
+tr:hover td { background: var(--surface-card); }
+
+td:first-child {
+  color: var(--body-strong);
+  font-weight: 500;
+}
+
+blockquote {
+  margin: 28px 0;
+  padding: 24px 28px;
+  border-left: 6px solid var(--primary);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  color: var(--body-strong);
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--hairline);
+  margin: 48px 0;
+}
+
+@media (max-width: 768px) {
+  body::before { padding-left: 20px; padding-right: 20px; }
+  main { padding: 44px 18px 72px; }
+  main > ul:first-of-type { padding: 18px; }
+  table { display: block; overflow-x: auto; white-space: nowrap; }
+  th, td { padding: 12px 14px; }
+  pre { padding: 20px; }
+}
+</style>
+</head>
+<body><main>
+<h1 id="stockdata-url">StockData 운영 URL 엔드포인트 사용 상세 분석 리포트</h1>
+<ul>
+<li>작성일: 2026-05-14</li>
+<li>작성 위치: <code>C:\reports\stockdata.api\option_report.md</code>, <code>C:\reports\stockdata.api\option_report.html</code></li>
+<li>분석 대상 URL: <code>stockdata.finup.co.kr</code></li>
+<li>주요 입력 리포트:</li>
+<li><code>C:\reports\FinUp.StockData.Price.Api\FinUp.StockData.Price.Api_report.html</code></li>
+<li><code>C:\reports\설정분석.html</code></li>
+<li><code>C:\reports\stockdata.api\stockdata.api.settings-analysis.html</code></li>
+<li><code>C:\reports\FinUp.StockData.ChartCapture.App\FinUp.StockData.ChartCapture.App.analysis.html</code></li>
+<li>실제 소스 근거: <code>C:\Dev</code> 및 배포 후보 설정 <code>C:\App\Config</code></li>
+<li>민감정보 처리: DB 문자열, 계정, API key 등은 인용하지 않고 URL, 설정키, 클래스, 메소드, 라인 번호만 남겼다.</li>
+</ul>
+<h2 id="1">1. 결론 요약</h2>
+<p><code>stockdata.finup.co.kr</code>은 한 가지 URL 형태로만 쓰이지 않는다. 실제 코드에서는 다음 세 종류로 구분된다.</p>
+<table>
+<thead>
+<tr>
+<th>구분</th>
+<th>설정값 형태</th>
+<th>대표 설정키</th>
+<th>코드 조립 방식</th>
+<th>핵심 위험</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API base</td>
+<td><code>https://stockdata.finup.co.kr/api</code></td>
+<td><code>ApiStockPriceAddress</code>, <code>StockDataApi</code>, <code>WebAPIAddress</code></td>
+<td>코드가 <code>/price/...</code>, <code>/market/...</code> 등을 뒤에 붙임</td>
+<td><code>/api</code>를 제거하면 호출 endpoint가 한 단계 빠진다.</td>
+</tr>
+<tr>
+<td>Host base</td>
+<td><code>https://stockdata.finup.co.kr</code></td>
+<td><code>StockDataUrl</code>, <code>ThemeConfig:StockDataApiUrl</code></td>
+<td>코드가 <code>/api/...</code> 또는 <code>/chart/...</code>를 목적별로 붙임</td>
+<td>여기에 <code>/api</code>를 넣으면 <code>/api/api/...</code> 또는 <code>/api/chart/...</code> 오류가 난다.</td>
+</tr>
+<tr>
+<td>완성 endpoint</td>
+<td><code>http://stockdata.finup.co.kr/api/chart/capture</code></td>
+<td><code>ChartAPIAddress</code></td>
+<td>코드가 <code>?date=yyyy-MM-dd</code>만 붙임</td>
+<td>base URL로 취급하면 chart capture endpoint가 깨진다.</td>
+</tr>
+</tbody>
+</table>
+<p>확인된 핵심 endpoint는 다음과 같다.</p>
+<pre><code class="language-text">https://stockdata.finup.co.kr/api/price/diff
+https://stockdata.finup.co.kr/api/price/highlowlist
+https://stockdata.finup.co.kr/api/market/{from}/{to}
+https://stockdata.finup.co.kr/api/index/last?codes=001,101
+http://stockdata.finup.co.kr/api/chart/capture?date={yyyy-MM-dd}
+https://stockdata.finup.co.kr/api/chart/capture/theme?keyword={keyword}&amp;keywordIdx={keywordIdx}
+https://stockdata.finup.co.kr/chart/lwthemechart_1250_400.html?keywordIdx={keywordIdx}
+https://stockdata.finup.co.kr/chart/themechart.html?Keyword={keyword}&amp;KeywordIdx={keywordIdx}
+https://stockdata.finup.co.kr/chart/trchart.html
+https://stockdata.finup.co.kr/chart/custchart.html
+https://stockdata.finup.co.kr/chart/themelogchart.html
+</code></pre>
+<p>차트 HTML은 단순 정적 페이지가 아니라 내부 JavaScript에서 다시 Price.Api endpoint를 호출한다. 예를 들어 <code>lwthemechart_1250_400.html</code>은 <code>/api/v2/chart/lw/theme?keywordIdx=...</code>, <code>trchart.html</code>과 <code>custchart.html</code>은 <code>/api/chart/stockdeposit</code>, <code>themelogchart.html</code>은 <code>/api/ThemeCaptureChart</code>, <code>/api/ThemeRelationStock</code>, <code>/api/ThemeLog/play/info</code>, <code>/api/ThemeLog/play</code>을 호출한다.</p>
+<h2 id="2">2. 설정 파일 기준 사용처</h2>
+<p><code>설정분석.html</code>과 <code>stockdata.api.settings-analysis.html</code>에서 <code>stockdata.finup.co.kr</code>로 묶이는 운영 후보 설정은 아래와 같다.</p>
+<table>
+<thead>
+<tr>
+<th>파일/서비스</th>
+<th>설정키</th>
+<th>값</th>
+<th>실행/사용 의미</th>
+<th>실제 프로젝트</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FinUp.Radar.App.AlphaBot.exe.config</code></td>
+<td><code>appSettings:ApiStockPriceAddress</code></td>
+<td><code>https://stockdata.finup.co.kr/api</code></td>
+<td>가격 diff, 장 시작 delay 계산</td>
+<td><code>C:\Dev\FinUp.Radar.App.AlphaBot</code></td>
+</tr>
+<tr>
+<td><code>FinUp.Stock.App.AlphaBot.exe.config</code></td>
+<td><code>appSettings:StockDataApi</code></td>
+<td><code>https://stockdata.finup.co.kr/api</code></td>
+<td>채팅/시그널 고가·저가 판정</td>
+<td><code>C:\Dev\FinUp.Stock.App.AlphaBot</code></td>
+</tr>
+<tr>
+<td><code>FinUp.StockData.Price.App.exe.config</code></td>
+<td><code>appSettings:WebAPIAddress</code></td>
+<td><code>https://stockdata.finup.co.kr/api</code></td>
+<td>일봉/가격 수집 스케줄 산정</td>
+<td><code>C:\Dev\FinUp.StockData.Price.App</code></td>
+</tr>
+<tr>
+<td><code>KiwoomReal_FinUp.StockData.Price.App.exe.config</code></td>
+<td><code>appSettings:WebAPIAddress</code></td>
+<td><code>https://stockdata.finup.co.kr/api</code></td>
+<td>같은 Price.App 코드의 Kiwoom Real 변형</td>
+<td><code>C:\Dev\FinUp.StockData.Price.App</code></td>
+</tr>
+<tr>
+<td><code>FinUp.StockData.RoboAnalysis.App.exe.config</code></td>
+<td><code>appSettings:WebAPIAddress</code></td>
+<td><code>https://stockdata.finup.co.kr/api</code></td>
+<td>로보 분석/발송 스케줄 산정</td>
+<td><code>C:\Dev\FinUp.StockData.RoboAnalysis.App</code></td>
+</tr>
+<tr>
+<td><code>FinUp.StockData.RoboAnalysis.App.exe.config</code></td>
+<td><code>appSettings:ChartAPIAddress</code></td>
+<td><code>http://stockdata.finup.co.kr/api/chart/capture</code></td>
+<td>로보 분석 후 차트 캡처 트리거</td>
+<td><code>C:\Dev\FinUp.StockData.RoboAnalysis.App</code></td>
+</tr>
+<tr>
+<td><code>FinUp.Analysis.Theme.App.appsettings.json</code></td>
+<td><code>ThemeConfig:StockDataApiUrl</code></td>
+<td><code>https://stockdata.finup.co.kr</code></td>
+<td>코스피/코스닥 지수 메시지</td>
+<td><code>C:\Dev\FinUp.Analysis.Theme.App</code></td>
+</tr>
+<tr>
+<td><code>scheduler_FinUp.StockData.ChartCapture.App.exe.config</code></td>
+<td><code>appSettings:StockDataUrl</code></td>
+<td><code>https://stockdata.finup.co.kr</code></td>
+<td>ChartCapture Scheduler의 시장 일정/차트 HTML base</td>
+<td><code>C:\Dev\FinUp.StockData.ChartCapture.App</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="3">3. 엔드포인트별 호출 상세</h2>
+<h3 id="31-post-apipricediff">3.1 <code>POST /api/price/diff</code></h3>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>완성 URL</td>
+<td><code>https://stockdata.finup.co.kr/api/price/diff</code></td>
+</tr>
+<tr>
+<td>서버 route</td>
+<td><code>PriceController.GetPriceDiffList(PriceListParam param)</code> — <code>C:\Dev\FinUp.StockData.Price.Api\Controllers\PriceController.cs:81-86</code></td>
+</tr>
+<tr>
+<td>서버 역할</td>
+<td>복수 종목 현재가/등락률 조회. <code>param.Params[].StockCode</code>별 현재가를 가져와 결과 목록을 반환한다.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="a-radar-alphabot">호출자 A — Radar AlphaBot 공통 가격 조회</h4>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>프로젝트</td>
+<td><code>FinUp.Radar.App.AlphaBot</code></td>
+</tr>
+<tr>
+<td>설정</td>
+<td><code>App.config:53</code> / 배포 후보 <code>C:\App\Config\FinUp.Radar.App.AlphaBot.exe.config:51</code>, <code>ApiStockPriceAddress=https://stockdata.finup.co.kr/api</code></td>
+</tr>
+<tr>
+<td>설정 로딩</td>
+<td><code>Config.AppSetting.ApiStockPriceAddress</code> — <code>C:\Dev\FinUp.Radar.App.AlphaBot\Config\AppSetting.cs:16</code></td>
+</tr>
+<tr>
+<td>클래스/메소드/라인</td>
+<td><code>Operation.ProcessUnit.BaseProcessUnit.GetStockPrice(List&lt;string&gt;)</code> — <code>BaseProcessUnit.cs:383-400</code></td>
+</tr>
+<tr>
+<td>URL 조립</td>
+<td><code>string apiUrl = $"{AppSetting.ApiStockPriceAddress}/price/diff "</code> — <code>BaseProcessUnit.cs:395</code></td>
+</tr>
+<tr>
+<td>HTTP 방식</td>
+<td>POST. <code>SendPostApiStock(apiUrl, data)</code> — <code>BaseProcessUnit.cs:400</code></td>
+</tr>
+<tr>
+<td>요청값</td>
+<td><code>ApiPriceListParam.Params</code>에 <code>ApiStockParam { StockCode = listStockCode[i] }</code> 추가 후 JSON 직렬화 — <code>BaseProcessUnit.cs:387-393</code></td>
+</tr>
+<tr>
+<td>목적</td>
+<td>알파봇 처리 중 종목 코드 목록의 현재가, 거래시각, 거래량, 등락률을 확보해 메시지/조건 판단에 사용한다. 응답 매핑은 <code>BaseProcessUnit.cs:402-412</code>이다.</td>
+</tr>
+<tr>
+<td>주의</td>
+<td>URL 문자열 끝에 공백이 있다. HTTP client가 trim하지 않으면 endpoint mismatch 가능성이 있다.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="b-radar-alphabot-stockprice">호출자 B — Radar AlphaBot StockPrice 내부 하드코딩 경로</h4>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>프로젝트</td>
+<td><code>FinUp.Radar.App.AlphaBot</code></td>
+</tr>
+<tr>
+<td>클래스/메소드/라인</td>
+<td><code>Operation.ProcessUnit.StockPrice.GetStockPriceApi(List&lt;string&gt;)</code> — <code>StockPrice.cs:407-424</code></td>
+</tr>
+<tr>
+<td>URL 조립</td>
+<td><code>string apiUrl = "https://stockdata.finup.co.kr/api/price/diff"</code> — <code>StockPrice.cs:419</code></td>
+</tr>
+<tr>
+<td>HTTP 방식</td>
+<td>POST. <code>SendPostApiStock(apiUrl, data)</code> — <code>StockPrice.cs:424</code></td>
+</tr>
+<tr>
+<td>요청값</td>
+<td><code>ApiPriceListParam.Params[].StockCode</code> — <code>StockPrice.cs:411-417</code></td>
+</tr>
+<tr>
+<td>목적</td>
+<td><code>StockPrice</code> 클래스 내부의 테마/종목 가격 캐시 계산용 후보 경로. 현재 파일 안에서 <code>GetStockPriceApi</code> 직접 호출은 확인되지 않아 “정의됨/잠재 사용”으로 보는 것이 안전하다.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="radarapi">추가 후보 — Radar.Api</h4>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>프로젝트</td>
+<td><code>FinUp.Radar.Api</code></td>
+</tr>
+<tr>
+<td>클래스/메소드/라인</td>
+<td><code>Cache.StockPrice.GetStockPrice(List&lt;string&gt;)</code> — <code>C:\Dev\FinUp.Radar.Api\Cache\StockPrice.cs:205-222</code></td>
+</tr>
+<tr>
+<td>URL</td>
+<td><code>http://stockdata.finup.co.kr/api/price/diff</code> — <code>StockPrice.cs:217</code></td>
+</tr>
+<tr>
+<td>목적</td>
+<td>Radar API 캐시 계층에서 종목 가격 diff 목록을 조회한다.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-post-apipricehighlowlist">3.2 <code>POST /api/price/highlowlist</code></h3>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>완성 URL</td>
+<td><code>https://stockdata.finup.co.kr/api/price/highlowlist</code></td>
+</tr>
+<tr>
+<td>서버 route</td>
+<td><code>PriceController.GetHighLowList(HighLowListParam param)</code> — <code>C:\Dev\FinUp.StockData.Price.Api\Controllers\PriceController.cs:254-260</code></td>
+</tr>
+<tr>
+<td>서버 역할</td>
+<td>요청된 종목별 장중 고가/저가/거래량/거래대금 정보를 Redis에서 조회한다. <code>Ref</code>, <code>ItemType</code>은 client 매핑값으로 되돌린다 — <code>PriceController.cs:286-314</code>.</td>
+</tr>
+<tr>
+<td>호출 프로젝트</td>
+<td><code>FinUp.Stock.App.AlphaBot</code></td>
+</tr>
+<tr>
+<td>설정</td>
+<td><code>App.config:52</code>, <code>StockDataApi=https://stockdata.finup.co.kr/api</code></td>
+</tr>
+<tr>
+<td>설정 로딩</td>
+<td><code>Operation.ProcessBase.StockDataApi</code> — <code>C:\Dev\FinUp.Stock.App.AlphaBot\Operation\ProcessBase.cs:83-85</code></td>
+</tr>
+<tr>
+<td>클래스/메소드/라인</td>
+<td><code>Operation.ProcessUnit.CheckSignalQueue(string OIdx, string OTIdx)</code> — <code>ProcessUnit.cs:3200-3238</code></td>
+</tr>
+<tr>
+<td>URL 조립</td>
+<td><code>string apiUrl = $"{StockDataApi}/price/highlowlist"</code> — <code>ProcessUnit.cs:3233</code></td>
+</tr>
+<tr>
+<td>HTTP 방식</td>
+<td>POST JSON + request gzip/compress 옵션. <code>NetUtil.WebRequestPostJsonAsync(apiUrl, data, requiredRequestCompress: true)</code> — <code>ProcessUnit.cs:3237</code></td>
+</tr>
+<tr>
+<td>요청값</td>
+<td><code>HighLowListParam.Params[]</code>: <code>StockCode=item.ItemCode</code>, <code>From=item.RegDT</code> 또는 <code>DateTime.Now.AddMinutes(-5)</code>, <code>Ref=item.SignalQueueIdx</code> — <code>ProcessUnit.cs:3220-3229</code></td>
+</tr>
+<tr>
+<td>목적</td>
+<td>채팅/시그널 큐 대상 종목의 신호 발생 이후 고가·저가를 확인해 체결/조건 충족 여부를 판정한다 — <code>ProcessUnit.cs:3240-3251</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="33-get-apimarketfromto">3.3 <code>GET /api/market/{from}/{to}</code></h3>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>완성 URL 패턴</td>
+<td><code>https://stockdata.finup.co.kr/api/market/{from}/{to}</code></td>
+</tr>
+<tr>
+<td>서버 route</td>
+<td><code>PriceController.GetMarket(string from, string to, int? offday = null)</code> — <code>C:\Dev\FinUp.StockData.Price.Api\Controllers\PriceController.cs:328-332</code></td>
+</tr>
+<tr>
+<td>서버 역할</td>
+<td>StockCalendar에서 개장 여부, 시작/종료시각, <code>YYYY_MM_DD</code> 목록을 반환한다 — <code>PriceController.cs:340-352</code>.</td>
+</tr>
+<tr>
+<td>공통 조립 함수</td>
+<td><code>FinUp.StockData.Fundamentals.Util.GetMarketInfo(string url, string from="", string to="")</code> — <code>C:\Dev\FinUp.StockData.Fundamentals\Util.cs:29-61</code></td>
+</tr>
+<tr>
+<td>공통 URL 조립</td>
+<td><code>string apiUrl = $"{url}/market/{from}/{to}"</code> — <code>Util.cs:49</code></td>
+</tr>
+<tr>
+<td>기본값</td>
+<td><code>from</code> 미지정 시 오늘, <code>to</code> 미지정 시 오늘+10일 — <code>Util.cs:39-45</code></td>
+</tr>
+<tr>
+<td>과거 포함 스케줄</td>
+<td><code>GetScheduleMarket()</code>은 <code>from=DateTime.Today.AddDays(-10)</code>로 호출 — <code>Util.cs:125-132</code></td>
+</tr>
+<tr>
+<td>다음 장 스케줄</td>
+<td><code>GetScheduleNextMarket()</code>은 기본 <code>GetMarketInfo(url)</code> 사용 — <code>Util.cs:91-103</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="a-radar-alphabot-delay">호출자 A — Radar AlphaBot 테마로그 알림 delay</h4>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>프로젝트</td>
+<td><code>FinUp.Radar.App.AlphaBot</code></td>
+</tr>
+<tr>
+<td>클래스/메소드/라인</td>
+<td><code>ThemeLogAlarm.Run(string OTIdx)</code> — <code>C:\Dev\FinUp.Radar.App.AlphaBot\Operation\ProcessUnit\ThemeLogAlarm.cs:20-43</code></td>
+</tr>
+<tr>
+<td>호출</td>
+<td><code>Util.DelayMarketStartTime(AppSetting.ApiStockPriceAddress, delayMin)</code> — <code>ThemeLogAlarm.cs:43</code></td>
+</tr>
+<tr>
+<td>내부 값</td>
+<td><code>DelayMarketStartTime()</code> → <code>GetMarketToday()</code> → <code>GetMarketInfo(url)</code>로 오늘~오늘+10일 시장 일정 조회 — <code>Util.cs:371-385</code>, <code>Util.cs:319-329</code>, <code>Util.cs:39-49</code></td>
+</tr>
+<tr>
+<td>목적</td>
+<td>장 시작 기준 <code>ThemeLogPushRankingDelay</code>분 후 테마로그 랭킹 알림을 실행하기 위한 delay 계산 — <code>ThemeLogAlarm.cs:25-48</code>.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="b-stockdata-priceapp">호출자 B — StockData Price.App 일반 스케줄러</h4>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>프로젝트</td>
+<td><code>FinUp.StockData.Price.App</code></td>
+</tr>
+<tr>
+<td>배포 후보 설정</td>
+<td><code>C:\App\Config\FinUp.StockData.Price.App.exe.config:25</code>, <code>WebAPIAddress=https://stockdata.finup.co.kr/api</code></td>
+</tr>
+<tr>
+<td>진입 분기</td>
+<td><code>Program.Main()</code>에서 <code>StartUp=S</code>이면 <code>SchedulerXingTR</code> 실행, <code>StartUp=KR</code>이면 <code>SchedulerKiwoomReal</code> 실행 — <code>Program.cs:20-30</code></td>
+</tr>
+<tr>
+<td>클래스/메소드/라인</td>
+<td><code>SchedulerXingTR.Scheduler_Load(object, EventArgs)</code> — <code>SchedulerXingTR.cs:67-72</code></td>
+</tr>
+<tr>
+<td>호출</td>
+<td><code>Util.GetScheduleMarket(0, ConfigurationManager.AppSettings["WebAPIAddress"])</code> — <code>SchedulerXingTR.cs:71</code></td>
+</tr>
+<tr>
+<td>실제 날짜 범위</td>
+<td>공통 함수 기준 <code>from=today-10</code>, <code>to=today+10</code> — <code>Util.cs:125-132</code>, <code>Util.cs:43-49</code></td>
+</tr>
+<tr>
+<td>목적</td>
+<td>일봉/가격 수집 스케줄러의 현재/이전 시장 일정을 얻어 실행 기준을 만든다.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="c-kiwoomreal_finupstockdatapriceapp">호출자 C — KiwoomReal_FinUp.StockData.Price.App 배포 변형</h4>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>프로젝트</td>
+<td>소스는 <code>C:\Dev\FinUp.StockData.Price.App</code>, 배포 설정명은 <code>KiwoomReal_FinUp.StockData.Price.App.exe.config</code></td>
+</tr>
+<tr>
+<td>배포 후보 설정</td>
+<td><code>C:\App\Config\KiwoomReal_FinUp.StockData.Price.App.exe.config:30-32</code>, <code>WebAPIAddress=https://stockdata.finup.co.kr/api</code>, <code>StartUp=KR</code></td>
+</tr>
+<tr>
+<td>클래스/메소드/라인</td>
+<td><code>SchedulerKiwoomReal.InitSchedule()</code> — <code>SchedulerKiwoomReal.cs:116-128</code></td>
+</tr>
+<tr>
+<td>호출</td>
+<td><code>Util.GetScheduleNextMarket(_startDelay, ConfigurationManager.AppSettings["WebAPIAddress"])</code> — <code>SchedulerKiwoomReal.cs:128</code></td>
+</tr>
+<tr>
+<td>실제 날짜 범위</td>
+<td>기본 <code>from=today</code>, <code>to=today+10</code> — <code>Util.cs:39-49</code>, <code>Util.cs:91-103</code></td>
+</tr>
+<tr>
+<td>목적</td>
+<td>Kiwoom 실시간 수집 시작 delay와 장 종료시각을 계산해 <code>StartSchedule()</code>에 전달한다 — <code>SchedulerKiwoomReal.cs:135-139</code>.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="d-roboanalysisapp">호출자 D — RoboAnalysis.App 스케줄/실시간 계열</h4>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>프로젝트</td>
+<td><code>FinUp.StockData.RoboAnalysis.App</code></td>
+</tr>
+<tr>
+<td>설정</td>
+<td>소스 <code>App.config:53</code>, 배포 후보 <code>C:\App\Config\FinUp.StockData.RoboAnalysis.App.exe.config:44</code>, <code>WebAPIAddress=https://stockdata.finup.co.kr/api</code></td>
+</tr>
+<tr>
+<td>설정 로딩</td>
+<td><code>Common.Constants.WebAPIAddress</code> — <code>C:\Dev\FinUp.StockData.RoboAnalysis.App\Common\Constants.cs:23</code></td>
+</tr>
+<tr>
+<td>클래스/메소드/라인</td>
+<td><code>Scheduler.InitSchedule()</code> — <code>Scheduler.cs:80-85</code>; <code>SchedulerExpression.InitSchedule()</code> — <code>SchedulerExpression.cs:77-84</code>; <code>RealtimeScheduler.InitSchedule()</code> — <code>Analysis\Realtime\RealtimeScheduler.cs:78-83</code>; <code>RealtimeSchedulerMars.InitSchedule()</code> — <code>Analysis\Realtime\RealtimeSchedulerMars.cs:103-108</code></td>
+</tr>
+<tr>
+<td>추가 호출</td>
+<td>예약 발송 delay: <code>Scheduler.cs:211</code>, <code>Scheduler.cs:438</code></td>
+</tr>
+<tr>
+<td>목적</td>
+<td>로보 분석 JOB/검색식/실시간 분석이 장 일정 및 다음 장 시작 기준으로 작업/발송 시점을 계산한다.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="e-chartcapture-scheduler">호출자 E — ChartCapture Scheduler</h4>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>프로젝트</td>
+<td><code>FinUp.StockData.ChartCapture.App</code></td>
+</tr>
+<tr>
+<td>배포 후보 설정</td>
+<td><code>C:\App\Config\scheduler_FinUp.StockData.ChartCapture.App.exe.config:10-11</code>, <code>StockDataUrl=https://stockdata.finup.co.kr</code>, <code>StartUp=Scheduler</code></td>
+</tr>
+<tr>
+<td>진입 분기</td>
+<td><code>Program.Main()</code>에서 <code>StartUp=Scheduler</code>이면 <code>new Scheduler()</code> — <code>Program.cs:21-24</code></td>
+</tr>
+<tr>
+<td>클래스/메소드/라인</td>
+<td><code>Scheduler.InitSchedule()</code> — <code>C:\Dev\FinUp.StockData.ChartCapture.App\Scheduler.cs:62-67</code></td>
+</tr>
+<tr>
+<td>URL 조립</td>
+<td><code>GetScheduleMarket(0, $"{ConfigurationManager.AppSettings["StockDataUrl"]}/api")</code> — <code>Scheduler.cs:66</code>; 공통 함수에서 <code>/market/{from}/{to}</code> 추가</td>
+</tr>
+<tr>
+<td>실제 날짜 범위</td>
+<td><code>from=today-10</code>, <code>to=today+10</code></td>
+</tr>
+<tr>
+<td>목적</td>
+<td>장 종료 후 예탁금/신용잔고/테마로그 차트 캡처 배치 시작 시각을 계산한다. 실패 시 스케줄 초기화를 중단한다 — <code>Scheduler.cs:67-70</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="34-get-apiindexlastcodes001101">3.4 <code>GET /api/index/last?codes=001,101</code></h3>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>완성 URL</td>
+<td><code>https://stockdata.finup.co.kr/api/index/last?codes=001,101</code></td>
+</tr>
+<tr>
+<td>서버 route</td>
+<td><code>IndexController.GetIndexLast(string[] codes)</code> — <code>C:\Dev\FinUp.StockData.Price.Api\Controllers\IndexController.cs:16-20</code></td>
+</tr>
+<tr>
+<td>호출 프로젝트</td>
+<td><code>FinUp.Analysis.Theme.App</code></td>
+</tr>
+<tr>
+<td>설정</td>
+<td><code>appsettings.json:47</code>, <code>ThemeConfig.StockDataApiUrl=https://stockdata.finup.co.kr</code></td>
+</tr>
+<tr>
+<td>설정 모델</td>
+<td><code>Model.ThemeConfig.StockDataApiUrl</code> — <code>ThemeConfig.cs:32-35</code></td>
+</tr>
+<tr>
+<td>클래스/메소드/라인</td>
+<td><code>Repository.ThemeChatMessageRepository</code>의 Index 메시지 처리 분기 — <code>ThemeChatMessageRepository.cs:144-152</code></td>
+</tr>
+<tr>
+<td>URL 조립</td>
+<td><code>var url = $"{_config.StockDataApiUrl}/api/index/last?codes=001,101"</code> — <code>ThemeChatMessageRepository.cs:149</code></td>
+</tr>
+<tr>
+<td>HTTP 방식</td>
+<td>GET. <code>FinUp.Core.NET.Web.Util.WebRequestAsync(url: url)</code> — <code>ThemeChatMessageRepository.cs:151</code></td>
+</tr>
+<tr>
+<td>목적/값</td>
+<td>코스피(<code>001</code>)·코스닥(<code>101</code>) 마감 지수를 조회해 테마 메시지에 넣는다 — <code>ThemeChatMessageRepository.cs:146-155</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="35-get-apichartcapturedateyyyy-mm-dd">3.5 <code>GET /api/chart/capture?date={yyyy-MM-dd}</code></h3>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>완성 URL</td>
+<td><code>http://stockdata.finup.co.kr/api/chart/capture?date={DateTime.Today:yyyy-MM-dd}</code></td>
+</tr>
+<tr>
+<td>서버 route</td>
+<td><code>ChartController.Capture(string date)</code> — <code>C:\Dev\FinUp.StockData.Price.Api\Controllers\ChartController.cs:69-72</code></td>
+</tr>
+<tr>
+<td>서버 동작</td>
+<td>self host의 TCP 8279로 <code>{date}|&lt;EOF&gt;</code>를 보내 차트 캡처를 위임 — <code>ChartController.cs:78-92</code></td>
+</tr>
+<tr>
+<td>호출 프로젝트</td>
+<td><code>FinUp.StockData.RoboAnalysis.App</code></td>
+</tr>
+<tr>
+<td>설정</td>
+<td>배포 후보 <code>C:\App\Config\FinUp.StockData.RoboAnalysis.App.exe.config:46</code>, <code>ChartAPIAddress=http://stockdata.finup.co.kr/api/chart/capture</code>; 소스 <code>App.config:55</code>는 pre endpoint</td>
+</tr>
+<tr>
+<td>클래스/메소드/라인</td>
+<td><code>Scheduler.JobChart(TimeSpan delay, CancellationToken token)</code> — <code>Scheduler.cs:452-472</code></td>
+</tr>
+<tr>
+<td>URL 조립</td>
+<td><code>string chartCaptureUrl = $"{_chartAPIAddress}?date={DateTime.Today:yyyy-MM-dd}"</code> — <code>Scheduler.cs:466</code></td>
+</tr>
+<tr>
+<td>HTTP 방식</td>
+<td>GET. <code>WebRequestAsync(chartCaptureUrl)</code> — <code>Scheduler.cs:471</code></td>
+</tr>
+<tr>
+<td>목적</td>
+<td>로보 분석 후 지정 날짜의 차트 캡처 API를 호출해 ChartCapture 계층을 트리거한다.</td>
+</tr>
+<tr>
+<td>주의</td>
+<td>이 설정은 API base가 아니라 완성 endpoint다. 소스는 <code>pre-stockdata</code>, 배포 후보는 운영 <code>stockdata</code>라 실제 로드 config 확인이 중요하다.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="36-get-apichartcapturethemekeywordkeywordidx">3.6 <code>GET /api/chart/capture/theme?keyword=...&amp;keywordIdx=...</code></h3>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>완성 URL</td>
+<td><code>https://stockdata.finup.co.kr/api/chart/capture/theme?keyword={Keyword}&amp;keywordIdx={KeywordIdx}</code></td>
+</tr>
+<tr>
+<td>서버 route</td>
+<td><code>ChartController.CaptureTheme(string keyword, int keywordIdx)</code> — <code>ChartController.cs:106-108</code></td>
+</tr>
+<tr>
+<td>서버 동작</td>
+<td>self host의 TCP 8280으로 <code>ThemeChart|{keyword}|{keywordIdx}|&lt;EOF&gt;</code> 전송 — <code>ChartController.cs:115-129</code></td>
+</tr>
+<tr>
+<td>확인된 추가 호출자</td>
+<td><code>FinUp.Finance.Admin</code></td>
+</tr>
+<tr>
+<td>클래스/메소드/라인</td>
+<td><code>Utils.DataUtil.ThemeChartCapture(string KeywordIdx, string Keyword)</code> — <code>C:\Dev\FinUp.Finance.Admin\Utils\DataUtil.cs:802-807</code></td>
+</tr>
+<tr>
+<td>목적/값</td>
+<td>Finance/Admin 쪽에서 테마 차트 이미지를 생성하기 위해 keyword, keywordIdx를 query string으로 전달한다.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-chartcapture-stockdataurl-html">4. ChartCapture <code>StockDataUrl</code> 기반 차트 HTML 로드</h2>
+<p><code>FinUp.StockData.ChartCapture.App</code>의 <code>StockDataUrl</code>은 API base가 아니라 chart page host다. CEF browser가 HTML을 로드하고, 그 HTML 내부 JS가 Price.Api endpoint를 다시 호출한다.</p>
+<h3 id="41-chart">4.1 Chart 모드 — 테마 차트 즉시 캡처</h3>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>설정</td>
+<td>소스 <code>App.config:28-33</code>, <code>StockDataUrl=https://stockdata.finup.co.kr</code>, <code>StartUp=Chart</code>, <code>ChartUrlVersion=v2</code></td>
+</tr>
+<tr>
+<td>진입 분기</td>
+<td><code>Program.Main()</code>에서 <code>StartUp=Chart</code>이면 <code>new TcpListenerChart()</code> — <code>Program.cs:21-25</code></td>
+</tr>
+<tr>
+<td>클래스/메소드/라인</td>
+<td><code>TcpListenerChart.CaptureThemeChart(string keyword, string keywordIdx)</code> — <code>TcpListenerChart.cs:147-158</code></td>
+</tr>
+<tr>
+<td>v2 실제 URL</td>
+<td><code>https://stockdata.finup.co.kr/chart/lwthemechart_1250_400.html?keywordIdx={keywordIdx}</code> — <code>TcpListenerChart.cs:151-152</code></td>
+</tr>
+<tr>
+<td>legacy URL</td>
+<td><code>https://stockdata.finup.co.kr/chart/themechart.html?Keyword={keyword}&amp;KeywordIdx={keywordIdx}</code> — <code>TcpListenerChart.cs:149</code></td>
+</tr>
+<tr>
+<td>목적/값</td>
+<td>TCP 요청으로 받은 <code>keyword</code>, <code>keywordIdx</code>를 사용해 테마 chart HTML을 렌더링하고 PNG를 저장한다. 현재 config가 <code>ChartUrlVersion=v2</code>라 <code>keyword</code>는 URL에 반영되지 않고 <code>keywordIdx</code>만 사용된다.</td>
+</tr>
+<tr>
+<td>내부 API</td>
+<td><code>lwthemechart_1250_400.html</code>은 <code>/api/v2/chart/lw/theme?keywordIdx={keywordIdx}</code>를 GET — <code>Chart\lwthemechart_1250_400.html:146-149</code>; 서버는 <code>ChartController.GetThemeChartAsync_v2(int keywordIdx)</code> — <code>ChartController.cs:236-238</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="42-scheduler">4.2 Scheduler 모드 — 예탁금/신용잔고/테마로그 차트 배치 캡처</h3>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>설정</td>
+<td>배포 후보 <code>scheduler_FinUp.StockData.ChartCapture.App.exe.config:10-11</code>, <code>StockDataUrl=https://stockdata.finup.co.kr</code>, <code>StartUp=Scheduler</code></td>
+</tr>
+<tr>
+<td><code>Deposit.Start()</code> URL</td>
+<td><code>https://stockdata.finup.co.kr/chart/trchart.html</code> — <code>Job\Deposit.cs:34-41</code>; <code>https://stockdata.finup.co.kr/chart/custchart.html</code> — <code>Job\Deposit.cs:54-58</code></td>
+</tr>
+<tr>
+<td><code>Themelog.Start()</code> URL</td>
+<td><code>https://stockdata.finup.co.kr/chart/themelogchart.html</code> — <code>Job\Themelog.cs:34-39</code></td>
+</tr>
+<tr>
+<td>목적</td>
+<td>장 종료 후 차트 HTML을 offscreen browser로 렌더링해 파일로 저장한다.</td>
+</tr>
+<tr>
+<td>내부 API 1</td>
+<td><code>trchart.html</code>, <code>custchart.html</code>은 <code>/api/chart/stockdeposit</code> GET — <code>Chart\trchart.html:15-18</code>, <code>Chart\custchart.html:15-18</code>; 서버는 <code>ChartController.StockDepositTrend()</code> — <code>ChartController.cs:143-145</code>.</td>
+</tr>
+<tr>
+<td>내부 API 2</td>
+<td><code>themelogchart.html</code>은 <code>stockDataApiUrl='https://stockdata.finup.co.kr/api'</code> — <code>Chart\ThemeLogChart.html:1043-1044</code>; 별도 JS가 아래 endpoint들을 호출한다.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="43-themelogcharthtml-endpoint">4.3 <code>themelogchart.html</code> 내부 endpoint</h3>
+<table>
+<thead>
+<tr>
+<th>내부 endpoint</th>
+<th>JS 함수/라인</th>
+<th>서버 메소드/라인</th>
+<th>목적/값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST /api/ThemeCaptureChart</code></td>
+<td><code>getThemeChartData()</code> — <code>Scripts\themelog\themelog.api.js:3-27</code>; <code>refreshChartData()</code> — <code>themelog.api.js:102-116</code></td>
+<td><code>ThemeLogController.GetThemeCaptureChart(ThemeScoreDisplayParam)</code> — <code>ThemeLogController.cs:26-30</code></td>
+<td>테마록 차트 최초/갱신 데이터. 요청 JSON에 <code>CaptureIdx</code> 포함.</td>
+</tr>
+<tr>
+<td><code>POST /api/ThemeRelationStock</code></td>
+<td><code>getThemeRelationStock()</code> 흐름 — <code>themelog.api.js:232-247</code></td>
+<td><code>ThemeLogController.GetThemeRelationStock(ThemeScoreDisplayParam)</code> — <code>ThemeLogController.cs:38-42</code></td>
+<td>선택 테마의 관련 종목 조회. 요청 JSON에 <code>CaptureIdx</code>, <code>KeywordIdx</code> 포함.</td>
+</tr>
+<tr>
+<td><code>POST /api/ThemeLog/play/info</code></td>
+<td><code>getThemePlayInfo()</code> — <code>themelog.api.js:412-426</code></td>
+<td><code>ThemeLogController.GetThemePlayInfo(ThemePlayInfoParam)</code> — <code>ThemeLogController.cs:77-80</code></td>
+<td>플레이 구간/page 정보 조회. <code>StartDT</code>, <code>EndDT</code>, <code>PageSize</code> 포함.</td>
+</tr>
+<tr>
+<td><code>POST /api/ThemeLog/play</code></td>
+<td><code>getThemePlayChartData()</code> — <code>themelog.api.js:488-493</code></td>
+<td><code>ThemeLogController.GetThemePlay(ThemePlayParam)</code> — <code>ThemeLogController.cs:88-91</code></td>
+<td>페이지 구간별 테마 재생 차트 데이터. <code>CaptureItemIdxStart</code>, <code>CaptureItemIdxEnd</code> 포함.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="5">5. 목적별 의존성 정리</h2>
+<table>
+<thead>
+<tr>
+<th>목적</th>
+<th>사용 endpoint</th>
+<th>사용하는 앱/클래스</th>
+<th>장애 영향</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>종목 현재가/등락률</td>
+<td><code>/api/price/diff</code></td>
+<td>Radar AlphaBot <code>BaseProcessUnit.GetStockPrice</code></td>
+<td>알파봇 메시지/조건 판단 값 누락 또는 지연</td>
+</tr>
+<tr>
+<td>채팅/시그널 고가·저가 판정</td>
+<td><code>/api/price/highlowlist</code></td>
+<td>Stock AlphaBot <code>ProcessUnit.CheckSignalQueue</code></td>
+<td>시그널 체결/조건 판정 실패</td>
+</tr>
+<tr>
+<td>장 일정/다음 장 시작 계산</td>
+<td><code>/api/market/{from}/{to}</code></td>
+<td>Price.App, KiwoomReal 변형, RoboAnalysis, ChartCapture Scheduler, Radar AlphaBot</td>
+<td>수집/분석/차트 캡처 스케줄이 시작되지 않거나 delay가 잘못 계산됨</td>
+</tr>
+<tr>
+<td>마감 지수 메시지</td>
+<td><code>/api/index/last?codes=001,101</code></td>
+<td>Analysis.Theme.App <code>ThemeChatMessageRepository</code></td>
+<td>코스피/코스닥 지수 메시지 누락</td>
+</tr>
+<tr>
+<td>로보 분석 후 차트 캡처 트리거</td>
+<td><code>/api/chart/capture?date=...</code></td>
+<td>RoboAnalysis <code>Scheduler.JobChart</code></td>
+<td>로보 분석 결과 차트 생성/반영 지연</td>
+</tr>
+<tr>
+<td>테마 차트 즉시 캡처</td>
+<td><code>/chart/lwthemechart_1250_400.html</code> → <code>/api/v2/chart/lw/theme</code></td>
+<td>ChartCapture <code>TcpListenerChart</code></td>
+<td>테마 차트 이미지 미생성/오래된 이미지</td>
+</tr>
+<tr>
+<td>예탁금/신용잔고 차트 배치</td>
+<td><code>/chart/trchart.html</code>, <code>/chart/custchart.html</code> → <code>/api/chart/stockdeposit</code></td>
+<td>ChartCapture <code>Job.Deposit</code></td>
+<td>장 종료 후 예탁금/신용잔고 이미지 미생성</td>
+</tr>
+<tr>
+<td>테마로그 차트 배치</td>
+<td><code>/chart/themelogchart.html</code> → ThemeLog API들</td>
+<td>ChartCapture <code>Job.Themelog</code></td>
+<td>테마로그 차트 이미지 미생성 또는 빈 데이터</td>
+</tr>
+</tbody>
+</table>
+<h2 id="6">6. 전역 검색에서 확인된 추가 직접 사용 후보</h2>
+<p>아래 항목은 세 named 설정 보고서의 중심 설정키 목록에는 없거나 부록 성격이지만, <code>C:\Dev</code> 전역에서 <code>stockdata.finup.co.kr</code> 직접 사용이 확인된 대표 사례다.</p>
+<table>
+<thead>
+<tr>
+<th>프로젝트/파일</th>
+<th>endpoint</th>
+<th>클래스/함수/라인</th>
+<th>목적/비고</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FinUp.Radar.Api\Cache\StockPrice.cs</code></td>
+<td><code>http://stockdata.finup.co.kr/api/price/diff</code></td>
+<td><code>Cache.StockPrice.GetStockPrice(List&lt;string&gt;)</code> — <code>StockPrice.cs:205-222</code></td>
+<td>Radar API 캐시 계층의 가격 diff 조회</td>
+</tr>
+<tr>
+<td><code>FinUp.Mars.LLM\src\service\StockService.py</code></td>
+<td><code>/api/price/minutes/{stockCode}/{nowStr}/{nowStr}</code></td>
+<td><code>StockService.__get_stock_min_data_from_api</code> — <code>StockService.py:50-58</code></td>
+<td>특정 종목/일자의 분봉 조회</td>
+</tr>
+<tr>
+<td><code>C:\Dev\src\service\StockService.py</code></td>
+<td><code>/api/price/minutes/{stockCode}/{nowStr}/{nowStr}</code></td>
+<td><code>StockService.__get_stock_min_data_from_api</code> — <code>StockService.py:49-59</code></td>
+<td>Mars LLM과 유사/복사본 후보</td>
+</tr>
+<tr>
+<td><code>FinUp.Finance.Admin\Utils\DataUtil.cs</code></td>
+<td><code>/api/chart/capture/theme</code></td>
+<td><code>DataUtil.ThemeChartCapture</code> — <code>DataUtil.cs:802-807</code></td>
+<td>테마 차트 캡처 트리거</td>
+</tr>
+<tr>
+<td><code>Finup.Stock.Admin\Scripts\ngPrice.js</code></td>
+<td><code>/api/profit</code></td>
+<td>Angular <code>$scope.Get</code> — <code>ngPrice.js:24-29</code></td>
+<td>Stockpoint Admin 진행 종목/수익 관련 조회</td>
+</tr>
+<tr>
+<td><code>Finup.Stock.Admin\Scripts\ngChart.js</code></td>
+<td><code>/api/chart/nvd3/{code}</code></td>
+<td>Angular <code>$scope.Chart</code> — <code>ngChart.js:64-69</code></td>
+<td>NVD3 차트 데이터 조회</td>
+</tr>
+<tr>
+<td><code>Finup.Stock.Admin\Common\Chart\CaptureView.aspx</code></td>
+<td><code>/api/tv/history</code></td>
+<td>page script ajax — <code>CaptureView.aspx:81-87</code></td>
+<td>TradingView history 조회</td>
+</tr>
+<tr>
+<td><code>FinUp.Stock.MobileWeb\Robo\GoldenSignalStockView.aspx</code></td>
+<td><code>/api/tv</code></td>
+<td>TradingView datafeed 설정 — <code>GoldenSignalStockView.aspx:84-90</code></td>
+<td>모바일 골든시그널 차트 datafeed</td>
+</tr>
+<tr>
+<td><code>FinUp.Chat.Admin\Scripts\hoga\api.js</code> 및 유사 복제본</td>
+<td><code>/api/data/{hoga|price|trader}/...</code>, <code>/api/prevday/...</code>, <code>/api/tv/history</code></td>
+<td><code>getDataLink</code>, <code>getPrevDay</code>, <code>getChartData</code> — <code>api.js:19-25</code>, <code>49-54</code>, <code>67-79</code></td>
+<td>호가/체결/거래원/전일/TV history 조회. Guide/General/Mars/Tssa/Finance/Stock 계열에 유사 파일 존재</td>
+</tr>
+</tbody>
+</table>
+<h2 id="7">7. 운영 점검 포인트</h2>
+<ol>
+<li><strong>URL 타입을 먼저 구분한다.</strong> <code>WebAPIAddress</code>/<code>StockDataApi</code>/<code>ApiStockPriceAddress</code>는 <code>/api</code> 포함 base, <code>StockDataUrl</code>/<code>StockDataApiUrl</code>은 host base, <code>ChartAPIAddress</code>는 완성 endpoint다.</li>
+<li><strong>소스 <code>App.config</code>와 배포 후보 <code>C:\App\Config</code>가 다르다.</strong> 예: RoboAnalysis의 <code>ChartAPIAddress</code>는 소스 기준 pre, 배포 후보 기준 운영 URL이다.</li>
+<li><strong>ChartCapture는 실행 모드별 사용 endpoint가 완전히 다르다.</strong> <code>StartUp=Scheduler</code>는 시장 일정과 chart HTML 배치 캡처, <code>StartUp=Chart</code>는 TCP 테마 차트 서버, 기타는 Robo TCP 흐름이다.</li>
+<li><strong>시장 일정 API 장애는 여러 배치/실시간 앱에 동시에 전파된다.</strong> Price.App, KiwoomReal, RoboAnalysis, ChartCapture Scheduler, Radar AlphaBot이 모두 <code>/api/market/{from}/{to}</code> 계열에 의존한다.</li>
+<li><strong>차트 HTML 장애와 API 장애를 분리 관측해야 한다.</strong> ChartCapture는 HTML 로드 성공 후 내부 Ajax 실패가 별도 장애로 나타날 수 있다.</li>
+<li><strong>하드코딩 URL도 있다.</strong> Radar AlphaBot <code>StockPrice.cs</code>, Radar.Api, Finance.Admin, Stock.Admin JS 등은 설정 변경만으로는 endpoint가 바뀌지 않는다.</li>
+<li><strong>HTTP/HTTPS 혼재가 있다.</strong> <code>/api/chart/capture</code> 운영 후보와 Radar.Api 일부는 <code>http://stockdata...</code>를 사용한다. SSL/리다이렉트/방화벽 정책 점검 대상이다.</li>
+</ol>
+<h2 id="8">8. 근거 색인</h2>
+<table>
+<thead>
+<tr>
+<th>근거</th>
+<th>확인 내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FinUp.StockData.Price.Api_report.html/.md</code></td>
+<td>Price.Api route 목록과 서버 controller/method 라인</td>
+</tr>
+<tr>
+<td><code>설정분석.html</code></td>
+<td>운영 후보 config 파일명, 설정키, 대표값(<code>https://stockdata.finup.co.kr/api</code>, <code>https://stockdata.finup.co.kr</code>, <code>http://stockdata.finup.co.kr/api/chart/capture</code>)</td>
+</tr>
+<tr>
+<td><code>stockdata.api.settings-analysis.html</code></td>
+<td>설정키별 사용 분석과 <code>/api</code> 포함/미포함 규칙</td>
+</tr>
+<tr>
+<td><code>FinUp.StockData.ChartCapture.App.analysis.html</code></td>
+<td>ChartCapture Scheduler/Chart/Robo 옵션별 외부 연동과 장애 영향</td>
+</tr>
+<tr>
+<td><code>rg</code> 전역 검색</td>
+<td><code>C:\Dev</code>, <code>C:\App\Config</code>에서 <code>stockdata.finup.co.kr</code> 직접 참조와 line 재확인</td>
+</tr>
+</tbody>
+</table>
+<h2 id="9">9. 분석 한계</h2>
+<ul>
+<li>실제 운영 프로세스가 어느 config 파일을 최종 로드하는지는 저장소와 <code>C:\App\Config</code> 후보만으로 100% 확정할 수 없다. 본 보고서는 파일명/설정값/소스 분기 기준의 정적 분석이다.</li>
+<li>일부 JS/ASPX 화면은 사용 여부가 배포/라우팅/메뉴 노출에 따라 달라질 수 있다. 라인에 endpoint가 존재한다는 사실과 실제 트래픽 발생량은 별도 로그로 검증해야 한다.</li>
+<li><code>FinUp.StockData.Price.Api_report.html</code>의 전체 route 중 본 보고서는 <code>stockdata.finup.co.kr</code> 운영 URL을 통해 실제 호출 경로가 확인된 endpoint에 집중했다.</li>
+</ul>
+</main></body></html>

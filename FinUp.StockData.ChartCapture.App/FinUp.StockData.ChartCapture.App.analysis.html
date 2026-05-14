@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FinUp.StockData.ChartCapture.App 정밀 분석 보고서</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",Arial,sans-serif;line-height:1.62;color:#1f2937;max-width:1180px;margin:32px auto;padding:0 24px;background:#fff}
+h1,h2,h3{color:#111827;line-height:1.25;margin-top:1.6em}h1{border-bottom:3px solid #2563eb;padding-bottom:.35em}h2{border-bottom:1px solid #d1d5db;padding-bottom:.25em}
+code{background:#f3f4f6;padding:.12em .35em;border-radius:4px;font-family:"Cascadia Code","Consolas",monospace;font-size:.93em}
+pre{background:#111827;color:#f9fafb;padding:16px;border-radius:8px;overflow:auto}table{border-collapse:collapse;width:100%;margin:16px 0;font-size:.95em}th,td{border:1px solid #d1d5db;padding:8px 10px;vertical-align:top}th{background:#eff6ff;color:#111827}tr:nth-child(even) td{background:#fafafa}blockquote{border-left:4px solid #60a5fa;margin:1em 0;padding:.25em 1em;background:#f8fafc}ul,ol{padding-left:1.5em}.meta{color:#6b7280}.toc{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 16px}
+</style>
+</head><body>
+<h1>FinUp.StockData.ChartCapture.App 정밀 분석 보고서</h1>
+<ul>
+<li>작성일: 2026-05-13</li>
+<li>분석 대상: <code>/mnt/c/Dev/FinUp.StockData.ChartCapture.App</code></li>
+<li>산출물: <code>FinUp.StockData.ChartCapture.App.analysis.md</code>, <code>FinUp.StockData.ChartCapture.App.analysis.html</code></li>
+<li>분석 범위: <code>StartUp</code> 설정으로 선택되는 3가지 실행 옵션(<code>Scheduler</code>, <code>Chart</code>, 그 외 기본값 <code>Robo</code>)과 외부 API/DB/TCP/파일 연동</li>
+<li>주의: 원본 <code>App.config</code>에는 DB 연결 문자열 암호문, API key, 파일 계정/비밀번호가 존재한다. 본 보고서는 노출을 줄이기 위해 민감값을 마스킹해 설명한다.</li>
+</ul>
+<h2>1. 핵심 결론</h2>
+<p><code>FinUp.StockData.ChartCapture.App</code>는 Windows Forms 기반의 .NET Framework 4.7 WinExe이며, 실제 실행 모드는 <code>App.config</code>의 <code>StartUp</code> 값에 의해 3가지로 분기된다.</p>
+<table><thead><tr><th>옵션</th><th>실행 Form</th><th>주요 목적</th><th>주요 외부 연동</th><th>중요도 요약</th></tr></thead><tbody>
+<tr><td><code>Scheduler</code></td><td><code>Scheduler</code></td><td>장 종료 후 정해진 시점에 예탁금/신용잔고/테마록 차트를 캡처</td><td>StockData 시장일정 API, StockData 차트 HTML, 파일 저장/Windows impersonation</td><td>배치성. DB/Chat API 쓰기는 없고 일정 API와 차트 페이지 의존도가 큼</td></tr>
+<tr><td><code>Chart</code></td><td><code>TcpListenerChart</code></td><td>TCP 요청을 받아 테마 차트 이미지를 즉시 생성</td><td>TCP 8280, StockData 차트 HTML, 파일 저장/Windows impersonation</td><td>기본 설정값. Finance/editor 쪽에서 파일명을 응답받는 동기식 캡처 서버 역할</td></tr>
+<tr><td>기타/<code>Robo</code></td><td><code>TcpListenerRobo</code></td><td>날짜 기반 로보 추천 차트를 생성하고 DB/채팅 파일 API까지 반영</td><td>TCP 8279, DBStockPoint SQL, BizStock 차트 HTML, Chat API multipart POST, 파일 저장/Windows impersonation</td><td>외부 연동이 가장 많고 장애/보안 영향이 가장 큼</td></tr>
+</tbody></table>
+<p>현재 <code>App.config</code>의 <code>StartUp</code>은 <code>Chart</code>로 설정되어 있어, 설정 변경이 없으면 <code>TcpListenerChart</code>가 실행된다.</p>
+<h2>2. 실행 옵션 판별 근거</h2>
+<h3>직접 근거</h3>
+<ul>
+<li><code>Program.cs:21-27</code> — <code>StartUp</code> appSetting을 읽고 <code>Scheduler</code>이면 <code>Scheduler</code>, <code>Chart</code>이면 <code>TcpListenerChart</code>, 그 외 모든 값은 <code>TcpListenerRobo</code>를 실행한다.</li>
+<li><code>App.config:29</code> — 현재 설정은 <code>StartUp=Chart</code>이다.</li>
+<li><code>FinUp.StockData.ChartCapture.App.csproj:8-11</code> — 프로젝트는 WinExe이고 TargetFrameworkVersion은 <code>v4.7</code>이다.</li>
+<li><code>FinUp.StockData.ChartCapture.App.csproj:217-221</code> — 주요 NuGet 의존성은 <code>CefSharp.OffScreen 105.3.390</code>, <code>Newtonsoft.Json 13.0.1</code>이다.</li>
+<li><code>FinUp.StockData.ChartCapture.App.csproj:187-214</code> — 내부 프로젝트 의존성으로 <code>FinUp.Core.Data</code>, <code>FinUp.Core.Fundamentals</code>, <code>FinUp.StockData.Fundamentals</code>, <code>FinUp.Chat.Model</code> 등을 참조한다.</li>
+</ul>
+<h3>추론</h3>
+<ul>
+<li>“3가지 옵션”은 코드상 명시된 <code>StartUp</code> 분기 3개로 해석하는 것이 가장 근거가 강하다.</li>
+<li><code>ManualCapture</code>, <code>CaptureTest</code>도 포함되어 있으나 <code>Program.Main</code>에서 선택되지 않으므로 운영 옵션이 아니라 수동/테스트 Form에 가깝다.</li>
+</ul>
+<h2>3. 공통 구성 및 외부 연동 표면</h2>
+<h3>공통 설정값</h3>
+<table><thead><tr><th>설정 키</th><th>역할</th><th>근거</th></tr></thead><tbody>
+<tr><td><code>ChartUrl</code></td><td>로보/수동 캡처용 BizStock 차트 페이지 base URL</td><td><code>App.config:7</code>, <code>TcpListenerRobo.cs:27</code></td></tr>
+<tr><td><code>StockDataUrl</code></td><td>StockData API 및 차트 페이지 base URL</td><td><code>App.config:28</code>, <code>Scheduler.cs:66</code>, <code>TcpListenerChart.cs:30</code>, <code>Job/Deposit.cs:17</code>, <code>Job/Themelog.cs:17</code></td></tr>
+<tr><td><code>ImageUrl</code></td><td>구버전 로보 메시지의 이미지 URL 조립용</td><td><code>App.config:9</code>, <code>TcpListenerRobo.cs:28</code>, <code>TcpListenerRobo.cs:363</code></td></tr>
+<tr><td><code>CacheloadUrl</code></td><td>구버전 로보 채팅 캐시 갱신 API</td><td><code>App.config:23</code>, <code>TcpListenerRobo.cs:382-383</code></td></tr>
+<tr><td><code>ChatApiUrl</code> / <code>ChatApiKey</code></td><td>V2 로보 업로드 API endpoint 및 header key</td><td><code>App.config:24-27</code>, <code>TcpListenerRobo.cs:137-142</code></td></tr>
+<tr><td><code>DBStockPoint</code></td><td>DB 연결 문자열 암호문. <code>FinUp.Core.Data</code>에서 복호화 후 SQL 연결</td><td><code>App.config:22</code>, <code>FinUp.Core.Data/Extension.cs:77-83</code>, <code>FinUp.Core.Data/Sql.cs:35-38</code></td></tr>
+<tr><td><code>FilePath*</code>, <code>FileUser*</code></td><td>캡처 이미지 저장 위치와 파일 저장 시 impersonation 계정</td><td><code>App.config:10-16</code>, <code>Job/Common.cs:14-18</code>, <code>WrapperImpersonationContext.cs:38-66</code></td></tr>
+</tbody></table>
+<h3>외부 연동 전체 목록</h3>
+<table><thead><tr><th>분류</th><th>방향</th><th>사용 옵션</th><th>상세</th><th>근거</th></tr></thead><tbody>
+<tr><td>TCP Listener</td><td>inbound</td><td>Chart</td><td>로컬 호스트 첫 번째 IP에 8280 바인드, <code>&lt;EOF&gt;</code>까지 수신</td><td><code>TcpListenerChart.cs:82-95</code>, <code>TcpListenerChart.cs:102-129</code></td></tr>
+<tr><td>TCP Listener</td><td>inbound</td><td>Robo</td><td>로컬 호스트 첫 번째 IP에 8279 바인드, <code>&lt;EOF&gt;</code>까지 수신</td><td><code>TcpListenerRobo.cs:75-87</code>, <code>TcpListenerRobo.cs:95-114</code></td></tr>
+<tr><td>HTTP GET / WebRequest</td><td>outbound</td><td>Scheduler</td><td><code>{StockDataUrl}/api/market/{from}/{to}</code>로 시장 일정 조회</td><td><code>Scheduler.cs:66</code>, <code>FinUp.StockData.Fundamentals/Util.cs:49-61</code>, <code>FinUp.Core.Fundamentals/Web/Util.cs:58-92</code></td></tr>
+<tr><td>Browser navigation</td><td>outbound</td><td>Scheduler</td><td><code>StockDataUrl</code> 하위 차트 HTML 로드 후 PNG 캡처</td><td><code>Job/Deposit.cs:37-64</code>, <code>Job/Themelog.cs:36-47</code></td></tr>
+<tr><td>Browser navigation</td><td>outbound</td><td>Chart</td><td>테마 차트 HTML 로드 후 PNG 캡처</td><td><code>TcpListenerChart.cs:147-158</code>, <code>TcpListenerChart.cs:177-185</code></td></tr>
+<tr><td>Browser navigation</td><td>outbound</td><td>Robo</td><td>BizStock captureview 페이지 로드 후 PNG 캡처</td><td><code>TcpListenerRobo.cs:202-218</code>, <code>TcpListenerRobo.cs:331-347</code></td></tr>
+<tr><td>SQL Server</td><td>outbound</td><td>Robo</td><td><code>DBStockPoint</code> 조회/프로시저 실행</td><td><code>TcpListenerRobo.cs:154-180</code>, <code>TcpListenerRobo.cs:221-226</code>, <code>FinUp.Core.Data/Sql.cs:35-60</code></td></tr>
+<tr><td>HTTP multipart POST</td><td>outbound</td><td>Robo V2</td><td><code>{ChatApiUrl}/api/v1/chat/0/files:upload-robo</code>에 이미지와 Ref JSON 업로드</td><td><code>TcpListenerRobo.cs:133-142</code>, <code>TcpListenerRobo.cs:196-249</code></td></tr>
+<tr><td>HTTP GET</td><td>outbound</td><td>Robo legacy</td><td><code>{CacheloadUrl}?chatidx=...</code> 캐시 갱신. 현재 <code>UpdateChartImageV2</code>에서는 미사용</td><td><code>TcpListenerRobo.cs:378-386</code></td></tr>
+<tr><td>Windows impersonation + file write</td><td>local/network</td><td>전체 캡처 옵션</td><td>이미지 저장 전 지정 계정으로 impersonation</td><td><code>Job/Common.cs:14-36</code>, <code>TcpListenerChart.cs:188-210</code>, <code>TcpListenerRobo.cs:390-411</code>, <code>WrapperImpersonationContext.cs:38-66</code></td></tr>
+</tbody></table>
+<h2>4. 옵션 1 — <code>Scheduler</code> 정밀 분석</h2>
+<h3>4.1 실행 흐름</h3>
+<ol>
+<li><code>Program.Main</code>이 <code>StartUp=Scheduler</code>일 때 <code>Scheduler</code> Form을 실행한다 (<code>Program.cs:21-24</code>).</li>
+<li><code>Scheduler_Load</code>에서 <code>Deposit</code> Job과 <code>Themelog</code> Job을 생성하고 이벤트를 연결한다 (<code>Scheduler.cs:31-46</code>).</li>
+<li><code>InitSchedule()</code>이 <code>StockDataUrl/api</code>를 넘겨 시장 일정을 조회한다 (<code>Scheduler.cs:62-67</code>).</li>
+<li>시장 종료시각 기준으로 두 작업을 예약한다.</li>
+</ol>
+<p>   - 예수금/신용잔고: <code>EndTime + 40분</code> (<code>Scheduler.cs:77-85</code>, <code>Scheduler.cs:109-139</code>)</p>
+<p>   - 테마록: <code>EndTime + 10분</code> (<code>Scheduler.cs:92-99</code>, <code>Scheduler.cs:142-167</code>)</p>
+<ol>
+<li><code>Deposit.Start()</code>는 신용잔고(<code>trchart.html</code>)와 예탁금(<code>custchart.html</code>) 차트를 순차 로드/캡처한다 (<code>Job/Deposit.cs:34-67</code>).</li>
+<li><code>Themelog.Start()</code>는 테마록(<code>themelogchart.html</code>) 차트를 로드/캡처하고 855x410 영역으로 crop 저장한다 (<code>Job/Themelog.cs:34-85</code>).</li>
+</ol>
+<h3>4.2 외부 API/연동 상세</h3>
+<table><thead><tr><th>연동</th><th>주소/대상</th><th>방식</th><th>데이터</th><th>실패 영향</th></tr></thead><tbody>
+<tr><td>시장 일정 API</td><td><code>{StockDataUrl}/api/market/{from}/{to}</code></td><td><code>HttpWebRequest.GetResponseAsync()</code></td><td><code>Market</code> 목록 JSON</td><td>일정 생성 실패. <code>result.Item1 == null</code>이면 스케줄 초기화 중단</td></tr>
+<tr><td>차트 페이지</td><td><code>{StockDataUrl}/chart/trchart.html</code>, <code>/custchart.html</code>, <code>/themelogchart.html</code></td><td>CefSharp OffScreen browser navigation</td><td>HTML/JS 렌더링 결과</td><td>캡처 이미지 미생성 또는 빈/오류 이미지 가능</td></tr>
+<tr><td>파일 저장</td><td><code>FilePathStockData\Chart\*.png</code></td><td>PNG file write</td><td><code>yyyyMMdd_tr.png</code>, <code>yyyyMMdd_cust.png</code>, <code>yyyyMMdd_themelog.png</code></td><td>경로/권한 장애 시 Job 실패</td></tr>
+<tr><td>Windows 인증</td><td><code>FileUser</code> 설정값</td><td><code>LogonUser</code> + <code>WindowsIdentity.Impersonate()</code></td><td>파일 저장 권한 획득</td><td>계정/비밀번호 불일치 시 저장 실패</td></tr>
+</tbody></table>
+<h3>4.3 확인된 설계/운영상 특징</h3>
+<ul>
+<li>시장 일정 조회는 <code>FinUp.StockData.Fundamentals.Util.GetScheduleMarket()</code>를 경유하고, 이 함수는 내부적으로 <code>GetMarketInfo()</code> → <code>WebRequestAsync()</code>를 호출한다 (<code>FinUp.StockData.Fundamentals/Util.cs:125-141</code>, <code>FinUp.StockData.Fundamentals/Util.cs:29-61</code>).</li>
+<li>스케줄 시간은 API의 <code>_marketInfo.EndTime</code>에 의존한다 (<code>Scheduler.cs:73-80</code>, <code>Scheduler.cs:94</code>).</li>
+<li><code>Deposit.Start()</code>와 <code>Themelog.Start()</code>가 <code>async void</code>라 호출자 입장에서는 완료/실패를 await하지 못한다 (<code>Job/Deposit.cs:34</code>, <code>Job/Themelog.cs:34</code>).</li>
+<li><code>_token</code> 필드가 Deposit 스케줄과 Themelog 스케줄에서 같은 필드로 재할당된다 (<code>Scheduler.cs:109-145</code>). <code>btnStop_Click</code>은 마지막으로 할당된 token만 취소할 가능성이 있다.</li>
+<li><code>StartScheduleDeposit</code>은 실행 후 다시 <code>InitSchedule()</code>을 호출하므로 다음 일정 재등록 의도는 보이지만, 테마록 스케줄과 중복 등록/취소 관계는 코드만으로는 보장되지 않는다 (<code>Scheduler.cs:128-130</code>).</li>
+</ul>
+<h3>4.4 리스크 평가</h3>
+<table><thead><tr><th>리스크</th><th>심각도</th><th>근거</th><th>설명</th></tr></thead><tbody>
+<tr><td>일정 API 실패 시 전체 배치 미수행</td><td>높음</td><td><code>Scheduler.cs:66-70</code></td><td><code>result.Item1</code>이 null이면 스케줄 초기화가 중단된다. 재시도/대체 일정은 없다.</td></tr>
+<tr><td>취소 토큰 공유로 한쪽 스케줄만 취소될 수 있음</td><td>중간</td><td><code>Scheduler.cs:111</code>, <code>Scheduler.cs:144</code>, <code>Scheduler.cs:53-56</code></td><td><code>_token</code>이 두 스케줄에서 덮어써진다.</td></tr>
+<tr><td>Job 실패 관측/복구 약함</td><td>중간</td><td><code>Job/Deposit.cs:34</code>, <code>Job/Themelog.cs:34</code></td><td><code>async void</code> Job이라 상위 흐름에서 await/재시도/정확한 실패 전파가 어렵다.</td></tr>
+<tr><td>파일 계정/비밀번호 설정 의존</td><td>높음</td><td><code>App.config:15-16</code>, <code>WrapperImpersonationContext.cs:53-66</code></td><td>파일 저장이 Windows 계정 인증에 직접 의존한다.</td></tr>
+</tbody></table>
+<h2>5. 옵션 2 — <code>Chart</code> / <code>TcpListenerChart</code> 정밀 분석</h2>
+<h3>5.1 실행 흐름</h3>
+<ol>
+<li><code>StartUp=Chart</code>이면 <code>TcpListenerChart</code> Form이 실행된다 (<code>Program.cs:24-25</code>).</li>
+<li>생성자에서 차트 크기(<code>ChartSize</code>)를 읽고 CefSharp locale을 <code>ko-kr</code>로 초기화한다 (<code>TcpListenerChart.cs:30-57</code>).</li>
+<li>Form Load 시 OffScreen browser를 만들고 별도 Task에서 TCP Listener를 시작한다 (<code>TcpListenerChart.cs:62-74</code>).</li>
+<li>Listener는 첫 번째 로컬 IP의 port 8280에 bind/listen한다 (<code>TcpListenerChart.cs:82-95</code>).</li>
+<li>요청 문자열을 <code>&lt;EOF&gt;</code>까지 UTF-8로 수신하고 <code>|</code>로 split한다 (<code>TcpListenerChart.cs:102-114</code>).</li>
+<li><code>arr[0] == &quot;ThemeChart&quot;</code>이면 <code>arr[1]</code> keyword, <code>arr[2]</code> keywordIdx로 <code>CaptureThemeChart()</code>를 호출한다 (<code>TcpListenerChart.cs:119-126</code>).</li>
+<li>ChartUrlVersion이 <code>v2</code>이면 <code>lwthemechart_1250_400.html?keywordIdx=...</code>를 로드하고, 아니면 <code>themechart.html?Keyword=...&amp;KeywordIdx=...</code>를 로드한다 (<code>TcpListenerChart.cs:147-158</code>).</li>
+<li>1.5초 대기 후 PNG를 캡처해 <code>FilePathFinance</code>에 저장하고 파일명을 <code>OK!!|{fileName}</code>으로 응답한다 (<code>TcpListenerChart.cs:159-185</code>, <code>TcpListenerChart.cs:128-129</code>).</li>
+</ol>
+<h3>5.2 외부 API/연동 상세</h3>
+<table><thead><tr><th>연동</th><th>주소/대상</th><th>방식</th><th>데이터</th><th>실패 영향</th></tr></thead><tbody>
+<tr><td>TCP 요청</td><td><code>{hostFirstAddress}:8280</code></td><td>raw socket</td><td>`ThemeChart</td><td>{keyword}</td><td>{keywordIdx}&lt;EOF&gt;` 형태로 추정</td><td>요청 처리 실패 시 <code>FAIL</code> 응답</td></tr>
+<tr><td>차트 페이지 v2</td><td><code>{StockDataUrl}/chart/lwthemechart_1250_400.html?keywordIdx={keywordIdx}</code></td><td>CefSharp navigation</td><td>HTML/JS chart rendering</td><td>캡처 실패/잘못된 이미지 생성</td></tr>
+<tr><td>차트 페이지 v1</td><td><code>{StockDataUrl}/chart/themechart.html?Keyword={keyword}&amp;KeywordIdx={keywordIdx}</code></td><td>CefSharp navigation</td><td>HTML/JS chart rendering</td><td>ChartUrlVersion이 v2가 아닐 때 사용</td></tr>
+<tr><td>파일 저장</td><td><code>FilePathFinance\yyyyMMddHHmmssfff_theme.png</code></td><td>PNG file write</td><td>테마차트 이미지</td><td>저장 실패 시 <code>FAIL</code> 응답 가능</td></tr>
+<tr><td>Windows 인증</td><td>코드 내 <code>FileUser</code>/비밀번호 literal 사용</td><td><code>WrapperImpersonationContext</code></td><td>파일 저장 권한</td><td>설정값이 아닌 하드코딩 값에 의존</td></tr>
+</tbody></table>
+<h3>5.3 확인된 설계/운영상 특징</h3>
+<ul>
+<li><code>TcpListenerPort</code> 설정값은 존재하지만 <code>TcpListenerChart</code>는 설정을 읽지 않고 port 8280을 하드코딩한다 (<code>App.config:17</code>, <code>TcpListenerChart.cs:85</code>).</li>
+<li>현재 <code>ChartUrlVersion=v2</code>이므로 실제 사용 URL은 <code>lwthemechart_1250_400.html?keywordIdx=...</code> 쪽이다 (<code>App.config:33</code>, <code>TcpListenerChart.cs:151-152</code>).</li>
+<li><code>ThemeChart</code> 외 명령은 별도 오류 없이 <code>OK!!|</code>와 빈 결과를 반환할 수 있다. <code>result</code>가 기본값인 상태로 응답 생성이 가능하기 때문이다 (<code>TcpListenerChart.cs:119-129</code>).</li>
+<li>저장 시 <code>App.config</code>의 <code>FileUser</code>를 쓰지 않고 코드에 사용자/비밀번호 문자열이 직접 들어가 있다 (<code>TcpListenerChart.cs:204</code>).</li>
+</ul>
+<h3>5.4 리스크 평가</h3>
+<table><thead><tr><th>리스크</th><th>심각도</th><th>근거</th><th>설명</th></tr></thead><tbody>
+<tr><td>입력 검증 부족</td><td>높음</td><td><code>TcpListenerChart.cs:112-125</code></td><td><code>arr[1]</code>, <code>arr[2]</code> 접근 전 길이 검증이 없다. 잘못된 payload는 예외/FAIL로 이어진다.</td></tr>
+<tr><td>설정 포트 미사용</td><td>중간</td><td><code>App.config:17</code>, <code>TcpListenerChart.cs:85</code></td><td>운영자가 config로 포트를 바꿔도 listener는 8280을 사용한다.</td></tr>
+<tr><td>응답 성공 기준 약함</td><td>중간</td><td><code>TcpListenerChart.cs:119-129</code></td><td>알 수 없는 명령도 `OK!!</td><td>` 형태 응답 가능성이 있다.</td></tr>
+<tr><td>파일 인증정보 하드코딩</td><td>높음</td><td><code>TcpListenerChart.cs:204</code></td><td><code>App.config</code>가 아닌 코드 literal에 의존한다. 비밀 관리/교체/감사에 취약하다.</td></tr>
+<tr><td>렌더 완료 판정이 고정 delay</td><td>중간</td><td><code>TcpListenerChart.cs:156-160</code></td><td>차트 JS 렌더 완료 여부를 확인하지 않고 1.5초 후 캡처한다.</td></tr>
+</tbody></table>
+<h2>6. 옵션 3 — 기타/<code>Robo</code> / <code>TcpListenerRobo</code> 정밀 분석</h2>
+<h3>6.1 실행 흐름</h3>
+<ol>
+<li><code>StartUp</code>이 <code>Scheduler</code>도 <code>Chart</code>도 아니면 <code>TcpListenerRobo</code> Form이 실행된다 (<code>Program.cs:21-27</code>).</li>
+<li>Form Load에서 OffScreen browser를 만들고 TCP Listener를 시작하며, 별도 Task로 <code>SELECT 1</code> DB 연결 테스트를 수행한다 (<code>TcpListenerRobo.cs:48-67</code>).</li>
+<li>Listener는 첫 번째 로컬 IP의 port 8279에 bind/listen한다 (<code>TcpListenerRobo.cs:75-87</code>).</li>
+<li><code>&lt;EOF&gt;</code>까지 ASCII로 수신하고 <code>|</code> 앞부분만 날짜 문자열로 사용한다 (<code>TcpListenerRobo.cs:95-107</code>).</li>
+<li>현재 Start 흐름은 <code>UpdateChartImageV2(receiveData)</code>를 호출한다 (<code>TcpListenerRobo.cs:109-112</code>).</li>
+<li>V2는 <code>DBStockPoint</code>에서 대상 추천/채팅 mapping을 조회한다 (<code>TcpListenerRobo.cs:154-180</code>).</li>
+<li>각 추천 건별로 BizStock chart captureview URL을 만들고 브라우저로 로드/캡처한다 (<code>TcpListenerRobo.cs:200-218</code>).</li>
+<li>캡처 파일명을 <code>USP_FeatureRoboRecommand_Update_Admin</code>에 반영한다 (<code>TcpListenerRobo.cs:221-228</code>).</li>
+<li>캡처 이미지들을 multipart form의 <code>files</code> 필드에 추가하고, 별도 <code>Ref</code> JSON 필드에 날짜/채팅/종목/파일 참조 정보를 담는다 (<code>TcpListenerRobo.cs:196-247</code>, <code>TcpListenerRobo.cs:455-472</code>).</li>
+<li><code>{ChatApiUrl}/api/v1/chat/0/files:upload-robo</code>로 POST한다 (<code>TcpListenerRobo.cs:133-142</code>, <code>TcpListenerRobo.cs:249</code>).</li>
+<li>처리 성공 시 <code>OK!!|{receiveData}</code>를 TCP로 응답한다 (<code>TcpListenerRobo.cs:111-114</code>).</li>
+</ol>
+<h3>6.2 외부 API/연동 상세</h3>
+<table><thead><tr><th>연동</th><th>주소/대상</th><th>방식</th><th>데이터</th><th>실패 영향</th></tr></thead><tbody>
+<tr><td>TCP 요청</td><td><code>{hostFirstAddress}:8279</code></td><td>raw socket</td><td>`{yyyy-MM-dd}</td><td>...&lt;EOF&gt;<code> 형태로 추정. </code></td><td>` 앞만 사용</td><td>처리 실패 시 <code>FAIL</code> 응답</td></tr>
+<tr><td>SQL Server</td><td><code>DBStockPoint</code></td><td><code>FinUp.Core.Data.Query</code> + <code>SqlConnection</code></td><td>추천/채팅 mapping 조회, 추천 이미지 파일명 update</td><td>DB 장애 시 전체 처리 실패</td></tr>
+<tr><td>차트 페이지</td><td><code>{ChartUrl}?CODE={StockCode}&amp;INTERVAL=D&amp;COUNT=120&amp;height=300&amp;date={RegDT}</code></td><td>CefSharp navigation</td><td>HTML/JS chart rendering</td><td>캡처 실패/잘못된 이미지 생성</td></tr>
+<tr><td>파일 저장</td><td><code>FilePath\Contents\{CIdx}\{timestamp}_{CIdx}_{StockCode}.png</code></td><td>PNG file write</td><td>로보 추천 차트 이미지</td><td>저장 실패 시 처리 실패</td></tr>
+<tr><td>Chat API upload</td><td><code>{ChatApiUrl}/api/v1/chat/0/files:upload-robo</code></td><td><code>HttpClient.PostAsync</code> multipart</td><td><code>files</code> + <code>Ref</code> JSON, <code>x-api-key</code> header</td><td>API 실패가 응답 상태 검사 없이 지나갈 수 있음</td></tr>
+<tr><td>Legacy cacheload</td><td><code>{CacheloadUrl}?chatidx={chat}</code></td><td>HTTP GET</td><td>채팅 캐시 갱신</td><td>현재 V2 흐름에서는 호출되지 않음</td></tr>
+</tbody></table>
+<h3>6.3 V2와 legacy 흐름 차이</h3>
+<table><thead><tr><th>항목</th><th>V2 <code>UpdateChartImageV2</code></th><th>Legacy <code>UpdateChartImage</code></th></tr></thead><tbody>
+<tr><td>현재 TCP Start에서 호출 여부</td><td>호출됨 (<code>TcpListenerRobo.cs:111</code>)</td><td>호출되지 않음</td></tr>
+<tr><td>DB 조회</td><td>추천/콘텐츠/FeatureChat + <code>ExternalChatChatIdx</code> 조회</td><td>추천/콘텐츠/FeatureChat 조회 후 ChatMessage도 조회</td></tr>
+<tr><td>이미지 저장</td><td>수행</td><td>수행</td></tr>
+<tr><td>추천 테이블 업데이트</td><td><code>USP_FeatureRoboRecommand_Update_Admin</code> 호출</td><td>동일</td></tr>
+<tr><td>채팅 메시지 직접 수정</td><td>하지 않음</td><td><code>USP_FeatureChatMessage_Update</code>로 JSON Message 수정</td></tr>
+<tr><td>캐시 갱신 API</td><td>호출하지 않음</td><td><code>CacheloadUrl?chatidx=...</code> 호출</td></tr>
+<tr><td>Chat API</td><td>multipart upload API 호출</td><td>호출하지 않음</td></tr>
+</tbody></table>
+<h3>6.4 중요 코드 근거</h3>
+<ul>
+<li>DB 연결은 <code>query.ConnectionString = &quot;DBStockPoint&quot;</code>로 지정되고, <code>FinUp.Core.Data.Extension.SetConnectionString()</code>이 appSettings 값을 <code>DecAES()</code>로 복호화한다 (<code>TcpListenerRobo.cs:154-157</code>, <code>FinUp.Core.Data/Extension.cs:77-83</code>).</li>
+<li>실제 SQL 연결은 <code>new SqlConnection(strConnectionString); sqlConnection.Open();</code>으로 수행된다 (<code>FinUp.Core.Data/Sql.cs:35-38</code>).</li>
+<li>V2 조회 SQL은 입력 날짜 문자열을 직접 SQL 문자열에 보간한다 (<code>TcpListenerRobo.cs:154-180</code>).</li>
+<li>차트 캡처 URL은 종목코드/일자 기반으로 생성된다 (<code>TcpListenerRobo.cs:202-203</code>).</li>
+<li>이미지 저장 후 추천 테이블 update 프로시저를 실행한다 (<code>TcpListenerRobo.cs:221-226</code>).</li>
+<li>Chat API upload는 <code>x-api-key</code> header를 붙이고 <code>ChatApiUrl</code> 하위 endpoint로 POST한다 (<code>TcpListenerRobo.cs:133-142</code>).</li>
+<li><code>HttpResponseMessage response = await UploadFileAsync(form);</code> 이후 <code>response.IsSuccessStatusCode</code> 확인 또는 응답 본문 기록은 없다 (<code>TcpListenerRobo.cs:249-250</code>).</li>
+</ul>
+<h3>6.5 리스크 평가</h3>
+<table><thead><tr><th>리스크</th><th>심각도</th><th>근거</th><th>설명</th></tr></thead><tbody>
+<tr><td>외부 연동 표면이 가장 넓음</td><td>높음</td><td><code>TcpListenerRobo.cs:154-249</code></td><td>TCP, DB, 차트 웹, 파일 저장, Chat API가 한 요청에 직렬로 묶인다. 한 곳 장애가 전체 실패로 이어질 수 있다.</td></tr>
+<tr><td>SQL 문자열 직접 보간</td><td>높음</td><td><code>TcpListenerRobo.cs:157-177</code>, <code>TcpListenerRobo.cs:263-282</code></td><td>TCP 수신 문자열이 날짜로 기대되지만 parameterization이 없다.</td></tr>
+<tr><td>SQL <code>WHERE</code> 조건 우선순위 위험</td><td>높음</td><td><code>TcpListenerRobo.cs:173-177</code></td><td><code>A.RegDT between ... OR A.SecondBuyDate = ... AND A.DelDT IS NULL</code> 형태라 SQL의 <code>AND</code> 우선순위 때문에 <code>DelDT IS NULL</code>이 두 조건 전체에 적용되지 않을 수 있다.</td></tr>
+<tr><td>Chat API 실패를 성공으로 오판 가능</td><td>높음</td><td><code>TcpListenerRobo.cs:249-250</code>, <code>TcpListenerRobo.cs:111-114</code></td><td>POST 응답 상태를 확인하지 않고 TCP 성공 응답을 보낼 수 있다.</td></tr>
+<tr><td>운영 endpoint 혼선</td><td>중간</td><td><code>App.config:25-27</code></td><td><code>pre-chatapi</code>는 주석이고 현재 <code>ChatApiUrl</code>은 localhost다. 운영 배포 시 설정 확인이 필수다.</td></tr>
+<tr><td>설정 포트 미사용</td><td>중간</td><td><code>App.config:17</code>, <code>TcpListenerRobo.cs:78</code></td><td>config의 <code>TcpListenerPort=8280</code>과 무관하게 Robo는 8279를 사용한다.</td></tr>
+<tr><td>렌더 완료 판정이 고정 delay</td><td>중간</td><td><code>TcpListenerRobo.cs:207-212</code></td><td>페이지/네트워크 지연 시 불완전 캡처 가능성이 있다.</td></tr>
+<tr><td>민감정보 저장 방식</td><td>높음</td><td><code>App.config:15-24</code>, <code>TcpListenerRobo.cs:137</code></td><td>API key/파일 계정/DB 암호문이 config에 존재한다. DB는 암호문이지만 Chat API key와 파일 계정 정보는 별도 보호 여부가 코드에서 확인되지 않는다.</td></tr>
+</tbody></table>
+<h2>7. 수동/테스트 Form 보충 분석</h2>
+<p><code>ManualCapture</code>와 <code>CaptureTest</code>는 코드에 포함되어 있으나 <code>Program.Main</code>의 3개 실행 옵션에는 연결되어 있지 않다.</p>
+<ul>
+<li><code>ManualCapture.Start()</code>는 port 8278 TCP listener를 구현하지만 <code>TcpListener_Load</code>에서 호출 코드가 주석 처리되어 있다 (<code>ManualCapture.cs:71-83</code>, <code>ManualCapture.cs:86-177</code>).</li>
+<li><code>ManualCapture</code>에는 legacy 로보와 유사한 DB update 및 cacheload 흐름이 버튼 이벤트로 존재한다 (<code>ManualCapture.cs:309-423</code>).</li>
+<li><code>CaptureTest</code>는 hard-coded BizStock URL로 WebBrowser/CefSharp 캡처를 시험하는 Form이다 (<code>CaptureTest.cs:42-70</code>, <code>CaptureTest.cs:75-156</code>).</li>
+</ul>
+<p>따라서 운영 분석에서는 보조/테스트 코드로 보되, 보안/정리 관점에서는 같은 민감 설정과 DB/API 호출 패턴을 재검토할 필요가 있다.</p>
+<h2>8. 외부 연동 중요도 순위</h2>
+<table><thead><tr><th>순위</th><th>연동</th><th>해당 옵션</th><th>중요 이유</th><th>관측 포인트</th></tr></thead><tbody>
+<tr><td>1</td><td><code>DBStockPoint</code> SQL</td><td>Robo</td><td>조회 결과가 캡처 대상과 DB 업데이트를 모두 결정</td><td>connection decrypt 성공, 조회 row 수, 프로시저 실행 결과</td></tr>
+<tr><td>2</td><td>Chat API upload</td><td>Robo V2</td><td>채팅/외부 시스템에 이미지 참조를 넘기는 핵심 후처리</td><td>HTTP status, response body, API key 유효성, endpoint 환경</td></tr>
+<tr><td>3</td><td>StockData/BizStock 차트 HTML</td><td>전체</td><td>모든 옵션의 이미지 품질과 성공 여부가 브라우저 렌더링에 의존</td><td>load 성공, JS 렌더 완료, screenshot 크기/내용</td></tr>
+<tr><td>4</td><td>시장 일정 API</td><td>Scheduler</td><td>배치 실행 시각 결정</td><td><code>/api/market/{from}/{to}</code> 응답, 휴장일/장종료시각 데이터</td></tr>
+<tr><td>5</td><td>파일 저장/impersonation</td><td>전체</td><td>캡처 이미지 산출물 저장의 마지막 단계</td><td>경로 존재/권한/계정 만료/네트워크 공유 여부</td></tr>
+<tr><td>6</td><td>TCP listener</td><td>Chart/Robo</td><td>외부 호출자가 이 앱을 제어하는 인입 경로</td><td>방화벽, bind IP, payload format, EOF 처리</td></tr>
+</tbody></table>
+<h2>9. 옵션별 운영 점검 체크리스트</h2>
+<h3><code>Scheduler</code></h3>
+<ul>
+<li>[ ] <code>StockDataUrl</code>이 실제 환경의 StockData API/차트 host를 가리키는지 확인</li>
+<li>[ ] <code>/api/market/{from}/{to}</code> 응답에 오늘/다음 영업일과 <code>EndTime</code>이 포함되는지 확인</li>
+<li>[ ] <code>FilePathStockData\Chart</code> 저장 권한과 <code>FileUser</code> 인증 성공 여부 확인</li>
+<li>[ ] 장 종료 +10/+40분 중복 스케줄, 재등록, Stop 버튼 동작 확인</li>
+<li>[ ] 캡처 파일 크기/이미지 내용이 실제 chart 렌더 완료 후 생성되는지 확인</li>
+</ul>
+<h3><code>Chart</code></h3>
+<ul>
+<li>[ ] 호출자가 port 8280으로 <code>ThemeChart|keyword|keywordIdx&lt;EOF&gt;</code> 형식 요청을 보내는지 확인</li>
+<li>[ ] <code>ChartUrlVersion=v2</code>일 때 <code>keyword</code>는 URL에 반영되지 않고 <code>keywordIdx</code>만 사용되는 것이 의도인지 확인</li>
+<li>[ ] <code>FilePathFinance</code> 저장 경로와 파일 인증정보가 운영 계정과 일치하는지 확인</li>
+<li>[ ] 알 수 없는 명령/파라미터 부족 시 성공 응답이 나가지 않도록 관측</li>
+<li>[ ] <code>StockDataUrl/chart/lwthemechart_1250_400.html</code> 렌더링 지연이 1.5초 안에 안정적으로 끝나는지 확인</li>
+</ul>
+<h3><code>Robo</code></h3>
+<ul>
+<li>[ ] 호출자가 port 8279로 날짜 문자열과 <code>&lt;EOF&gt;</code>를 보내는지 확인</li>
+<li>[ ] 날짜 입력 검증 및 SQL parameterization 여부 검토</li>
+<li>[ ] <code>DBStockPoint</code> 복호화/접속/조회 row 수/프로시저 실행 결과 확인</li>
+<li>[ ] 현재 <code>ChatApiUrl</code>이 localhost인 점이 배포 환경 의도와 맞는지 확인</li>
+<li>[ ] upload-robo API의 HTTP status와 응답 본문을 기록/검증하도록 운영 로그 확인</li>
+<li>[ ] V2에서 cacheload 또는 ChatMessage 직접 update가 제거된 것이 의도인지 확인</li>
+</ul>
+<h2>10. 전체 판단</h2>
+<h3>근거 기반 판단</h3>
+<ol>
+<li><code>Chart</code> 옵션은 현재 기본 실행 모드이며, “테마 차트 이미지 생성 서버”에 집중된 비교적 단순한 외부 연동 구조다. 핵심 의존성은 TCP 8280, StockData chart HTML, 파일 저장 권한이다.</li>
+<li><code>Scheduler</code> 옵션은 배치성 캡처이며, 시장 일정 API가 시작점이다. DB/Chat API와 직접 결합되어 있지 않아 연동 표면은 중간 수준이지만, 일정 API 실패 시 작업이 시작되지 않는다.</li>
+<li><code>Robo</code> 옵션은 DB 조회/업데이트와 Chat API upload까지 수행하므로 외부 시스템 결합도가 가장 높다. 장애 영향, 보안 영향, 입력 검증 리스크도 세 옵션 중 가장 크다.</li>
+</ol>
+<h3>확신도</h3>
+<ul>
+<li>실행 옵션 식별: 높음 — <code>Program.cs</code>와 <code>App.config</code>에 직접 근거가 있다.</li>
+<li>외부 HTTP/DB/TCP 연동 목록: 높음 — <code>rg</code> 검색과 주요 파일 라인 확인으로 직접 근거가 있다.</li>
+<li>실제 운영 환경 endpoint: 중간 — config에는 localhost/pre/prod 후보가 혼재하고, 배포 시 config transform 또는 수동 변경 여부는 저장소만으로 확인되지 않는다.</li>
+<li>실제 API 응답 schema/상태 코드 의미: 낮음 — 외부 API 서버 구현과 운영 로그는 이 저장소에 포함되어 있지 않다.</li>
+</ul>
+<h2>11. 근거 파일 색인</h2>
+<ul>
+<li><code>Program.cs:21-27</code> — 3가지 실행 옵션 분기</li>
+<li><code>App.config:7-33</code> — 주요 URL, 파일 경로, DB/API/StartUp 설정</li>
+<li><code>FinUp.StockData.ChartCapture.App.csproj:8-11</code>, <code>187-221</code> — 프로젝트 유형/프레임워크/참조</li>
+<li><code>Scheduler.cs:31-167</code> — Scheduler 초기화, 시장일정 API 기반 예약</li>
+<li><code>Job/Deposit.cs:34-67</code> — 신용잔고/예탁금 차트 캡처</li>
+<li><code>Job/Themelog.cs:34-85</code> — 테마록 차트 캡처/crop 저장</li>
+<li><code>Job/Common.cs:14-36</code> — 공통 screenshot 저장 및 impersonation</li>
+<li><code>TcpListenerChart.cs:77-185</code> — Chart TCP listener 및 테마 차트 캡처</li>
+<li><code>TcpListenerRobo.cs:48-145</code> — Robo 초기화/TCP listener/Chat API upload wrapper</li>
+<li><code>TcpListenerRobo.cs:147-250</code> — Robo V2 DB 조회, 캡처, DB update, multipart upload</li>
+<li><code>TcpListenerRobo.cs:253-388</code> — Robo legacy DB/ChatMessage/cacheload 흐름</li>
+<li><code>WrapperImpersonationContext.cs:38-66</code> — Windows impersonation 구현</li>
+<li><code>/mnt/c/Dev/FinUp.StockData.Fundamentals/Util.cs:29-61</code>, <code>125-141</code> — 시장 일정 API 호출 경로</li>
+<li><code>/mnt/c/Dev/FinUp.Core.Fundamentals/Web/Util.cs:58-92</code> — GET WebRequest 구현</li>
+<li><code>/mnt/c/Dev/FinUp.Core.Data/Extension.cs:77-83</code> — appSettings DB 연결 문자열 복호화</li>
+<li><code>/mnt/c/Dev/FinUp.Core.Data/Sql.cs:35-60</code>, <code>128-147</code>, <code>217-236</code> — SQL 연결/실행 구현</li>
+</ul>
+<h2>12. 완료 감사 체크리스트</h2>
+<table><thead><tr><th>요구사항</th><th>산출/증거</th></tr></thead><tbody>
+<tr><td><code>FinUp.StockData.ChartCapture.App</code> 분석</td><td>본 보고서 전체. 대상 경로와 csproj/config/source 파일 확인</td></tr>
+<tr><td>3가지 옵션 각각 정밀 분석</td><td>4장 Scheduler, 5장 Chart, 6장 Robo</td></tr>
+<tr><td>외부 API/외부 연동 중요 분석</td><td>3장 전체 연동 표, 8장 중요도 순위, 각 옵션의 외부 연동 표</td></tr>
+<tr><td><code>/mnt/c/reports/FinUp.StockData.ChartCapture.App</code> 경로 생성</td><td>보고서 저장 경로로 사용</td></tr>
+<tr><td>Markdown 생성</td><td><code>FinUp.StockData.ChartCapture.App.analysis.md</code></td></tr>
+<tr><td>HTML 생성</td><td><code>FinUp.StockData.ChartCapture.App.analysis.html</code></td></tr>
+<tr><td>민감정보 보호</td><td>config에 존재하는 키/계정/암호문은 직접 값 대신 위치와 역할만 설명</td></tr>
+</tbody></table>
+</body></html>

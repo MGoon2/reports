@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>api-admin 설정 상세 분석 리포트</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid #3498db;
+        }
+        h3 {
+            color: #555;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        h4 {
+            color: #666;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        .info-box {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .warning-box {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .success-box {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .config-block {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border: 1px solid #dee2e6;
+        }
+        .config-block h4 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .env-var {
+            background-color: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #c7254e;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        .badge-java {
+            background-color: #f39c12;
+            color: white;
+        }
+        .badge-spring {
+            background-color: #6db33f;
+            color: white;
+        }
+        .badge-db {
+            background-color: #007bff;
+            color: white;
+        }
+        .badge-security {
+            background-color: #dc3545;
+            color: white;
+        }
+        .toc {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        .toc h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .toc ul {
+            list-style-type: none;
+            margin-left: 0;
+        }
+        .toc li {
+            margin-bottom: 8px;
+        }
+        .toc a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>api-admin 설정 상세 분석 리포트</h1>
+        
+        <div class="info-box">
+            <strong>생성일:</strong> 2026년 5월 13일<br>
+            <strong>분석 대상:</strong> api-admin (Spring Boot Backend)<br>
+            <strong>분석 범위:</strong> build.gradle, application.yml, Dockerfile, docker-compose.yml
+        </div>
+
+        <div class="toc">
+            <h3>목차</h3>
+            <ul>
+                <li><a href="#1-프로젝트-개요">1. 프로젝트 개요</a></li>
+                <li><a href="#2-buildgradle-설정">2. build.gradle 설정</a></li>
+                <li><a href="#3-applicationyml-설정">3. application.yml 설정</a>
+                    <ul>
+                        <li><a href="#31-server-설정">3.1 Server 설정</a></li>
+                        <li><a href="#32-spring-설정">3.2 Spring 설정</a></li>
+                        <li><a href="#33-datasource-설정">3.3 DataSource 설정</a></li>
+                        <li><a href="#34-mybatis-설정">3.4 MyBatis 설정</a></li>
+                        <li><a href="#35-admin-보안-설정">3.5 Admin 보안 설정</a></li>
+                        <li><a href="#36-admin-jwt-설정">3.6 Admin JWT 설정</a></li>
+                        <li><a href="#37-admin-storage-설정">3.7 Admin Storage 설정</a></li>
+                        <li><a href="#38-app-pg-및-mongo-설정">3.8 App PG 및 Mongo 설정</a></li>
+                        <li><a href="#39-danal-결제-설정">3.9 Danal 결제 설정</a></li>
+                        <li><a href="#310-finup-외부-서비스-설정">3.10 Finup 외부 서비스 설정</a></li>
+                        <li><a href="#311-management-actuator-설정">3.11 Management Actuator 설정</a></li>
+                    </ul>
+                </li>
+                <li><a href="#4-dockerfile-설정">4. Dockerfile 설정</a></li>
+                <li><a href="#5-docker-composeyml-설정">5. docker-compose.yml 설정</a></li>
+                <li><a href="#6-환경변수-요약">6. 환경변수 요약</a></li>
+                <li><a href="#7-운영-가이드">7. 운영 가이드</a></li>
+            </ul>
+        </div>
+
+        <h2 id="1-프로젝트-개요">1. 프로젝트 개요</h2>
+        
+        <div class="section">
+            <table>
+                <tr>
+                    <th>항목</th>
+                    <th>값</th>
+                </tr>
+                <tr>
+                    <td>프로젝트 그룹</td>
+                    <td>com.finup.admin</td>
+                </tr>
+                <tr>
+                    <td>버전</td>
+                    <td>0.0.1-SNAPSHOT</td>
+                </tr>
+                <tr>
+                    <td>프레임워크</td>
+                    <td>Spring Boot 4.0.0</td>
+                </tr>
+                <tr>
+                    <td>Java 버전</td>
+                    <td>25</td>
+                </tr>
+                <tr>
+                    <td>빌드 도구</td>
+                    <td>Gradle</td>
+                </tr>
+                <tr>
+                    <td>기본 포트</td>
+                    <td>8086 (Application), 8186 (Actuator)</td>
+                </tr>
+            </table>
+        </div>
+
+        <h2 id="2-buildgradle-설정">2. build.gradle 설정</h2>
+
+        <div class="section">
+            <h3>플러그인</h3>
+            <ul>
+                <li><span class="badge badge-spring">org.springframework.boot</span> version '4.0.0'</li>
+                <li><span class="badge badge-spring">io.spring.dependency-management</span> version '1.1.6'</li>
+                <li><span class="badge badge-java">java</span></li>
+            </ul>
+
+            <h3>Java 툴체인</h3>
+            <pre><code>java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}</code></pre>
+
+            <h3>Dependency Management BOM</h3>
+            <ul>
+                <li>Spring Boot Dependencies: 4.0.0</li>
+                <li>Spring Cloud Dependencies: 2025.1.0</li>
+                <li>AWS SDK BOM: 2.29.29</li>
+            </ul>
+
+            <h3>주요 의존성</h3>
+            <table>
+                <tr>
+                    <th>라이브러리</th>
+                    <th>버전</th>
+                    <th>용도</th>
+                </tr>
+                <tr>
+                    <td>spring-boot-starter-web</td>
+                    <td>4.0.0</td>
+                    <td>Web MVC</td>
+                </tr>
+                <tr>
+                    <td>spring-boot-starter-validation</td>
+                    <td>4.0.0</td>
+                    <td>Bean Validation</td>
+                </tr>
+                <tr>
+                    <td>spring-boot-starter-actuator</td>
+                    <td>4.0.0</td>
+                    <td>모니터링</td>
+                </tr>
+                <tr>
+                    <td>micrometer-registry-prometheus</td>
+                    <td>-</td>
+                    <td>Prometheus 메트릭</td>
+                </tr>
+                <tr>
+                    <td>spring-boot-starter-security</td>
+                    <td>4.0.0</td>
+                    <td>시큐리티</td>
+                </tr>
+                <tr>
+                    <td>aws-sdk-s3</td>
+                    <td>2.29.29</td>
+                    <td>S3 스토리지</td>
+                </tr>
+                <tr>
+                    <td>aws-sdk-sts</td>
+                    <td>2.29.29</td>
+                    <td>AWS STS</td>
+                </tr>
+                <tr>
+                    <td>mybatis-spring-boot-starter</td>
+                    <td>4.0.0</td>
+                    <td>ORM</td>
+                </tr>
+                <tr>
+                    <td>mssql-jdbc</td>
+                    <td>-</td>
+                    <td>MSSQL 드라이버</td>
+                </tr>
+                <tr>
+                    <td>postgresql</td>
+                    <td>-</td>
+                    <td>PostgreSQL 드라이버</td>
+                </tr>
+                <tr>
+                    <td>mongodb-driver-sync</td>
+                    <td>-</td>
+                    <td>MongoDB 드라이버 (테마 데이터)</td>
+                </tr>
+                <tr>
+                    <td>jjwt-api</td>
+                    <td>0.11.5</td>
+                    <td>JWT API</td>
+                </tr>
+                <tr>
+                    <td>jjwt-impl</td>
+                    <td>0.11.5</td>
+                    <td>JWT 구현</td>
+                </tr>
+                <tr>
+                    <td>jjwt-jackson</td>
+                    <td>0.11.5</td>
+                    <td>JWT Jackson</td>
+                </tr>
+                <tr>
+                    <td>poi-ooxml</td>
+                    <td>5.3.0</td>
+                    <td>Excel 처리</td>
+                </tr>
+                <tr>
+                    <td>lombok</td>
+                    <td>-</td>
+                    <td>코드 생성</td>
+                </tr>
+            </table>
+
+            <h3>bootRun 설정</h3>
+            <pre><code>tasks.named('bootRun') {
+    systemProperty 'spring.profiles.active', System.getenv('SPRING_PROFILES_ACTIVE') ?: 'local'
+    systemProperty 'admin.storage.s3.enabled', System.getenv('ADMIN_STORAGE_S3_ENABLED') ?: 'true'
+    systemProperty 'admin.storage.s3.profile', System.getenv('ADMIN_STORAGE_S3_PROFILE') ?: 'finup'
+    systemProperty 'admin.auth.stub-enabled', System.getenv('FINUP_ADMIN_AUTH_STUB_ENABLED') ?: 'false'
+}</code></pre>
+        </div>
+
+        <h2 id="3-applicationyml-설정">3. application.yml 설정</h2>
+
+        <h3 id="31-server-설정">3.1 Server 설정</h3>
+        <div class="section">
+            <div class="config-block">
+                <h4>Server Configuration</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>설명</th>
+                    </tr>
+                    <tr>
+                        <td>port</td>
+                        <td>8086</td>
+                        <td>애플리케이션 포트</td>
+                    </tr>
+                    <tr>
+                        <td>max-http-request-header-size</td>
+                        <td>32KB</td>
+                        <td>HTTP 요청 헤더 최대 크기</td>
+                    </tr>
+                    <tr>
+                        <td>error.include-message</td>
+                        <td>always</td>
+                        <td>에러 메시지 항상 포함</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <h3 id="32-spring-설정">3.2 Spring 설정</h3>
+        <div class="section">
+            <div class="config-block">
+                <h4>Spring Configuration</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>설명</th>
+                    </tr>
+                    <tr>
+                        <td>application.name</td>
+                        <td>finup-admin</td>
+                        <td>애플리케이션 이름</td>
+                    </tr>
+                    <tr>
+                        <td>jackson.time-zone</td>
+                        <td>Asia/Seoul</td>
+                        <td>타임존</td>
+                    </tr>
+                    <tr>
+                        <td>servlet.multipart.max-file-size</td>
+                        <td>50MB</td>
+                        <td>최대 파일 크기</td>
+                    </tr>
+                    <tr>
+                        <td>servlet.multipart.max-request-size</td>
+                        <td>50MB</td>
+                        <td>최대 요청 크기</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <h3 id="33-datasource-설정">3.3 DataSource 설정</h3>
+        <div class="section">
+            <div class="highlight">
+                <strong>다중 DataSource 아키텍처:</strong> api-admin은 4개의 서로 다른 데이터베이스에 연결합니다.
+            </div>
+
+            <div class="config-block">
+                <h4>기본 DataSource (MSSQL - FinUp)</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>driver-class-name</td>
+                        <td>com.microsoft.sqlserver.jdbc.SQLServerDriver</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>url</td>
+                        <td>jdbc:sqlserver://${FINUP_MSSQL_HOST:db.internal.finup.co.kr:1412};databaseName=master;encrypt=true;trustServerCertificate=true</td>
+                        <td><span class="env-var">FINUP_MSSQL_HOST</span></td>
+                    </tr>
+                    <tr>
+                        <td>username</td>
+                        <td>${FINUP_MSSQL_FINUPADMIN_USERNAME:developer}</td>
+                        <td><span class="env-var">FINUP_MSSQL_FINUPADMIN_USERNAME</span></td>
+                    </tr>
+                    <tr>
+                        <td>password</td>
+                        <td>${FINUP_MSSQL_FINUPADMIN_PASSWORD:}</td>
+                        <td><span class="env-var">FINUP_MSSQL_FINUPADMIN_PASSWORD</span></td>
+                    </tr>
+                </table>
+                <h4>HikariCP Pool 설정</h4>
+                <ul>
+                    <li>maximum-pool-size: 30</li>
+                    <li>minimum-idle: 5</li>
+                    <li>connection-timeout: 30000ms (30초)</li>
+                    <li>idle-timeout: 600000ms (10분)</li>
+                    <li>max-lifetime: 1800000ms (30분)</li>
+                    <li>leak-detection-threshold: 60000ms (1분)</li>
+                </ul>
+            </div>
+
+            <div class="config-block">
+                <h4>Guide DataSource (MSSQL - FinUpGuide)</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>databaseName</td>
+                        <td>FinUpGuide</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>username</td>
+                        <td>${FINUP_MSSQL_GUIDE_USERNAME:FinUpAdmin}</td>
+                        <td><span class="env-var">FINUP_MSSQL_GUIDE_USERNAME</span></td>
+                    </tr>
+                    <tr>
+                        <td>password</td>
+                        <td>${FINUP_MSSQL_GUIDE_PASSWORD:}</td>
+                        <td><span class="env-var">FINUP_MSSQL_GUIDE_PASSWORD</span></td>
+                    </tr>
+                </table>
+                <p><strong>용도:</strong> 가이드 컨텐츠</p>
+            </div>
+
+            <div class="config-block">
+                <h4>StockData DataSource (MSSQL - StockData)</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>databaseName</td>
+                        <td>StockData</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>username</td>
+                        <td>${FINUP_MSSQL_STOCKDATA_USERNAME:StockDataAdmin}</td>
+                        <td><span class="env-var">FINUP_MSSQL_STOCKDATA_USERNAME</span></td>
+                    </tr>
+                    <tr>
+                        <td>password</td>
+                        <td>${FINUP_MSSQL_STOCKDATA_PASSWORD:}</td>
+                        <td><span class="env-var">FINUP_MSSQL_STOCKDATA_PASSWORD</span></td>
+                    </tr>
+                </table>
+                <p><strong>용도:</strong> 스톡데이터, 뉴스콘텐츠 SP</p>
+            </div>
+
+            <div class="config-block">
+                <h4>PostgreSQL DataSource (app.pg)</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>jdbc-url</td>
+                        <td>${FINUP_PG_URL:jdbc:postgresql://10.0.208.94:1412/finup}</td>
+                        <td><span class="env-var">FINUP_PG_URL</span></td>
+                    </tr>
+                    <tr>
+                        <td>username</td>
+                        <td>${FINUP_PG_USERNAME:finup}</td>
+                        <td><span class="env-var">FINUP_PG_USERNAME</span></td>
+                    </tr>
+                    <tr>
+                        <td>password</td>
+                        <td>${FINUP_PG_PASSWORD:}</td>
+                        <td><span class="env-var">FINUP_PG_PASSWORD</span></td>
+                    </tr>
+                </table>
+                <p><strong>용도:</strong> 크롤러사이트필터, 키워드, 레이더</p>
+            </div>
+
+            <div class="config-block">
+                <h4>MongoDB (app.mongo)</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>uri</td>
+                        <td>${FINUP_MONGO_LAB_URI:mongodb://10.0.15.82:1412}</td>
+                        <td><span class="env-var">FINUP_MONGO_LAB_URI</span></td>
+                    </tr>
+                    <tr>
+                        <td>lab-database</td>
+                        <td>${FINUP_MONGO_LAB_DB:Lab}</td>
+                        <td><span class="env-var">FINUP_MONGO_LAB_DB</span></td>
+                    </tr>
+                </table>
+                <p><strong>용도:</strong> 레거시 MongoDB Lab DB (테마 데이터) — daily-report 테마 듀얼라우팅 primary 소스</p>
+            </div>
+        </div>
+
+        <h3 id="34-mybatis-설정">3.4 MyBatis 설정</h3>
+        <div class="section">
+            <div class="config-block">
+                <h4>MyBatis Configuration</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>설명</th>
+                    </tr>
+                    <tr>
+                        <td>mapper-locations</td>
+                        <td>classpath:mapper/*.xml</td>
+                        <td>Mapper XML 위치</td>
+                    </tr>
+                    <tr>
+                        <td>type-aliases-package</td>
+                        <td>com.finup.admin</td>
+                        <td>타입 별칭 패키지</td>
+                    </tr>
+                    <tr>
+                        <td>map-underscore-to-camel-case</td>
+                        <td>true</td>
+                        <td>스네이크케이스 → 카멜케이스 변환</td>
+                    </tr>
+                    <tr>
+                        <td>call-setters-on-nulls</td>
+                        <td>true</td>
+                        <td>NULL 값일 때 setter 호출</td>
+                    </tr>
+                    <tr>
+                        <td>jdbc-type-for-null</td>
+                        <td>NULL</td>
+                        <td>NULL 값의 JDBC 타입</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <h3 id="35-admin-보안-설정">3.5 Admin 보안 설정</h3>
+        <div class="section">
+            <div class="config-block">
+                <h4>OTP 설정</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>설명</th>
+                    </tr>
+                    <tr>
+                        <td>enabled</td>
+                        <td>true</td>
+                        <td>OTP 활성화</td>
+                    </tr>
+                    <tr>
+                        <td>white-ips</td>
+                        <td>IP 목록 (22개)</td>
+                        <td>OTP 우회 화이트리스트 IP</td>
+                    </tr>
+                    <tr>
+                        <td>exception-ids</td>
+                        <td>style, yulim, awesomedev</td>
+                        <td>OTP 예외 사용자 ID</td>
+                    </tr>
+                    <tr>
+                        <td>trusted-proxies</td>
+                        <td>10.0.0.0/8, 127.0.0.1/32, ::1/128</td>
+                        <td>신뢰할 수 있는 프록시 CIDR</td>
+                    </tr>
+                </table>
+                <div class="warning-box">
+                    <strong>OTP 화이트리스트 IP 목록:</strong><br>
+                    121.133.210.226, 121.133.210.229, 121.133.210.228, 121.133.210.227, 183.99.48.31, 121.133.210.230, ::1, 127.0.0.1, 211.104.117.129~141, 61.82.98.177
+                </div>
+            </div>
+
+            <div class="config-block">
+                <h4>Security 설정</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>internal-ip-cidrs</td>
+                        <td>10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 127.0.0.1/32, ::1/128</td>
+                        <td>-</td>
+                    </tr>
+                </table>
+                <p><strong>설명:</strong> 사내 IP 화이트리스트 (CIDR). IpChangeEnforcementInterceptor가 사용. 최초 로그인 IP와 다른 현재 IP가 이 대역에 속하면 통과(사내망 NAT 변경 등 허용), 속하지 않으면 401 NETWORK_CHANGED 응답으로 강제 로그아웃. <strong>운영 배포 전 회사 고정 공인 IP / VPN 풀을 반드시 추가할 것.</strong></p>
+            </div>
+
+            <div class="config-block">
+                <h4>BFF HMAC 인증 설정</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>shared-secret</td>
+                        <td>${FINUP_ADMIN_BFF_SHARED_SECRET:}</td>
+                        <td><span class="env-var">FINUP_ADMIN_BFF_SHARED_SECRET</span></td>
+                    </tr>
+                    <tr>
+                        <td>max-skew-ms</td>
+                        <td>${FINUP_ADMIN_BFF_MAX_SKEW_MS:60000}</td>
+                        <td><span class="env-var">FINUP_ADMIN_BFF_MAX_SKEW_MS</span></td>
+                    </tr>
+                    <tr>
+                        <td>enabled</td>
+                        <td>${FINUP_ADMIN_BFF_ENABLED:true}</td>
+                        <td><span class="env-var">FINUP_ADMIN_BFF_ENABLED</span></td>
+                    </tr>
+                </table>
+                <p><strong>설명:</strong> BFF (front-admin / next-auth) ↔ api-admin 사전 공유 시크릿. 외부 공격자가 admin API를 직접 두드릴 때 body userIp / forwarded XFF 위조로 OTP 우회를 못 하게 한다. 시크릿 미설정 시 BFF 인증은 항상 실패 → 외부 직접 호출과 동일하게 ClientIpResolver 결과만 사용.</p>
+            </div>
+        </div>
+
+        <h3 id="36-admin-jwt-설정">3.6 Admin JWT 설정</h3>
+        <div class="section">
+            <div class="config-block">
+                <h4>JWT Configuration</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>issuer</td>
+                        <td>${FINUP_ADMIN_JWT_ISSUER:https://devfinup.click}</td>
+                        <td><span class="env-var">FINUP_ADMIN_JWT_ISSUER</span></td>
+                    </tr>
+                    <tr>
+                        <td>audience</td>
+                        <td>${FINUP_ADMIN_JWT_AUDIENCE:admin}</td>
+                        <td><span class="env-var">FINUP_ADMIN_JWT_AUDIENCE</span></td>
+                    </tr>
+                    <tr>
+                        <td>secret</td>
+                        <td>${FINUP_AUTH_ADMIN_JWT_SECRET:}</td>
+                        <td><span class="env-var">FINUP_AUTH_ADMIN_JWT_SECRET</span></td>
+                    </tr>
+                    <tr>
+                        <td>access-token-expiration-ms</td>
+                        <td>${FINUP_ADMIN_JWT_ACCESS_EXPIRATION_MS:3600000}</td>
+                        <td><span class="env-var">FINUP_ADMIN_JWT_ACCESS_EXPIRATION_MS</span> (기본: 1시간)</td>
+                    </tr>
+                    <tr>
+                        <td>refresh-token-expiration-ms</td>
+                        <td>${FINUP_ADMIN_JWT_REFRESH_EXPIRATION_MS:10800000}</td>
+                        <td><span class="env-var">FINUP_ADMIN_JWT_REFRESH_EXPIRATION_MS</span> (기본: 3시간)</td>
+                    </tr>
+                    <tr>
+                        <td>rolling-threshold-ms</td>
+                        <td>${FINUP_ADMIN_JWT_ROLLING_THRESHOLD_MS:600000}</td>
+                        <td><span class="env-var">FINUP_ADMIN_JWT_ROLLING_THRESHOLD_MS</span> (기본: 10분)</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="config-block">
+                <h4>Auth Stub 설정 (개발용)</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>stub-enabled</td>
+                        <td>${FINUP_ADMIN_AUTH_STUB_ENABLED:false}</td>
+                        <td><span class="env-var">FINUP_ADMIN_AUTH_STUB_ENABLED</span></td>
+                    </tr>
+                    <tr>
+                        <td>stub-login-id</td>
+                        <td>${FINUP_ADMIN_AUTH_STUB_LOGIN_ID:admin}</td>
+                        <td><span class="env-var">FINUP_ADMIN_AUTH_STUB_LOGIN_ID</span></td>
+                    </tr>
+                    <tr>
+                        <td>stub-password</td>
+                        <td>${FINUP_ADMIN_AUTH_STUB_PASSWORD:admin}</td>
+                        <td><span class="env-var">FINUP_ADMIN_AUTH_STUB_PASSWORD</span></td>
+                    </tr>
+                    <tr>
+                        <td>stub-name</td>
+                        <td>${FINUP_ADMIN_AUTH_STUB_NAME:admin}</td>
+                        <td><span class="env-var">FINUP_ADMIN_AUTH_STUB_NAME</span></td>
+                    </tr>
+                    <tr>
+                        <td>stub-roles</td>
+                        <td>${FINUP_ADMIN_AUTH_STUB_ROLES:ADMIN}</td>
+                        <td><span class="env-var">FINUP_ADMIN_AUTH_STUB_ROLES</span></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <h3 id="37-admin-storage-설정">3.7 Admin Storage 설정</h3>
+        <div class="section">
+            <div class="config-block">
+                <h4>S3 Storage 설정</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>enabled</td>
+                        <td>${FINUP_S3_ENABLED:true}</td>
+                        <td><span class="env-var">FINUP_S3_ENABLED</span></td>
+                    </tr>
+                    <tr>
+                        <td>region</td>
+                        <td>${FINUP_S3_REGION:ap-northeast-2}</td>
+                        <td><span class="env-var">FINUP_S3_REGION</span></td>
+                    </tr>
+                    <tr>
+                        <td>bucket</td>
+                        <td>${FINUP_S3_BUCKET:finup-dev}</td>
+                        <td><span class="env-var">FINUP_S3_BUCKET</span></td>
+                    </tr>
+                    <tr>
+                        <td>endpoint</td>
+                        <td>${FINUP_S3_ENDPOINT:}</td>
+                        <td><span class="env-var">FINUP_S3_ENDPOINT</span></td>
+                    </tr>
+                    <tr>
+                        <td>profile</td>
+                        <td>${FINUP_S3_PROFILE:}</td>
+                        <td><span class="env-var">FINUP_S3_PROFILE</span></td>
+                    </tr>
+                    <tr>
+                        <td>key-prefix</td>
+                        <td>${FINUP_S3_KEY_PREFIX:Files}</td>
+                        <td><span class="env-var">FINUP_S3_KEY_PREFIX</span></td>
+                    </tr>
+                    <tr>
+                        <td>base-url</td>
+                        <td>${FINUP_S3_BASE_URL:https://img.internal.finup.co.kr}</td>
+                        <td><span class="env-var">FINUP_S3_BASE_URL</span></td>
+                    </tr>
+                    <tr>
+                        <td>private-access</td>
+                        <td>${FINUP_S3_PRIVATE_ACCESS:true}</td>
+                        <td><span class="env-var">FINUP_S3_PRIVATE_ACCESS</span></td>
+                    </tr>
+                    <tr>
+                        <td>path-style-access</td>
+                        <td>${FINUP_S3_PATH_STYLE_ACCESS:false}</td>
+                        <td><span class="env-var">FINUP_S3_PATH_STYLE_ACCESS</span></td>
+                    </tr>
+                    <tr>
+                        <td>server-side-encryption</td>
+                        <td>${FINUP_S3_SSE:AES256}</td>
+                        <td><span class="env-var">FINUP_S3_SSE</span></td>
+                    </tr>
+                    <tr>
+                        <td>kms-key-id</td>
+                        <td>${FINUP_S3_KMS_KEY_ID:}</td>
+                        <td><span class="env-var">FINUP_S3_KMS_KEY_ID</span></td>
+                    </tr>
+                    <tr>
+                        <td>default-max-size-bytes</td>
+                        <td>${FINUP_S3_DEFAULT_MAX_SIZE_BYTES:20971520}</td>
+                        <td><span class="env-var">FINUP_S3_DEFAULT_MAX_SIZE_BYTES</span> (기본: 20MB)</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="config-block">
+                <h4>Hidden S3 설정</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>enabled</td>
+                        <td>${FINUP_S3_HIDDEN_ENABLED:true}</td>
+                        <td><span class="env-var">FINUP_S3_HIDDEN_ENABLED</span></td>
+                    </tr>
+                    <tr>
+                        <td>bucket</td>
+                        <td>${FINUP_S3_HIDDEN_BUCKET:finup-hidden-dev-326539043145-ap-northeast-2-an}</td>
+                        <td><span class="env-var">FINUP_S3_HIDDEN_BUCKET</span></td>
+                    </tr>
+                    <tr>
+                        <td>key-prefix</td>
+                        <td>${FINUP_S3_HIDDEN_KEY_PREFIX:Files}</td>
+                        <td><span class="env-var">FINUP_S3_HIDDEN_KEY_PREFIX</span></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <h3 id="38-app-pg-및-mongo-설정">3.8 App PG 및 Mongo 설정</h3>
+        <div class="section">
+            <p>PostgreSQL과 MongoDB 설정은 3.3절 DataSource 설정에서 이미 상세히 설명했습니다.</p>
+        </div>
+
+        <h3 id="39-danal-결제-설정">3.9 Danal 결제 설정</h3>
+        <div class="section">
+            <div class="config-block">
+                <h4>Danal Credit 설정</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>cpid</td>
+                        <td>${DANAL_CREDIT_CPID:6010030517}</td>
+                        <td><span class="env-var">DANAL_CREDIT_CPID</span></td>
+                    </tr>
+                    <tr>
+                        <td>key</td>
+                        <td>${FINUP_DANAL_CREDIT_KEY:}</td>
+                        <td><span class="env-var">FINUP_DANAL_CREDIT_KEY</span></td>
+                    </tr>
+                    <tr>
+                        <td>iv</td>
+                        <td>${FINUP_DANAL_CREDIT_IV:}</td>
+                        <td><span class="env-var">FINUP_DANAL_CREDIT_IV</span></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="config-block">
+                <h4>Danal Auto-Credit 설정</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>cpid</td>
+                        <td>${DANAL_AUTO_CREDIT_CPID:9810030929}</td>
+                        <td><span class="env-var">DANAL_AUTO_CREDIT_CPID</span></td>
+                    </tr>
+                    <tr>
+                        <td>key</td>
+                        <td>${FINUP_DANAL_AUTO_CREDIT_KEY:}</td>
+                        <td><span class="env-var">FINUP_DANAL_AUTO_CREDIT_KEY</span></td>
+                    </tr>
+                    <tr>
+                        <td>iv</td>
+                        <td>${FINUP_DANAL_AUTO_CREDIT_IV:}</td>
+                        <td><span class="env-var">FINUP_DANAL_AUTO_CREDIT_IV</span></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <h3 id="310-finup-외부-서비스-설정">3.10 Finup 외부 서비스 설정</h3>
+        <div class="section">
+            <div class="config-block">
+                <h4>Finup URL 설정</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>image.base-url</td>
+                        <td>${FINUP_IMAGE_BASE_URL:https://img.finup.co.kr}</td>
+                        <td><span class="env-var">FINUP_IMAGE_BASE_URL</span></td>
+                    </tr>
+                    <tr>
+                        <td>stock.web-url</td>
+                        <td>${FINUP_STOCK_WEB_URL:https://stock.finup.co.kr}</td>
+                        <td><span class="env-var">FINUP_STOCK_WEB_URL</span></td>
+                    </tr>
+                    <tr>
+                        <td>radar.web-url</td>
+                        <td>${FINUP_RADAR_WEB_URL:https://radar.finup.co.kr}</td>
+                        <td><span class="env-var">FINUP_RADAR_WEB_URL</span></td>
+                    </tr>
+                    <tr>
+                        <td>radar.api.url</td>
+                        <td>${FINUP_RADAR_API_URL:}</td>
+                        <td><span class="env-var">FINUP_RADAR_API_URL</span></td>
+                    </tr>
+                </table>
+                <div class="highlight">
+                    <strong>중요:</strong> URL 계열 default는 prod 도메인으로 둔다. dev/staging은 반드시 환경변수로 override. (default에 pre-*를 두면 운영 배포 중 env 주입이 누락됐을 때 스테이징 경로로 빠지는 사고가 난다)
+                </div>
+            </div>
+
+            <div class="config-block">
+                <h4>Member Login Auth 설정</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>pc-url</td>
+                        <td>${FINUP_MEMBER_LOGIN_AUTH_PC_URL:https://www.finup.co.kr}</td>
+                        <td><span class="env-var">FINUP_MEMBER_LOGIN_AUTH_PC_URL</span></td>
+                    </tr>
+                    <tr>
+                        <td>mobile-url</td>
+                        <td>${FINUP_MEMBER_LOGIN_AUTH_MOBILE_URL:https://m.finup.co.kr}</td>
+                        <td><span class="env-var">FINUP_MEMBER_LOGIN_AUTH_MOBILE_URL</span></td>
+                    </tr>
+                    <tr>
+                        <td>path</td>
+                        <td>${FINUP_MEMBER_LOGIN_AUTH_PATH:}</td>
+                        <td><span class="env-var">FINUP_MEMBER_LOGIN_AUTH_PATH</span></td>
+                    </tr>
+                    <tr>
+                        <td>pc-path</td>
+                        <td>${FINUP_MEMBER_LOGIN_AUTH_PC_PATH:}</td>
+                        <td><span class="env-var">FINUP_MEMBER_LOGIN_AUTH_PC_PATH</span></td>
+                    </tr>
+                    <tr>
+                        <td>mobile-path</td>
+                        <td>${FINUP_MEMBER_LOGIN_AUTH_MOBILE_PATH:}</td>
+                        <td><span class="env-var">FINUP_MEMBER_LOGIN_AUTH_MOBILE_PATH</span></td>
+                    </tr>
+                    <tr>
+                        <td>param-key</td>
+                        <td>${FINUP_MEMBER_LOGIN_AUTH_PARAM_KEY:p}</td>
+                        <td><span class="env-var">FINUP_MEMBER_LOGIN_AUTH_PARAM_KEY</span></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="config-block">
+                <h4>Finance Report 설정</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>cf-idx</td>
+                        <td>${FINUP_FINANCE_REPORT_CF_IDX:287724}</td>
+                        <td><span class="env-var">FINUP_FINANCE_REPORT_CF_IDX</span></td>
+                    </tr>
+                    <tr>
+                        <td>c-idx</td>
+                        <td>${FINUP_FINANCE_REPORT_C_IDX:148799}</td>
+                        <td><span class="env-var">FINUP_FINANCE_REPORT_C_IDX</span></td>
+                    </tr>
+                    <tr>
+                        <td>category</td>
+                        <td>${FINUP_FINANCE_REPORT_CATEGORY:83}</td>
+                        <td><span class="env-var">FINUP_FINANCE_REPORT_CATEGORY</span></td>
+                    </tr>
+                </table>
+                <p><strong>설명:</strong> 운영 머니서퍼 PLUS 리포트 피처 기준값. 레거시(C#) Web.config 운영 override 값과 동일. env 미주입 시 기본값이 dev 값(232661/140069)으로 동작해 publishDailyReport가 잘못된 피처(CFIdx=232661)에 row를 남기는 사고가 2026-04-20 발생 → 운영값으로 기본값 변경.</p>
+            </div>
+
+            <div class="config-block">
+                <h4>Chat API 설정</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>url</td>
+                        <td>${FINUP_CHAT_API_URL:}</td>
+                        <td><span class="env-var">FINUP_CHAT_API_URL</span></td>
+                    </tr>
+                    <tr>
+                        <td>key</td>
+                        <td>${FINUP_CHAT_API_KEY:}</td>
+                        <td><span class="env-var">FINUP_CHAT_API_KEY</span></td>
+                    </tr>
+                    <tr>
+                        <td>room-sync.enabled</td>
+                        <td>${FINUP_CHAT_ROOM_SYNC_ENABLED:false}</td>
+                        <td><span class="env-var">FINUP_CHAT_ROOM_SYNC_ENABLED</span></td>
+                    </tr>
+                </table>
+                <p><strong>설명:</strong> 채팅 서버(Chat.Api) 호출용. 등급 변경 등 T_FeatureChatUser 동기화에 사용. 미주입 시 호출부는 graceful skip + WARN 로그. 채팅방(T_FeatureChat) 외부 등록 자동 sync. 콘텐츠 신청 승인 시점에 외부 chat 서버 등록 + ExternalChatChatIdx 매핑 저장. default false로 운영 배포 안전(레거시 AlphaBot 처리 그대로 유지). dev/검증 환경에서만 true. 활성화 시 alphabot과 race 가능 — service 측 conditional UPDATE 가드(ExternalChatChatIdx IS NULL 일 때만 claim)로 방어.</p>
+            </div>
+
+            <div class="config-block">
+                <h4>기타 Admin 설정</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>community-board.default-user-idx</td>
+                        <td>${FINUP_ADMIN_COMMUNITY_BOARD_DEFAULT_USER_IDX:139537}</td>
+                        <td><span class="env-var">FINUP_ADMIN_COMMUNITY_BOARD_DEFAULT_USER_IDX</span></td>
+                    </tr>
+                    <tr>
+                        <td>chat.banner.image-url</td>
+                        <td>${FINUP_ADMIN_CHAT_BANNER_IMAGE_URL:https://chatimg.finup.co.kr}</td>
+                        <td><span class="env-var">FINUP_ADMIN_CHAT_BANNER_IMAGE_URL</span></td>
+                    </tr>
+                    <tr>
+                        <td>chat.banner.upload-dir</td>
+                        <td>${FINUP_ADMIN_CHAT_BANNER_UPLOAD_DIR:D:/FinUpChat/Files}</td>
+                        <td><span class="env-var">FINUP_ADMIN_CHAT_BANNER_UPLOAD_DIR</span></td>
+                    </tr>
+                    <tr>
+                        <td>chat.monitoring.web-admin-url</td>
+                        <td>${FINUP_ADMIN_CHAT_WEB_ADMIN_URL:https://freechat.finup.co.kr/admin}</td>
+                        <td><span class="env-var">FINUP_ADMIN_CHAT_WEB_ADMIN_URL</span></td>
+                    </tr>
+                    <tr>
+                        <td>chat.monitoring.channel-finance-url</td>
+                        <td>${FINUP_ADMIN_CHAT_CHANNEL_FINANCE_URL:https://chatchannelfinance.finup.co.kr}</td>
+                        <td><span class="env-var">FINUP_ADMIN_CHAT_CHANNEL_FINANCE_URL</span></td>
+                    </tr>
+                    <tr>
+                        <td>operation.upload-dir</td>
+                        <td>${FINUP_ADMIN_OPERATION_UPLOAD_DIR:./uploads/admin-operation}</td>
+                        <td><span class="env-var">FINUP_ADMIN_OPERATION_UPLOAD_DIR</span></td>
+                    </tr>
+                    <tr>
+                        <td>youtube.api-key</td>
+                        <td>${FINUP_ADMIN_YOUTUBE_API_KEY:}</td>
+                        <td><span class="env-var">FINUP_ADMIN_YOUTUBE_API_KEY</span></td>
+                    </tr>
+                    <tr>
+                        <td>settlebank.url</td>
+                        <td>${FINUP_ADMIN_SETTLEBANK_URL:https://van.sbsvc.online/servlet/NameSerMgrServlet2}</td>
+                        <td><span class="env-var">FINUP_ADMIN_SETTLEBANK_URL</span></td>
+                    </tr>
+                    <tr>
+                        <td>settlebank.corp-id</td>
+                        <td>${FINUP_ADMIN_SETTLEBANK_CORP_ID:}</td>
+                        <td><span class="env-var">FINUP_ADMIN_SETTLEBANK_CORP_ID</span></td>
+                    </tr>
+                    <tr>
+                        <td>settlebank.web-id</td>
+                        <td>${FINUP_ADMIN_SETTLEBANK_WEB_ID:}</td>
+                        <td><span class="env-var">FINUP_ADMIN_SETTLEBANK_WEB_ID</span></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <h3 id="311-management-actuator-설정">3.11 Management Actuator 설정</h3>
+        <div class="section">
+            <div class="config-block">
+                <h4>Actuator Configuration</h4>
+                <table>
+                    <tr>
+                        <th>설정</th>
+                        <th>값</th>
+                        <th>환경변수</th>
+                    </tr>
+                    <tr>
+                        <td>server.port</td>
+                        <td>${MANAGEMENT_SERVER_PORT:8186}</td>
+                        <td><span class="env-var">MANAGEMENT_SERVER_PORT</span></td>
+                    </tr>
+                    <tr>
+                        <td>endpoints.web.exposure.include</td>
+                        <td>health,prometheus</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>endpoint.health.show-details</td>
+                        <td>always</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>metrics.tags.application</td>
+                        <td>${spring.application.name:api-admin}</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>prometheus.metrics.export.descriptions</td>
+                        <td>false</td>
+                        <td>-</td>
+                    </tr>
+                </table>
+                <p><strong>설명:</strong> actuator를 application traffic(8086)과 별도의 Tomcat connector(8186)로 분리. prometheus scrape의 broken pipe로 thread pool이 고갈되어도 application 요청과 health check가 영향받지 않도록 격리 (2026-04-20 api-chat 사고 패턴 확산 적용). ALB TG health check port + prometheus scrape target도 8186로 조정. scrape payload 경량화 (메트릭 description 생략) — broken pipe 재발 보조 방지.</p>
+            </div>
+        </div>
+
+        <h2 id="4-dockerfile-설정">4. Dockerfile 설정</h2>
+        <div class="section">
+            <pre><code>FROM amazoncorretto:25
+
+ENV TZ=Asia/Seoul
+RUN ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime
+
+WORKDIR /app
+
+ARG JAR_FILE=build/libs/*.jar
+COPY ${JAR_FILE} app.jar
+
+EXPOSE 8086 8186
+
+ENTRYPOINT ["sh","-c","java -Duser.timezone=Asia/Seoul ${JAVA_OPTS:-} -jar /app/app.jar"]</code></pre>
+            
+            <div class="config-block">
+                <h4>Dockerfile 설명</h4>
+                <ul>
+                    <li><strong>Base Image:</strong> amazoncorretto:25 (Amazon Corretto JDK 25)</li>
+                    <li><strong>Timezone:</strong> Asia/Seoul</li>
+                    <li><strong>Work Directory:</strong> /app</li>
+                    <li><strong>JAR File:</strong> build/libs/*.jar</li>
+                    <li><strong>Exposed Ports:</strong> 8086 (Application), 8186 (Actuator)</li>
+                    <li><strong>Entrypoint:</strong> java -Duser.timezone=Asia/Seoul ${JAVA_OPTS:-} -jar /app/app.jar</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 id="5-docker-composeyml-설정">5. docker-compose.yml 설정</h2>
+        <div class="section">
+            <pre><code>services:
+  api-admin:
+    image: ${IMAGE}
+    container_name: api-admin
+    restart: always
+    ports:
+      - "8086:8086"
+      # actuator 전용 management connector — ALB health check + prometheus scrape 가 사용.
+      # application.yml 의 management.server.port 와 일치.
+      - "8186:8186"
+    env_file:
+      - .env
+    environment:
+      TZ: Asia/Seoul
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=Asia/Seoul"</code></pre>
+
+            <div class="config-block">
+                <h4>docker-compose.yml 설명</h4>
+                <ul>
+                    <li><strong>Image:</strong> ${IMAGE} 환경변수로 지정</li>
+                    <li><strong>Container Name:</strong> api-admin</li>
+                    <li><strong>Restart Policy:</strong> always</li>
+                    <li><strong>Ports:</strong> 8086:8086 (Application), 8186:8186 (Actuator)</li>
+                    <li><strong>Env File:</strong> .env 파일에서 환경변수 로드</li>
+                    <li><strong>Environment:</strong> TZ=Asia/Seoul, JAVA_TOOL_OPTIONS="-Duser.timezone=Asia/Seoul"</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 id="6-환경변수-요약">6. 환경변수 요약</h2>
+        <div class="section">
+            <div class="config-block">
+                <h4>필수 환경변수 (운영 배포 시)</h4>
+                <table>
+                    <tr>
+                        <th>환경변수</th>
+                        <th>설명</th>
+                        <th>기본값</th>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">FINUP_MSSQL_HOST</span></td>
+                        <td>MSSQL 호스트</td>
+                        <td>db.internal.finup.co.kr:1412</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">FINUP_MSSQL_FINUPADMIN_USERNAME</span></td>
+                        <td>MSSQL FinUp 사용자명</td>
+                        <td>developer</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">FINUP_MSSQL_FINUPADMIN_PASSWORD</span></td>
+                        <td>MSSQL FinUp 비밀번호</td>
+                        <td>(없음)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">FINUP_MSSQL_GUIDE_USERNAME</span></td>
+                        <td>MSSQL FinUpGuide 사용자명</td>
+                        <td>FinUpAdmin</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">FINUP_MSSQL_GUIDE_PASSWORD</span></td>
+                        <td>MSSQL FinUpGuide 비밀번호</td>
+                        <td>(없음)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">FINUP_MSSQL_STOCKDATA_USERNAME</span></td>
+                        <td>MSSQL StockData 사용자명</td>
+                        <td>StockDataAdmin</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">FINUP_MSSQL_STOCKDATA_PASSWORD</span></td>
+                        <td>MSSQL StockData 비밀번호</td>
+                        <td>(없음)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">FINUP_PG_URL</span></td>
+                        <td>PostgreSQL JDBC URL</td>
+                        <td>jdbc:postgresql://10.0.208.94:1412/finup</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">FINUP_PG_USERNAME</span></td>
+                        <td>PostgreSQL 사용자명</td>
+                        <td>finup</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">FINUP_PG_PASSWORD</span></td>
+                        <td>PostgreSQL 비밀번호</td>
+                        <td>(없음)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">FINUP_AUTH_ADMIN_JWT_SECRET</span></td>
+                        <td>JWT 서명 키</td>
+                        <td>(없음) - 필수</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">FINUP_ADMIN_BFF_SHARED_SECRET</span></td>
+                        <td>BFF HMAC 시크릿</td>
+                        <td>(없음) - 권장</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="config-block">
+                <h4>선택적 환경변수</h4>
+                <table>
+                    <tr>
+                        <th>환경변수</th>
+                        <th>설명</th>
+                        <th>기본값</th>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">SPRING_PROFILES_ACTIVE</span></td>
+                        <td>Spring Profile</td>
+                        <td>local</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">MANAGEMENT_SERVER_PORT</span></td>
+                        <td>Actuator 포트</td>
+                        <td>8186</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">FINUP_S3_ENABLED</span></td>
+                        <td>S3 활성화</td>
+                        <td>true</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">FINUP_S3_BUCKET</span></td>
+                        <td>S3 버킷</td>
+                        <td>finup-dev</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">FINUP_S3_BASE_URL</span></td>
+                        <td>S3 Base URL</td>
+                        <td>https://img.internal.finup.co.kr</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">FINUP_MONGO_LAB_URI</span></td>
+                        <td>MongoDB URI</td>
+                        <td>mongodb://10.0.15.82:1412</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">DANAL_CREDIT_KEY</span></td>
+                        <td>Danal Credit 키</td>
+                        <td>(없음)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">DANAL_CREDIT_IV</span></td>
+                        <td>Danal Credit IV</td>
+                        <td>(없음)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">FINUP_CHAT_API_URL</span></td>
+                        <td>Chat API URL</td>
+                        <td>(없음)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="env-var">FINUP_CHAT_API_KEY</span></td>
+                        <td>Chat API 키</td>
+                        <td>(없음)</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <h2 id="7-운영-가이드">7. 운영 가이드</h2>
+
+        <div class="section">
+            <div class="warning-box">
+                <strong>운영 배포 전 필수 확인:</strong>
+            </div>
+            <ul>
+                <li><span class="env-var">FINUP_AUTH_ADMIN_JWT_SECRET</span> 환경변수 설정 (JWT 서명)</li>
+                <li><span class="env-var">FINUP_ADMIN_BFF_SHARED_SECRET</span> 환경변수 설정 (BFF HMAC 인증 활성화)</li>
+                <li>DataSource 연결 정보 확인 (MSSQL, PostgreSQL, MongoDB)</li>
+                <li>S3 설정 확인 (<span class="env-var">FINUP_S3_ENABLED</span>, <span class="env-var">FINUP_S3_BUCKET</span>, <span class="env-var">FINUP_S3_BASE_URL</span>)</li>
+                <li><code>admin.security.internal-ip-cidrs</code>에 회사 고정 공인 IP / VPN 풀 추가</li>
+                <li>Actuator 포트 확인 (8186)</li>
+                <li>ALB TG health check port를 8186로 조정</li>
+                <li>Prometheus scrape target을 8186로 조정</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h3>모니터링</h3>
+            <ul>
+                <li><strong>Health Check:</strong> http://localhost:8186/actuator/health</li>
+                <li><strong>Prometheus Metrics:</strong> http://localhost:8186/actuator/prometheus</li>
+                <li><strong>Application Logs:</strong> 표준 출력 (Docker logs)</li>
+                <li><strong>DataSource Monitoring:</strong> HikariCP leak detection (60초)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h3>트러블슈팅</h3>
+            <h4>DB 연결 실패</h4>
+            <ul>
+                <li>DataSource URL 확인 (host, port, database name)</li>
+                <li>자격 증명 확인 (username, password)</li>
+                <li>HikariCP pool 설정 확인 (max-size: 30, min-idle: 5)</li>
+                <li>leak detection 로그 확인 (60초)</li>
+            </ul>
+
+            <h4>S3 연결 실패</h4>
+            <ul>
+                <li><span class="env-var">FINUP_S3_ENABLED</span> 확인</li>
+                <li><span class="env-var">FINUP_S3_BUCKET</span> 확인</li>
+                <li><span class="env-var">FINUP_S3_REGION</span> 확인 (ap-northeast-2)</li>
+                <li>AWS 자격 증명 확인 (profile 또는 IAM role)</li>
+            </ul>
+
+            <h4>Actuator 접근 실패</h4>
+            <ul>
+                <li>포트 확인 (8186)</li>
+                <li>방화벽 규칙 확인</li>
+                <li>ALB TG health check port 확인</li>
+            </ul>
+        </div>
+
+        <div class="success-box">
+            <strong>문서 작성 완료</strong><br>
+            본 리포트는 api-admin의 설정 파일을 상세하게 분석한 결과입니다. 배포 및 운영 시 본 문서를 참고하시기 바랍니다.
+        </div>
+
+        <hr>
+        <p style="text-align: center; color: #666; margin-top: 40px;">
+            <small>본 리포트는 2026년 5월 13일에 작성되었습니다.</small>
+        </p>
+    </div>
+</body>
+</html>

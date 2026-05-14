@@ -1,0 +1,305 @@
+{
+  "source_report": "/mnt/c/reports/FinUp.StockData.Price.Api/FinUp.StockData.Price.Api_report.md",
+  "out_md": "/mnt/c/reports/stockdata.api/use-project-list.md",
+  "out_html": "/mnt/c/reports/stockdata.api/use-project-list.html",
+  "endpoint_count": 93,
+  "project_count": 80,
+  "category_counts": {
+    "소스 프로젝트(/mnt/c/Dev)": 53,
+    "서비스 제공 프로젝트": 1,
+    "배포 config 후보": 9,
+    "Live Configs 참고본": 13,
+    "백업/복사본/기타": 4
+  },
+  "used_endpoint_count": 76,
+  "dead_endpoint_count": 17,
+  "dead_endpoints": [
+    {
+      "no": 25,
+      "area": "Keyword",
+      "http": "GET",
+      "url": "api/stock/calendar",
+      "action": "GetStockOpenDateAsync",
+      "role": "거래일/휴장일 캘린더 조회",
+      "basis": "Controllers/KeywordController.cs:58-80",
+      "tokens": [
+        "api/stock/calendar",
+        "stock/calendar",
+        "/api/stock/calendar",
+        "/stock/calendar",
+        "api/stock/calendar/",
+        "stock/calendar/"
+      ]
+    },
+    {
+      "no": 26,
+      "area": "Keyword",
+      "http": "GET",
+      "url": "api/keyword/stock/industry/{industryidx}/{stockcode}",
+      "action": "GetIndustryRelationStockAsync",
+      "role": "업종과 종목의 관련 종목 목록 조회",
+      "basis": "Controllers/KeywordController.cs:83-106",
+      "tokens": [
+        "api/keyword/stock/industry",
+        "keyword/stock/industry",
+        "api/keyword/stock/industry/",
+        "/api/keyword/stock/industry",
+        "keyword/stock/industry/",
+        "/keyword/stock/industry"
+      ]
+    },
+    {
+      "no": 28,
+      "area": "Keyword",
+      "http": "GET",
+      "url": "api/keyword/theme/similarity/{keywordidx}",
+      "action": "GetKeywordSimilarityTheme",
+      "role": "유사 테마/키워드 목록 조회",
+      "basis": "Controllers/KeywordController.cs:135-158",
+      "tokens": [
+        "api/keyword/theme/similarity",
+        "keyword/theme/similarity",
+        "api/keyword/theme/similarity/",
+        "/api/keyword/theme/similarity",
+        "keyword/theme/similarity/",
+        "/keyword/theme/similarity"
+      ]
+    },
+    {
+      "no": 29,
+      "area": "Keyword",
+      "http": "GET",
+      "url": "api/keyword/stock/golden-signal-form/{stockCode}",
+      "action": "GetGoldenSignalStockData",
+      "role": "종목의 골든시그널 화면 구성 데이터(테마/업종/뉴스)를 조회",
+      "basis": "Controllers/KeywordController.cs:161-183",
+      "tokens": [
+        "api/keyword/stock/golden-signal-form",
+        "keyword/stock/golden-signal-form",
+        "api/keyword/stock/golden-signal-form/",
+        "/api/keyword/stock/golden-signal-form",
+        "keyword/stock/golden-signal-form/",
+        "/keyword/stock/golden-signal-form"
+      ]
+    },
+    {
+      "no": 30,
+      "area": "Keyword",
+      "http": "GET",
+      "url": "api/keyword/stock/holder/{stockCode}",
+      "action": "GetStockHolder",
+      "role": "종목 주주/보유자 관련 정보 조회",
+      "basis": "Controllers/KeywordController.cs:187-209",
+      "tokens": [
+        "api/keyword/stock/holder",
+        "keyword/stock/holder",
+        "api/keyword/stock/holder/",
+        "/api/keyword/stock/holder",
+        "keyword/stock/holder/",
+        "/keyword/stock/holder"
+      ]
+    },
+    {
+      "no": 31,
+      "area": "Keyword",
+      "http": "GET",
+      "url": "api/keyword/stock/ranking/{type}",
+      "action": "GetStockRanking",
+      "role": "타입별 종목 랭킹 조회",
+      "basis": "Controllers/KeywordController.cs:212-233",
+      "tokens": [
+        "api/keyword/stock/ranking",
+        "keyword/stock/ranking",
+        "api/keyword/stock/ranking/",
+        "/api/keyword/stock/ranking",
+        "keyword/stock/ranking/",
+        "/keyword/stock/ranking"
+      ]
+    },
+    {
+      "no": 32,
+      "area": "Keyword",
+      "http": "GET",
+      "url": "api/keyword/stock/theme/{stockCode}",
+      "action": "GetStockRelationTheme",
+      "role": "종목 관련 테마 목록 조회",
+      "basis": "Controllers/KeywordController.cs:236-257",
+      "tokens": [
+        "api/keyword/stock/theme",
+        "keyword/stock/theme",
+        "api/keyword/stock/theme/",
+        "/api/keyword/stock/theme",
+        "keyword/stock/theme/",
+        "/keyword/stock/theme"
+      ]
+    },
+    {
+      "no": 33,
+      "area": "Keyword",
+      "http": "GET",
+      "url": "api/keyword/stock/industry/stock/{stockCode}",
+      "action": "GetStockRelationIndustry",
+      "role": "종목 관련 업종 목록 조회",
+      "basis": "Controllers/KeywordController.cs:260-281",
+      "tokens": [
+        "api/keyword/stock/industry/stock",
+        "keyword/stock/industry/stock",
+        "api/keyword/stock/industry/stock/",
+        "/api/keyword/stock/industry/stock",
+        "keyword/stock/industry/stock/",
+        "/keyword/stock/industry/stock"
+      ]
+    },
+    {
+      "no": 34,
+      "area": "Keyword",
+      "http": "GET",
+      "url": "api/keyword/theme/diff/{keywordidx}",
+      "action": "GetThemeDiff",
+      "role": "테마의 기간별 차이/변동 데이터 조회; 기본은 전일~금일",
+      "basis": "Controllers/KeywordController.cs:285-337",
+      "tokens": [
+        "api/keyword/theme/diff",
+        "keyword/theme/diff",
+        "api/keyword/theme/diff/",
+        "/api/keyword/theme/diff",
+        "keyword/theme/diff/",
+        "/keyword/theme/diff"
+      ]
+    },
+    {
+      "no": 35,
+      "area": "Keyword",
+      "http": "GET",
+      "url": "api/keyword/theme/stock/{keywordidx}",
+      "action": "GetThemeRelationStock",
+      "role": "테마에 속한 관련 종목 조회",
+      "basis": "Controllers/KeywordController.cs:340-361",
+      "tokens": [
+        "api/keyword/theme/stock",
+        "keyword/theme/stock",
+        "api/keyword/theme/stock/",
+        "/api/keyword/theme/stock",
+        "keyword/theme/stock/",
+        "/keyword/theme/stock"
+      ]
+    },
+    {
+      "no": 37,
+      "area": "NewsContents",
+      "http": "GET",
+      "url": "api/news-contents/board",
+      "action": "UploadNewsContentsBoard(date)",
+      "role": "뉴스 콘텐츠 HTML 본문을 조회해 text/html로 반환",
+      "basis": "Controllers/NewsContentsController.cs:34-53",
+      "tokens": [
+        "api/news-contents/board",
+        "news-contents/board",
+        "/api/news-contents/board",
+        "/news-contents/board",
+        "api/news-contents/board/",
+        "news-contents/board/"
+      ]
+    },
+    {
+      "no": 46,
+      "area": "Price",
+      "http": "GET",
+      "url": "api/chart/nvd3/minutes/{code}/{minutes}",
+      "action": "GetCandleAllChart",
+      "role": "NVD3용 N분봉 차트 데이터 조회",
+      "basis": "Controllers/PriceController.cs:155-168",
+      "tokens": [
+        "api/chart/nvd3/minutes",
+        "chart/nvd3/minutes",
+        "api/chart/nvd3/minutes/",
+        "/api/chart/nvd3/minutes",
+        "chart/nvd3/minutes/",
+        "/chart/nvd3/minutes"
+      ]
+    },
+    {
+      "no": 52,
+      "area": "Price",
+      "http": "GET",
+      "url": "api/priceliststock/{code}",
+      "action": "GetPriceListStock",
+      "role": "체결 목록 조회; 장중은 Redis, 장외는 Mongo 백업 사용",
+      "basis": "Controllers/PriceController.cs:380-413",
+      "tokens": [
+        "api/priceliststock",
+        "api/priceliststock/",
+        "/api/priceliststock",
+        "/priceliststock"
+      ]
+    },
+    {
+      "no": 60,
+      "area": "PriceMonitor",
+      "http": "GET",
+      "url": "api/pricemonitor/stock/set",
+      "action": "SetStock",
+      "role": "체결감시 기준 종목 캐시 구성/갱신",
+      "basis": "Controllers/PriceMonitorController.cs:16-27",
+      "tokens": [
+        "api/pricemonitor/stock/set",
+        "pricemonitor/stock/set",
+        "/api/pricemonitor/stock/set",
+        "/pricemonitor/stock/set",
+        "api/pricemonitor/stock/set/",
+        "pricemonitor/stock/set/"
+      ]
+    },
+    {
+      "no": 80,
+      "area": "ThemeLog",
+      "http": "GET",
+      "url": "api/themelog/keyword/rank",
+      "action": "GetThemelogKeywordRank",
+      "role": "테마로그 키워드 랭킹 조회",
+      "basis": "Controllers/ThemeLogController.cs:123-128",
+      "tokens": [
+        "api/themelog/keyword/rank",
+        "themelog/keyword/rank",
+        "/api/themelog/keyword/rank",
+        "/themelog/keyword/rank",
+        "api/themelog/keyword/rank/",
+        "themelog/keyword/rank/"
+      ]
+    },
+    {
+      "no": 81,
+      "area": "ThemeLog",
+      "http": "POST",
+      "url": "api/themelog/keyword/relation-stocks",
+      "action": "GetThemeLogRelationStocks",
+      "role": "테마로그 키워드 관련 종목 조회",
+      "basis": "Controllers/ThemeLogController.cs:139-144",
+      "tokens": [
+        "api/themelog/keyword/relation-stocks",
+        "themelog/keyword/relation-stocks",
+        "/api/themelog/keyword/relation-stocks",
+        "/themelog/keyword/relation-stocks",
+        "api/themelog/keyword/relation-stocks/",
+        "themelog/keyword/relation-stocks/"
+      ]
+    },
+    {
+      "no": 82,
+      "area": "ThemeLog",
+      "http": "POST",
+      "url": "api/themelog/keyword/Diff",
+      "action": "GetThemelogKeywordDiffList",
+      "role": "테마로그 키워드 변동 목록 조회",
+      "basis": "Controllers/ThemeLogController.cs:155-160",
+      "tokens": [
+        "api/themelog/keyword/Diff",
+        "themelog/keyword/Diff",
+        "/api/themelog/keyword/Diff",
+        "/themelog/keyword/Diff",
+        "api/themelog/keyword/Diff/",
+        "themelog/keyword/Diff/"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1118 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AlphaBot 레거시 윈도우앱 반복 처리 구조 분석 보고서 — DB 스냅샷 반영본</title>
+  <style>
+:root{
+  --bg:#f6f9fc; --ink:#0a2540; --muted:#425466; --line:#e6ebf1;
+  --blue:#635bff; --cyan:#00d4ff; --purple:#7a73ff; --green:#00a878;
+  --yellow:#f6c453; --red:#e5484d; --card:#ffffff; --shadow:0 24px 70px rgba(50,50,93,.12),0 10px 24px rgba(0,0,0,.08);
+  --radius:22px;
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);line-height:1.72;}
+body:before{content:"";position:fixed;inset:0 0 auto 0;height:520px;background:linear-gradient(125deg,#0a2540 0%,#3430a6 36%,#635bff 63%,#00d4ff 100%);clip-path:polygon(0 0,100% 0,100% 72%,0 100%);z-index:-2}
+body:after{content:"";position:fixed;top:96px;right:-110px;width:560px;height:240px;background:radial-gradient(circle,rgba(255,255,255,.35),rgba(255,255,255,0) 68%);filter:blur(2px);z-index:-1}
+.shell{max-width:1440px;margin:0 auto;padding:42px 28px 80px}.hero{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:34px;align-items:end;color:#fff;margin:28px 0 42px}.eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:800;color:#b8f3ff;margin-bottom:18px}.hero h1{font-size:clamp(38px,6vw,74px);line-height:.95;letter-spacing:-.05em;margin:0 0 22px;color:#fff;max-width:960px}.hero p{font-size:18px;color:#d8e8ff;max-width:760px;margin:0}.hero-card{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);backdrop-filter:blur(18px)}.hero-card strong{display:block;font-size:13px;color:#b8f3ff;margin-bottom:8px}.hero-card code{color:#fff;background:rgba(10,37,64,.28);word-break:break-all}.layout{display:grid;grid-template-columns:280px minmax(0,1fr);gap:26px}.toc{position:sticky;top:24px;align-self:start;background:rgba(255,255,255,.92);border:1px solid rgba(230,235,241,.9);border-radius:20px;padding:18px;box-shadow:0 12px 36px rgba(50,50,93,.10);max-height:calc(100vh - 48px);overflow:auto}.toc-title{font-weight:800;margin:0 0 12px;color:var(--ink)}.toc a{display:block;text-decoration:none;color:var(--muted);padding:7px 9px;border-radius:10px;font-size:13px;line-height:1.35}.toc a:hover{background:#f1f5ff;color:var(--blue)}.toc .toc-h3{padding-left:22px;font-size:12px;color:#6b7c93}.content{background:rgba(255,255,255,.96);border:1px solid rgba(230,235,241,.92);border-radius:28px;padding:44px;box-shadow:var(--shadow);overflow:hidden}.content h1{display:none}.content h2{font-size:32px;line-height:1.12;letter-spacing:-.035em;margin:58px 0 18px;padding-top:8px}.content h2:first-of-type{margin-top:0}.content h2:before{content:"";display:block;width:64px;height:6px;border-radius:999px;background:linear-gradient(90deg,var(--blue),var(--cyan));margin-bottom:16px}.content h3{font-size:22px;letter-spacing:-.02em;margin:34px 0 14px}.content p{color:var(--muted);margin:14px 0}.content strong{color:var(--ink)}.content hr{border:0;height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);margin:36px 0}.content ul,.content ol{padding-left:22px;color:var(--muted)}.content li{margin:8px 0}.content code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:.92em;color:#3d2d8f;background:#f4f1ff;border:1px solid #e5e0ff;border-radius:7px;padding:.12em .38em}.content pre{background:#06182f;color:#d6e8ff;border-radius:18px;padding:22px;overflow:auto;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}.content pre code{background:transparent;border:0;color:inherit;padding:0}.table-wrap{width:100%;overflow:auto;margin:20px 0 28px;border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 28px rgba(50,50,93,.06)}table{border-collapse:collapse;width:100%;min-width:760px;background:#fff}th{background:linear-gradient(180deg,#f8fbff,#eef4ff);color:#23395d;font-size:12px;text-transform:uppercase;letter-spacing:.05em;text-align:left;border-bottom:1px solid var(--line);padding:13px 14px;white-space:nowrap}td{padding:13px 14px;border-bottom:1px solid #eef2f7;color:#425466;vertical-align:top}tr:last-child td{border-bottom:0}tr:hover td{background:#fbfdff}blockquote{margin:22px 0;padding:18px 20px;border-left:5px solid var(--blue);background:#f6f9ff;border-radius:0 16px 16px 0;color:#30415f}.badge{display:inline-flex;align-items:center;border-radius:999px;font-size:12px;font-weight:800;padding:3px 9px;letter-spacing:.01em}.risk-critical{background:#ffe8ea;color:#b4232a}.risk-high{background:#fff1cc;color:#8a5a00}.risk-medium{background:#e9f4ff;color:#075985}.risk-low{background:#e9fbf4;color:#087f5b}.footer{margin-top:24px;color:#d8e8ff;font-size:13px;text-align:right}.source-link{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:10px 12px;border-radius:999px;color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);text-decoration:none}@media (max-width:980px){.hero{grid-template-columns:1fr}.layout{grid-template-columns:1fr}.toc{position:relative;top:0}.content{padding:28px}.shell{padding:24px 16px 56px}}
+</style>
+</head>
+<body>
+  <div class="shell">
+    <header class="hero">
+      <div>
+        <div class="eyebrow">Legacy Windows App · DB-driven loop analysis</div>
+        <h1>AlphaBot 레거시 윈도우앱 반복 처리 구조 분석 보고서</h1>
+        <p>DB 스냅샷 반영본 · Stripe-inspired HTML Report. T_Operation/T_OperationTerm 스냅샷을 반영해 반복 실행, 중복 처리, MaxDuration 미사용 위험을 재정리했습니다.</p>
+      </div>
+      <aside class="hero-card">
+        <strong>Generated</strong>
+        <div>2026-05-14 16:07:24</div>
+        <strong style="margin-top:16px">Source Markdown</strong>
+        <code>/mnt/c/reports/stockdata.api/AlphaBot 레거시 윈도우앱 반복 처리 구조 분석 보고서_DB스냅샷반영_2026-05-14.md</code>
+        <strong style="margin-top:16px">Output</strong>
+        <code>/mnt/c/reports/stockdata.api/AlphaBot 레거시 윈도우앱 반복 처리 구조 분석 보고서_DB스냅샷반영_2026-05-14.html</code>
+      </aside>
+    </header>
+    <main class="layout">
+      <nav class="toc" aria-label="Table of contents">
+        <div class="toc-title">Contents</div>
+        <a class="toc-h2" href="#1-시스템-요약">1. 시스템 요약</a><a class="toc-h3" href="#핵심-변경-판단">핵심 변경 판단</a><a class="toc-h2" href="#2-실행-진입점">2. 실행 진입점</a><a class="toc-h2" href="#3-루프-구조">3. 루프 구조</a><a class="toc-h3" href="#db-스냅샷으로-확인된-고빈도-작업">DB 스냅샷으로 확인된 고빈도 작업</a><a class="toc-h2" href="#4-db-처리-흐름">4. DB 처리 흐름</a><a class="toc-h3" href="#4-1-공통-스케줄-조회-sql-구조">4.1 공통 스케줄 조회 SQL 구조</a><a class="toc-h3" href="#4-2-제공-db-컬럼-중-현재-스케줄러가-사용하지-않는-컬럼">4.2 제공 DB 컬럼 중 현재 스케줄러가 사용하지 않는 컬럼</a><a class="toc-h2" href="#5-반복-업무-상태-흐름">5. 반복 업무 상태 흐름</a><a class="toc-h3" href="#5-1-코드-기준-흐름">5.1 코드 기준 흐름</a><a class="toc-h3" href="#5-2-db-스냅샷을-반영한-상태-의미">5.2 DB 스냅샷을 반영한 상태 의미</a><a class="toc-h2" href="#6-db-스냅샷-기반-활성-작업-분석">6. DB 스냅샷 기반 활성 작업 분석</a><a class="toc-h3" href="#6-1-collectdata-svctype-data">6.1 CollectData / SvcType=&#x27;Data&#x27;</a><a class="toc-h3" href="#6-2-finance-svctype-finance">6.2 Finance / SvcType=&#x27;Finance&#x27;</a><a class="toc-h3" href="#6-3-radar-svctype-themeradar">6.3 Radar / SvcType=&#x27;ThemeRadar&#x27;</a><a class="toc-h3" href="#6-4-stock-svctype-stockpoint">6.4 Stock / SvcType=&#x27;StockPoint&#x27;</a><a class="toc-h2" href="#7-중복-처리-위험">7. 중복 처리 위험</a><a class="toc-h2" href="#8-예외-복구-구조">8. 예외/복구 구조</a><a class="toc-h2" href="#9-db-부하-위험">9. DB 부하 위험</a><a class="toc-h2" href="#10-리팩터링-우선순위">10. 리팩터링 우선순위</a><a class="toc-h2" href="#11-다음-분석-단계">11. 다음 분석 단계</a><a class="toc-h2" href="#12-결론">12. 결론</a>
+      </nav>
+      <article class="content">
+        <h1 id="alphabot-레거시-윈도우앱-반복-처리-구조-분석-보고서-db-스냅샷-반영본">AlphaBot 레거시 윈도우앱 반복 처리 구조 분석 보고서 — DB 스냅샷 반영본</h1>
+<ul>
+<li>원본 보고서: <code>/mnt/c/reports/stockdata.api/AlphaBot 레거시 윈도우앱 반복 처리 구조 분석 보고서.md</code></li>
+<li>신규 저장 파일: <code>/mnt/c/reports/stockdata.api/AlphaBot 레거시 윈도우앱 반복 처리 구조 분석 보고서_DB스냅샷반영_2026-05-14.md</code></li>
+<li>반영 데이터: 사용자가 제공한 <code>T_Operation</code>, <code>T_OperationTerm</code> 스냅샷.</li>
+<li>분석 범위: <code>FinUp.CollectData.App.AlphaBot</code>, <code>FinUp.Finance.App.AlphaBot</code>, <code>FinUp.Radar.App.AlphaBot</code>, <code>FinUp.Stock.App.AlphaBot</code>.</li>
+<li>코드 변경 여부: 없음. 보고서 파일만 신규 생성.</li>
+</ul>
+<blockquote>표기 원칙: 코드에서 확인한 내용은 <strong>근거</strong>로 표시했고, 제공 DB 스냅샷에서 도출한 내용은 <strong>DB 스냅샷 근거</strong>로 표시했다. 운영 DB의 SP 내부 구현은 현재 코드 저장소만으로 확인되지 않아 <strong>추가 확인 필요</strong>로 분리했다.</blockquote>
+<hr>
+<h2 id="1-시스템-요약">1. 시스템 요약</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>프로젝트</th>
+<th>앱 유형</th>
+<th>실제 조회 <code>SvcType</code></th>
+<th>실행 후보 조건</th>
+<th>제공 DB 스냅샷상 주요 활성 작업</th>
+</tr></thead><tbody>
+<tr>
+<td><code>FinUp.CollectData.App.AlphaBot</code></td>
+<td>WPF / <code>WinExe</code> / .NET 6 Windows</td>
+<td><code>Data</code></td>
+<td><code>DelDT IS NULL</code>, <code>T_OperationTerm.DelDT IS NULL</code>, <code>DisplayAlphabot = 1</code>, <code>SvcType = &#x27;Data&#x27;</code>, <code>Active = 1</code></td>
+<td>정책/파트너스 아침 발송, 시장지수 크롤링, 네이버 키워드 랭킹, MongoDB 정리, 뉴스 크롤링 체크</td>
+</tr>
+<tr>
+<td><code>FinUp.Finance.App.AlphaBot</code></td>
+<td>WPF / <code>WinExe</code> / .NET 6 Windows</td>
+<td><code>Finance</code></td>
+<td>동일, <code>SvcType = &#x27;Finance&#x27;</code></td>
+<td>랭킹 집계, 인베스트RSS</td>
+</tr>
+<tr>
+<td><code>FinUp.Radar.App.AlphaBot</code></td>
+<td>WPF / <code>WinExe</code> / .NET Framework 4.7</td>
+<td><code>ThemeRadar</code></td>
+<td>동일, <code>SvcType = &#x27;ThemeRadar&#x27;</code></td>
+<td>공시 수집, 종목 가격 업데이트, 키워드 분석, 랭킹, Clean, MongoDB/API/뉴스 체크, 검색/유사도/브리핑/사용자 알림</td>
+</tr>
+<tr>
+<td><code>FinUp.Stock.App.AlphaBot</code></td>
+<td>WPF / <code>WinExe</code> / .NET Framework 4.7</td>
+<td><code>StockPoint</code></td>
+<td>동일, <code>SvcType = &#x27;StockPoint&#x27;</code></td>
+<td>SMS/APP/Alarm Push, 자동결제, API Service, 사이트 체크, AWS 모니터링, Email/SMS 외부 발송, 휴면/알림/통계/포인트/유튜브/럭키박스 관련 작업</td>
+</tr>
+</tbody></table></div>
+<h3 id="핵심-변경-판단">핵심 변경 판단</h3>
+<ol>
+<li>기존 보고서의 “중복 실행 위험”은 DB 스냅샷으로 더 강하게 확인된다.</li>
+</ol>
+<ul>
+<li><code>T_Operation.LastExecDT</code>가 실행 선점/완료 시각 역할을 겸하고 있다.</li>
+<li>별도 <code>Running</code>, <code>ClaimedBy</code>, <code>ClaimedAt</code>, <code>RetryCount</code> 컬럼은 제공 스냅샷에 없다.</li>
+</ul>
+<ol>
+<li><code>T_OperationTerm.MaxDuration</code> 컬럼은 운영상 중요한 제한값처럼 보이지만, 현재 4개 앱의 스케줄 조회 코드에서는 선택/사용되지 않는다.</li>
+<li><code>T_Operation.AliveCheck</code>, <code>EnableAlarm</code>, <code>LastSeek</code>, <code>OperationType</code>도 현재 4개 앱의 공통 스케줄 조회 SQL에는 포함되지 않는다.</li>
+<li><code>DisplayAlphabot = 0</code>인데 <code>Active = 1</code>이고 <code>LastExecDT</code>가 최신인 행이 존재한다. 이 작업들은 현재 분석 대상 AlphaBot 코드의 공통 조회 조건으로는 제외되므로, 다른 서비스/구버전/별도 배치에서 갱신 중인지 추가 확인이 필요하다.</li>
+</ol>
+<hr>
+<h2 id="2-실행-진입점">2. 실행 진입점</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>프로젝트</th>
+<th>진입점</th>
+<th>메인 화면/초기화</th>
+<th>자동 시작</th>
+</tr></thead><tbody>
+<tr>
+<td>CollectData</td>
+<td><code>App.xaml</code> → <code>MainWindow.xaml</code></td>
+<td><code>MainWindow.xaml</code>에서 <code>MainViewModel</code> 생성</td>
+<td>수동 시작 버튼</td>
+</tr>
+<tr>
+<td>Finance</td>
+<td><code>App.xaml</code> → <code>MainWindow.xaml</code></td>
+<td><code>MainWindow.xaml</code>에서 <code>MainViewModel</code> 생성</td>
+<td>수동 시작 버튼</td>
+</tr>
+<tr>
+<td>Radar</td>
+<td><code>App.xaml</code> → <code>MainWindow.xaml</code></td>
+<td><code>MainWindow.Loaded</code>에서 <code>InitializeMember()</code></td>
+<td><code>AppSetting.ConfigServerType == &quot;REAL&quot;</code>이면 자동 시작</td>
+</tr>
+<tr>
+<td>Stock</td>
+<td><code>App.xaml</code> → <code>MainWindow.xaml</code></td>
+<td><code>MainWindow.Loaded</code>에서 <code>InitializeMember()</code></td>
+<td>수동 시작 버튼</td>
+</tr>
+</tbody></table></div>
+<p><strong>근거</strong></p>
+<ul>
+<li><code>Program.cs</code>는 4개 대상 프로젝트에서 발견되지 않음.</li>
+<li>WPF 시작점:</li>
+<li><code>FinUp.CollectData.App.AlphaBot/FinUp.CollectData.App.AlphaBot/App.xaml:5</code> — <code>StartupUri=&quot;MainWindow.xaml&quot;</code></li>
+<li><code>FinUp.Finance.App.AlphaBot/FinUp.Finance.App.Alphabot/App.xaml:5</code> — <code>StartupUri=&quot;MainWindow.xaml&quot;</code></li>
+<li><code>FinUp.Radar.App.AlphaBot/App.xaml:5</code> — <code>StartupUri=&quot;MainWindow.xaml&quot;</code></li>
+<li><code>FinUp.Stock.App.AlphaBot/App.xaml:5</code> — <code>StartupUri=&quot;MainWindow.xaml&quot;</code></li>
+<li>WPF/WinExe:</li>
+<li><code>FinUp.CollectData.App.AlphaBot/...csproj:5-7</code> — <code>OutputType=WinExe</code>, <code>UseWPF=true</code></li>
+<li><code>FinUp.Finance.App.AlphaBot/...csproj:4-6</code> — <code>OutputType=WinExe</code>, <code>UseWPF=true</code></li>
+<li><code>FinUp.Radar.App.AlphaBot/FinUp.Radar.App.AlphaBot.csproj:8-13</code> — <code>OutputType=WinExe</code>, WPF ProjectTypeGuid</li>
+<li><code>FinUp.Stock.App.AlphaBot/FinUp.Stock.App.AlphaBot.csproj:8-14</code> — <code>OutputType=WinExe</code>, WPF ProjectTypeGuid</li>
+</ul>
+<hr>
+<h2 id="3-루프-구조">3. 루프 구조</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>프로젝트</th>
+<th>루프 시작 위치</th>
+<th>루프 방식</th>
+<th>기본 Tick</th>
+<th>DB 실행 주기 반영 방식</th>
+<th>중첩 위험</th>
+</tr></thead><tbody>
+<tr>
+<td>CollectData</td>
+<td><code>MainViewModel.CommandStart_Click</code></td>
+<td><code>DispatcherTimer</code> + <code>new Thread</code></td>
+<td>설정 <code>AlphaBot.ObServeTime</code>, 제공 Release config는 5초</td>
+<td>매 Tick마다 <code>T_OperationTerm.LoopInterval</code>/<code>OnceTime</code> 비교</td>
+<td><span class="badge risk-high">High</span></td>
+</tr>
+<tr>
+<td>Finance</td>
+<td><code>MainViewModel.CommandStart_Click</code></td>
+<td><code>DispatcherTimer</code> + <code>new Thread</code></td>
+<td>5초 고정</td>
+<td>동일</td>
+<td><span class="badge risk-high">High</span></td>
+</tr>
+<tr>
+<td>Radar</td>
+<td><code>MainWindow.btnStart_Click</code></td>
+<td><code>DispatcherTimer</code> + <code>new Thread</code></td>
+<td>5초</td>
+<td>동일</td>
+<td><span class="badge risk-high">High</span></td>
+</tr>
+<tr>
+<td>Stock</td>
+<td><code>MainWindow.btnStart_Click</code></td>
+<td><code>DispatcherTimer</code> + <code>new Thread</code> + Alive 1분 Timer</td>
+<td>5초</td>
+<td>동일</td>
+<td><span class="badge risk-high">Medium~High</span></td>
+</tr>
+</tbody></table></div>
+<p><strong>근거</strong></p>
+<ul>
+<li>CollectData:</li>
+<li><code>FinUp.CollectData.../ViewModel/MainViewModel.cs:43-44</code> — <code>tMainTimer</code>, <code>tObserveTimer</code></li>
+<li><code>FinUp.CollectData.../ViewModel/MainViewModel.cs:137-149</code> — Start/Stop은 Timer만 제어</li>
+<li><code>FinUp.CollectData.../Biz/AlphaBotBiz.cs:290</code>, <code>325-331</code> — 작업 Thread 생성 후 내부에서 다시 Thread 생성</li>
+<li>Finance:</li>
+<li><code>FinUp.Finance.../ViewModel/MainViewModel.cs:42-43</code>, <code>136-148</code></li>
+<li><code>FinUp.Finance.../Biz/AlphaBotBiz.cs:271</code>, <code>306-312</code></li>
+<li>Radar:</li>
+<li><code>FinUp.Radar.App.AlphaBot/MainWindow.xaml.cs:123-139</code>, <code>918-934</code></li>
+<li><code>FinUp.Radar.App.AlphaBot/MainWindow.xaml.cs:454</code>, <code>712-718</code></li>
+<li>Stock:</li>
+<li><code>FinUp.Stock.App.AlphaBot/MainWindow.xaml.cs:80-90</code>, <code>912-918</code>, <code>928-933</code></li>
+<li><code>FinUp.Stock.App.AlphaBot/MainWindow.xaml.cs:335</code>, <code>678-730</code></li>
+</ul>
+<h3 id="db-스냅샷으로-확인된-고빈도-작업">DB 스냅샷으로 확인된 고빈도 작업</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>앱</th>
+<th>OIdx / 작업</th>
+<th>Type</th>
+<th>LoopInterval / OnceTime</th>
+<th>위험 포인트</th>
+</tr></thead><tbody>
+<tr>
+<td>Stock</td>
+<td><code>1 SMS Push</code></td>
+<td>Loop</td>
+<td>5초</td>
+<td>Timer tick도 5초라 매 Tick 실행 후보. 처리 지연 시 중복/지연 위험</td>
+</tr>
+<tr>
+<td>Stock</td>
+<td><code>2 APP Push</code></td>
+<td>Loop</td>
+<td>10초</td>
+<td>고빈도 Push 처리</td>
+</tr>
+<tr>
+<td>Stock</td>
+<td><code>11 API Service</code></td>
+<td>Loop</td>
+<td>10초</td>
+<td>외부 API/DB 동시 부하 가능</td>
+</tr>
+<tr>
+<td>Stock</td>
+<td><code>151 외부 SMS - 다날</code></td>
+<td>Loop</td>
+<td>5초</td>
+<td>외부 SMS 연동 중복 발송 Critical 가능성</td>
+</tr>
+<tr>
+<td>Stock</td>
+<td><code>130 Email Push</code></td>
+<td>Loop</td>
+<td>10초</td>
+<td>대량 이메일 발송 큐 중복 위험</td>
+</tr>
+<tr>
+<td>ThemeRadar</td>
+<td><code>10020 공시 수집</code></td>
+<td>Loop</td>
+<td>30초</td>
+<td>외부 공시/뉴스 수집 중복 가능</td>
+</tr>
+<tr>
+<td>ThemeRadar</td>
+<td><code>10030 종목 가격 업데이트</code></td>
+<td>Loop</td>
+<td>60초</td>
+<td>종목 가격/캐시 갱신 부하</td>
+</tr>
+<tr>
+<td>ThemeRadar</td>
+<td><code>10200 MongoDB 상태 체크</code></td>
+<td>Loop</td>
+<td>60초</td>
+<td>DB/외부 연결 상태 체크</td>
+</tr>
+<tr>
+<td>Data</td>
+<td><code>30070 뉴스 크롤링 체크</code></td>
+<td>Loop</td>
+<td>3600초</td>
+<td>뉴스 수집 상태 감시</td>
+</tr>
+<tr>
+<td>Finance</td>
+<td><code>40001 랭킹 집계</code></td>
+<td>Loop</td>
+<td>3600초</td>
+<td>집계성 작업, 장시간 실행 시 중복 위험</td>
+</tr>
+</tbody></table></div>
+<p><strong>DB 스냅샷 근거</strong></p>
+<ul>
+<li><code>T_OperationTerm.OTIdx=1</code>, <code>OIdx=1</code>, <code>Type=2</code>, <code>LoopInterval=5</code>, <code>MaxDuration=60</code></li>
+<li><code>T_OperationTerm.OTIdx=151</code>, <code>OIdx=151</code>, <code>Type=2</code>, <code>LoopInterval=5</code>, <code>MaxDuration=20</code></li>
+<li><code>T_OperationTerm.OTIdx=10002</code>, <code>OIdx=10020</code>, <code>Type=2</code>, <code>LoopInterval=30</code>, <code>LoopStartTime=07:35:00</code>, <code>LoopEndTime=23:25:00</code></li>
+<li><code>T_OperationTerm.OTIdx=40001</code>, <code>OIdx=40001</code>, <code>Type=2</code>, <code>LoopInterval=3600</code></li>
+</ul>
+<hr>
+<h2 id="4-db-처리-흐름">4. DB 처리 흐름</h2>
+<h3 id="4-1-공통-스케줄-조회-sql-구조">4.1 공통 스케줄 조회 SQL 구조</h3>
+<pre><code>SELECT      TOT.OIdx,
+            Name,
+            ManualExec,
+            LastExecDT,
+            OTIdx,
+            &#x27;TermType&#x27; = Type,
+            CASE WHEN TOT.Active = 0 THEN 0 ELSE TOT.Active END Active,
+            TOT.Active AS OperActive,
+            CASE WHEN TOT.Active = 0 THEN &#x27;비활성화&#x27; ELSE &#x27;활성화&#x27; END ActiveName,
+            StockOpen,
+            (SELECT OffDay
+             FROM StockData.dbo.T_StockCalendar WITH(NOLOCK)
+             WHERE YYYY_MM_DD = CONVERT(VARCHAR, GETDATE(), 23)) OffDay,
+            OnceTime,
+            LoopInterval,
+            LoopStartTime,
+            LoopEndTime,
+            GETDATE() DateTimeNow
+FROM        SystemData.dbo.T_Operation TOT WITH(NOLOCK)
+INNER JOIN  SystemData.dbo.T_OperationTerm TOTM WITH(NOLOCK)
+        ON  TOT.OIdx = TOTM.OIdx
+WHERE       TOT.DelDT IS NULL
+AND         TOTM.DelDT IS NULL
+AND         TOT.DisplayAlphabot = 1
+AND         TOT.SvcType = ...</code></pre>
+<p><strong>근거</strong></p>
+<ul>
+<li>CollectData: <code>FinUp.Core.DS.Dac/FinUp.Core.DS.Dac/Sql/SqlOperationDac.cs:15-49</code>, <code>SvcType=@SvcType</code></li>
+<li>Finance: <code>FinUp.Finance.App.AlphaBot/.../SqlOperationDao.cs:19-54</code>, <code>SvcType=@SvcType</code></li>
+<li>Radar: <code>FinUp.Radar/Sql/SqlOperation.cs:11-47</code>, <code>SvcType=&#x27;ThemeRadar&#x27;</code></li>
+<li>Stock: <code>FinUp.Stock.App/Sql/SqlSender.cs:12-47</code>, <code>SvcType=&#x27;StockPoint&#x27;</code></li>
+</ul>
+<h3 id="4-2-제공-db-컬럼-중-현재-스케줄러가-사용하지-않는-컬럼">4.2 제공 DB 컬럼 중 현재 스케줄러가 사용하지 않는 컬럼</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>테이블</th>
+<th>컬럼</th>
+<th>제공 DB상 의미로 보이는 것</th>
+<th>현재 4개 AlphaBot 스케줄러 사용 여부</th>
+<th>위험</th>
+</tr></thead><tbody>
+<tr>
+<td><code>T_Operation</code></td>
+<td><code>OperationType</code></td>
+<td>작업 분류</td>
+<td>조회 SQL에 없음</td>
+<td>운영자가 Type을 바꿔도 앱 동작에 반영되지 않을 수 있음</td>
+</tr>
+<tr>
+<td><code>T_Operation</code></td>
+<td><code>AliveCheck</code></td>
+<td>Alive 감시 여부</td>
+<td>조회 SQL에 없음</td>
+<td>코드의 Alive는 별도 하드코딩 경로 사용</td>
+</tr>
+<tr>
+<td><code>T_Operation</code></td>
+<td><code>EnableAlarm</code></td>
+<td>알람 여부</td>
+<td>조회 SQL에 없음</td>
+<td>장애 알림 정책과 실제 앱 동작 불일치 가능</td>
+</tr>
+<tr>
+<td><code>T_Operation</code></td>
+<td><code>LastSeek</code></td>
+<td>진행 커서/마지막 처리 위치 추정</td>
+<td>조회 SQL에 없음</td>
+<td>예: <code>OIdx=170</code>의 <code>LastSeek=14591706</code>은 별도 작업 내부에서만 의미 있을 가능성</td>
+</tr>
+<tr>
+<td><code>T_OperationTerm</code></td>
+<td><code>MaxDuration</code></td>
+<td>최대 실행 허용 시간</td>
+<td>조회 SQL에 없음</td>
+<td>장시간 실행 감지/강제 중단에 사용되지 않음</td>
+</tr>
+</tbody></table></div>
+<p><strong>근거</strong></p>
+<ul>
+<li>위 공통 조회 SQL은 <code>OperationType</code>, <code>AliveCheck</code>, <code>EnableAlarm</code>, <code>LastSeek</code>, <code>MaxDuration</code>을 SELECT하지 않는다.</li>
+<li><code>rg</code> 검색 결과 <code>MaxDuration</code>은 4개 앱/관련 SQL에서 사용 흔적이 확인되지 않았다.</li>
+<li><code>FinUp.Stock.App.AlphaBot/Type/OperationType.cs:89</code>에 <code>EnableAlarm</code> 속성은 있으나 생성자/업데이트 및 조회 SQL에서 값이 주입되지 않는다.</li>
+</ul>
+<hr>
+<h2 id="5-반복-업무-상태-흐름">5. 반복 업무 상태 흐름</h2>
+<h3 id="5-1-코드-기준-흐름">5.1 코드 기준 흐름</h3>
+<pre><code>T_Operation / T_OperationTerm 조회
+→ DisplayAlphabot, SvcType, DelDT 조건으로 후보 제한
+→ member.Active == 1 확인
+→ operation.Active == 1 확인
+→ StockOpen / OffDay / LoopInterval / OnceTime 조건 확인
+→ LastExecDT 업데이트
+→ Thread 시작
+→ actionState = Running
+→ 작업 실행
+→ OperationTermHistory START / ERROR / STOP(또는 END) 기록
+→ actionState = Stop</code></pre>
+<h3 id="5-2-db-스냅샷을-반영한-상태-의미">5.2 DB 스냅샷을 반영한 상태 의미</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>상태 요소</th>
+<th>실제 저장 위치</th>
+<th>코드 사용 방식</th>
+<th>문제점</th>
+</tr></thead><tbody>
+<tr>
+<td>대기/활성</td>
+<td><code>T_Operation.Active</code>, <code>T_OperationTerm.Active</code></td>
+<td>둘 다 1이어야 실행 후보</td>
+<td>둘 중 하나만 0이면 실행 안 됨. 운영자는 두 테이블 동시 확인 필요</td>
+</tr>
+<tr>
+<td>실행 시각</td>
+<td><code>T_Operation.LastExecDT</code></td>
+<td>실행 전에 업데이트하거나, Stock은 실행 시작부에서 업데이트</td>
+<td>완료 시각이 아니라 “시도/선점 시각”에 가까움</td>
+</tr>
+<tr>
+<td>실행 이력</td>
+<td><code>USP_OperationTermHistory_Insert</code></td>
+<td>START/ERROR/STOP 또는 START/ERROR/END</td>
+<td>SP 내부 스키마 확인 필요</td>
+</tr>
+<tr>
+<td>실행 중</td>
+<td>메모리 <code>member.actionState</code></td>
+<td>같은 프로세스 내 중복 방지</td>
+<td>다중 프로세스/서버 간 중복 방지 불가</td>
+</tr>
+<tr>
+<td>최대 시간</td>
+<td><code>T_OperationTerm.MaxDuration</code></td>
+<td>현재 스케줄러 미사용</td>
+<td>장시간 Running 감시가 코드에 연결되지 않음</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="6-db-스냅샷-기반-활성-작업-분석">6. DB 스냅샷 기반 활성 작업 분석</h2>
+<h3 id="6-1-collectdata-svctype-data">6.1 CollectData / <code>SvcType=&#x27;Data&#x27;</code></h3>
+<div class="table-wrap"><table><thead><tr>
+<th>OIdx</th>
+<th>Name</th>
+<th>Operation Active</th>
+<th>DisplayAlphabot</th>
+<th>실행 여부 판단</th>
+<th>Term 요약</th>
+</tr></thead><tbody>
+<tr>
+<td>30010</td>
+<td>뉴스 크롤링</td>
+<td>1</td>
+<td>0</td>
+<td>현재 공통 조회 SQL 기준 제외</td>
+<td><code>Loop 30초</code>, <code>OTIdx=30010</code></td>
+</tr>
+<tr>
+<td>30011</td>
+<td>정책 크롤링 아침 발송</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 08:00</code>, <code>StockOpen=1</code></td>
+</tr>
+<tr>
+<td>30012</td>
+<td>파트너스 크롤링 아침 발송</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 08:00</code></td>
+</tr>
+<tr>
+<td>30020</td>
+<td>시장지수 크롤링</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>06:20</code>, <code>08:00</code>, <code>15:40</code>, <code>16:10</code> 다중 Once</td>
+</tr>
+<tr>
+<td>30030</td>
+<td>네이버 키워드 랭킹</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 15:40</code></td>
+</tr>
+<tr>
+<td>30040</td>
+<td>증시일정 크롤링</td>
+<td>0</td>
+<td>0</td>
+<td>제외</td>
+<td>Term도 Active 0</td>
+</tr>
+<tr>
+<td>30050</td>
+<td>MongoDB 정리</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 05:00</code></td>
+</tr>
+<tr>
+<td>30060</td>
+<td>테마 사이트 크롤링</td>
+<td>0</td>
+<td>0</td>
+<td>제외</td>
+<td>Term Active 0</td>
+</tr>
+<tr>
+<td>30070</td>
+<td>뉴스 크롤링 체크</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 3600초</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>운영상 특이점</strong></p>
+<ul>
+<li><code>OIdx=30010</code>은 <code>Active=1</code>이고 <code>LastExecDT=2026-05-14 12:55:52</code>로 최신이지만 <code>DisplayAlphabot=0</code>이다.</li>
+<li>현재 확인한 <code>SqlOperationDac.ListOperationTerm(&quot;Data&quot;)</code>는 <code>TOT.DisplayAlphabot = 1</code>을 요구하므로, 이 앱 코드만으로는 <code>30010</code>이 실행 후보에 포함되지 않는다.</li>
+<li><strong>추측</strong>: <code>30010</code>은 다른 프로세스, 구버전, hotfix 빌드, 또는 다른 조회 로직에서 실행 중일 가능성이 있다. DB 실행 주체 확인 필요.</li>
+</ul>
+<h3 id="6-2-finance-svctype-finance">6.2 Finance / <code>SvcType=&#x27;Finance&#x27;</code></h3>
+<div class="table-wrap"><table><thead><tr>
+<th>OIdx</th>
+<th>Name</th>
+<th>Operation Active</th>
+<th>DisplayAlphabot</th>
+<th>실행 여부 판단</th>
+<th>Term 요약</th>
+</tr></thead><tbody>
+<tr>
+<td>40001</td>
+<td>랭킹 집계</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 3600초</code>, 전일/금일 LastExec 최신</td>
+</tr>
+<tr>
+<td>40002</td>
+<td>인베스트RSS</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 10800초</code>, <code>09:00~18:00</code></td>
+</tr>
+<tr>
+<td>40003</td>
+<td>증시일정이관</td>
+<td>0</td>
+<td>0</td>
+<td>제외</td>
+<td><code>Loop 3600초</code>, Term Active 0</td>
+</tr>
+</tbody></table></div>
+<p><strong>운영상 특이점</strong></p>
+<ul>
+<li><code>40003</code>은 <code>Active=0</code>, <code>DisplayAlphabot=0</code>인데 <code>LastExecDT=2026-05-14 12:15:24</code>로 최신이다.</li>
+<li>현재 Finance AlphaBot의 <code>ListOperationTerm(&quot;Finance&quot;)</code> 조건과 불일치하므로 실행 주체 추가 확인 필요.</li>
+</ul>
+<h3 id="6-3-radar-svctype-themeradar">6.3 Radar / <code>SvcType=&#x27;ThemeRadar&#x27;</code></h3>
+<div class="table-wrap"><table><thead><tr>
+<th>OIdx</th>
+<th>Name</th>
+<th>Operation Active</th>
+<th>DisplayAlphabot</th>
+<th>실행 여부 판단</th>
+<th>Term 요약</th>
+</tr></thead><tbody>
+<tr>
+<td>10020</td>
+<td>공시 수집</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 30초</code>, <code>07:35~23:25</code></td>
+</tr>
+<tr>
+<td>10030</td>
+<td>종목 가격 업데이트</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 60초</code>, <code>04:55~15:40</code></td>
+</tr>
+<tr>
+<td>10040</td>
+<td>키워드 단어 분석</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 04:00</code>, <code>MaxDuration=2500</code> 미사용</td>
+</tr>
+<tr>
+<td>10060</td>
+<td>랭킹</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 1800초</code></td>
+</tr>
+<tr>
+<td>10070</td>
+<td>Clean</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 04:30</code>, <code>MaxDuration=9000</code> 미사용</td>
+</tr>
+<tr>
+<td>10140</td>
+<td>1시간 푸시</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 3600초</code>, <code>08:00~23:59:59</code></td>
+</tr>
+<tr>
+<td>10200</td>
+<td>MongoDB 상태 체크</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 60초</code></td>
+</tr>
+<tr>
+<td>10240</td>
+<td>API Health체크</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 300초</code></td>
+</tr>
+<tr>
+<td>10260</td>
+<td>뉴스 수집 체크</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 7200초</code></td>
+</tr>
+<tr>
+<td>10360</td>
+<td>뉴스중복포함 건수집계</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 02:00</code></td>
+</tr>
+<tr>
+<td>10370</td>
+<td>뉴스최근건수 건수집계</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 600초</code></td>
+</tr>
+<tr>
+<td>10390</td>
+<td>뉴스텔레그램 마케팅 전송</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 20:00</code></td>
+</tr>
+<tr>
+<td>10400</td>
+<td>검색 인덱스 테이블 갱신</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 600초</code></td>
+</tr>
+<tr>
+<td>10410</td>
+<td>테마 유사도 계산</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 22:00</code></td>
+</tr>
+<tr>
+<td>10440</td>
+<td>브리핑 푸시</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 07:30</code>, <code>08:15</code>, <code>15:50</code></td>
+</tr>
+<tr>
+<td>10500</td>
+<td>다트공시 장전브리핑</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 23:30</code></td>
+</tr>
+<tr>
+<td>10520</td>
+<td>테마록 랭킹정보 사용자 알림</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 07:00</code>, <code>07:10</code>, <code>07:20</code>, <code>StockOpen=1</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>운영상 특이점</strong></p>
+<ul>
+<li><code>10150</code>, <code>10160</code>은 <code>T_OperationTerm.Active=1</code>이지만 <code>T_Operation.Active=0</code>이므로 코드상 실행되지 않는다.</li>
+<li><code>10000</code>은 <code>AliveCheck=1</code>이지만 <code>DisplayAlphabot=0</code>이라 일반 조회에는 제외된다. Radar 코드는 별도 <code>tAlive</code>에서 <code>OIdx=10000</code>, <code>OTIdx=10023</code>으로 이력을 기록한다.</li>
+<li>근거: <code>FinUp.Radar.App.AlphaBot/MainWindow.xaml.cs:153-159</code></li>
+</ul>
+<h3 id="6-4-stock-svctype-stockpoint">6.4 Stock / <code>SvcType=&#x27;StockPoint&#x27;</code></h3>
+<div class="table-wrap"><table><thead><tr>
+<th>OIdx</th>
+<th>Name</th>
+<th>Operation Active</th>
+<th>DisplayAlphabot</th>
+<th>실행 여부 판단</th>
+<th>Term 요약</th>
+</tr></thead><tbody>
+<tr>
+<td>1</td>
+<td>SMS Push</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 5초</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>APP Push</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 10초</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Alarm Push</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 30초</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>매출현황</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 3600초</code>, 코드에서 정시 실행 제한</td>
+</tr>
+<tr>
+<td>5</td>
+<td>자동결제</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 10:00</code>, <code>16:00</code>, <code>20:00</code></td>
+</tr>
+<tr>
+<td>8</td>
+<td>SMS 모니터</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 08:30</code></td>
+</tr>
+<tr>
+<td>11</td>
+<td>API Service</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 10초</code></td>
+</tr>
+<tr>
+<td>30</td>
+<td>StockPoint 사이트 체크</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 600초</code></td>
+</tr>
+<tr>
+<td>38</td>
+<td>메인웹 캐시 업데이트</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 300초</code></td>
+</tr>
+<tr>
+<td>39</td>
+<td>만족도 평가 대상자 PUSH</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 12:00</code></td>
+</tr>
+<tr>
+<td>40</td>
+<td>리뷰 대상자 PUSH</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 18:00</code></td>
+</tr>
+<tr>
+<td>41</td>
+<td>쿠폰 만료 대상자 PUSH</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 08:30</code></td>
+</tr>
+<tr>
+<td>44</td>
+<td>API 사이트 Health 체크</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 300초</code></td>
+</tr>
+<tr>
+<td>45</td>
+<td>AWS 모니터링 Process</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 60초</code></td>
+</tr>
+<tr>
+<td>46</td>
+<td>AWS 모니터링 Summary(1시간)</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 3600초</code></td>
+</tr>
+<tr>
+<td>47</td>
+<td>AWS 모니터링 Summary(하루)</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 04:00</code></td>
+</tr>
+<tr>
+<td>122~126</td>
+<td>멘토/사이트/영수증 관련</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td>Once/Loop 혼재</td>
+</tr>
+<tr>
+<td>130</td>
+<td>Email Push</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 10초</code></td>
+</tr>
+<tr>
+<td>138</td>
+<td>사이트 동작 체크</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Loop 60초</code></td>
+</tr>
+<tr>
+<td>140</td>
+<td>마케팅 수신 동의 안내</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td><code>Once 13:00</code></td>
+</tr>
+<tr>
+<td>144~151</td>
+<td>멘토/TSSA/SMS 등</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td>Once/Loop 혼재, <code>151</code>은 <code>Loop 5초</code></td>
+</tr>
+<tr>
+<td>154, 156, 163, 166~175</td>
+<td>이벤트/포인트/통계/유튜브/럭키박스</td>
+<td>1</td>
+<td>1</td>
+<td>실행 후보</td>
+<td>대부분 Once 또는 300초 Loop</td>
+</tr>
+</tbody></table></div>
+<p><strong>운영상 특이점</strong></p>
+<ul>
+<li><code>OIdx=1</code>, <code>151</code>은 <code>LoopInterval=5초</code>다. 앱의 <code>tMainTimer</code>도 5초이므로 작업 시간이 5초를 넘거나 DB 갱신이 실패하면 다음 Tick과 경합하기 쉽다.</li>
+<li><code>OIdx=5 자동결제</code>는 <code>OTIdx=5</code>, <code>6</code>, <code>139</code>로 하루 3회 실행된다. 결제성 작업이므로 중복 실행 시 Critical 위험이다.</li>
+<li><code>OIdx=170 컨텐츠 조회수 업데이트 처리</code>는 <code>LastSeek=14591706</code> 값을 가진다. 하지만 스케줄러 조회 SQL에는 <code>LastSeek</code>가 포함되지 않으므로, 이 값은 개별 작업 내부에서 별도로 조회/사용하는지 확인해야 한다.</li>
+</ul>
+<hr>
+<h2 id="7-중복-처리-위험">7. 중복 처리 위험</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>위험도</th>
+<th>위치</th>
+<th>DB 스냅샷 반영 시나리오</th>
+<th>원인</th>
+<th>권장 확인/개선</th>
+</tr></thead><tbody>
+<tr>
+<td><span class="badge risk-critical">Critical</span></td>
+<td>Stock <code>OIdx=5 자동결제</code>, <code>151 외부 SMS</code>, <code>1 SMS Push</code>, <code>2 APP Push</code>, <code>130 Email Push</code></td>
+<td>5~10초 단위 작업 또는 결제/발송 작업이 다중 인스턴스에서 동시에 실행</td>
+<td><code>LastExecDT</code>만 갱신하고 원자적 claim 컬럼/조건 없음</td>
+<td><code>USP_Operation_Update</code> 내부에 조건부 갱신/락이 있는지 확인. 없다면 <code>Claim</code> SP 추가</td>
+</tr>
+<tr>
+<td><span class="badge risk-critical">Critical</span></td>
+<td>Collect/Radar 뉴스·공시·푸시 계열</td>
+<td>외부 발송 성공 후 이력/상태 저장 실패 시 재발송 또는 누락</td>
+<td>외부 연동과 DB 상태 저장이 하나의 트랜잭션으로 묶일 수 없음</td>
+<td>발송 idempotency key 또는 대상별 처리 상태 필요</td>
+</tr>
+<tr>
+<td><span class="badge risk-high">High</span></td>
+<td>모든 앱</td>
+<td><code>MaxDuration</code> 초과 작업이 다음 주기까지 Running으로 남거나, 반대로 메모리 상태만 Stop으로 돌아가 중복 실행</td>
+<td><code>MaxDuration</code> 미사용, 실행 상태는 메모리 값</td>
+<td><code>OperationTermHistory</code> 기반 장기 실행 감시 또는 DB Running 상태 필요</td>
+</tr>
+<tr>
+<td><span class="badge risk-high">High</span></td>
+<td>Data <code>30010</code>, Finance <code>40003</code></td>
+<td>현재 코드 조건으로 제외되어야 할 행의 <code>LastExecDT</code>가 최신</td>
+<td>다른 실행 주체 존재 가능</td>
+<td>실제 배포 서버/프로세스 목록 대조 필요</td>
+</tr>
+<tr>
+<td><span class="badge risk-medium">Medium</span></td>
+<td><code>DisplayAlphabot=0</code> + <code>Active=1</code> 행</td>
+<td>운영자가 Active만 보고 실행 중이라고 판단하나 AlphaBot UI/조회에서는 제외</td>
+<td>실행 후보 조건이 복합적</td>
+<td>운영 대시보드에서 Active/Display/Term Active를 함께 표시</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="8-예외-복구-구조">8. 예외/복구 구조</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>프로젝트</th>
+<th>현재 구조</th>
+<th>DB 스냅샷 반영 평가</th>
+</tr></thead><tbody>
+<tr>
+<td>CollectData</td>
+<td>다수 <code>catch { }</code>, <code>RunTask</code>에서 ERROR/STOP 이력 기록</td>
+<td><code>MaxDuration</code>이 있어도 코드가 사용하지 않아 장시간 실행 감지 약함</td>
+</tr>
+<tr>
+<td>Finance</td>
+<td>다수 <code>catch { }</code>, <code>RunTask</code>에서 ERROR/STOP 이력 기록</td>
+<td>실행 후보가 적지만 집계/RSS 작업 실패 원인 추적이 약함</td>
+</tr>
+<tr>
+<td>Radar</td>
+<td>App 전역 예외 처리 + <code>Trace</code>, 작업 이력 기록</td>
+<td>다수 고빈도/외부 연동 작업이 있어 <code>Task.Run</code> fire-and-forget 실패 추적 필요</td>
+</tr>
+<tr>
+<td>Stock</td>
+<td>전역 Telegram, <code>ProcessStart</code>의 <code>try/catch/finally</code>로 ERROR/END 기록</td>
+<td>결제/발송 작업은 구조가 상대적으로 명확하지만 중복 선점 방지는 여전히 DB 확인 필요</td>
+</tr>
+</tbody></table></div>
+<p><strong>근거</strong></p>
+<ul>
+<li>CollectData <code>RunTask</code>: <code>FinUp.CollectData.../Biz/AlphaBotBiz.cs:337-373</code></li>
+<li>Finance <code>RunTask</code>: <code>FinUp.Finance.../Biz/AlphaBotBiz.cs:318-353</code></li>
+<li>Radar <code>RunTask</code>: <code>FinUp.Radar.App.AlphaBot/MainWindow.xaml.cs:1001-1036</code></li>
+<li>Stock <code>ProcessStart</code>: <code>FinUp.Stock.App.AlphaBot/MainWindow.xaml.cs:678-730</code></li>
+</ul>
+<hr>
+<h2 id="9-db-부하-위험">9. DB 부하 위험</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>위험도</th>
+<th>항목</th>
+<th>DB 스냅샷 반영 근거</th>
+<th>설명</th>
+</tr></thead><tbody>
+<tr>
+<td><span class="badge risk-high">High</span></td>
+<td>5초 Polling + 고빈도 Loop</td>
+<td>Stock <code>OIdx=1</code>, <code>151</code>은 5초, <code>2</code>, <code>11</code>, <code>130</code>은 10초</td>
+<td>매 Tick마다 메타 조회 후 실행 조건 판단. 활성 작업이 많아질수록 DB 부하 증가</td>
+</tr>
+<tr>
+<td><span class="badge risk-high">High</span></td>
+<td><code>WITH(NOLOCK)</code></td>
+<td>공통 조회 SQL에 <code>T_Operation</code>, <code>T_OperationTerm</code>, <code>T_StockCalendar WITH(NOLOCK)</code> 사용</td>
+<td>Dirty read로 Active/LastExecDT/OffDay를 잘못 읽을 수 있음</td>
+</tr>
+<tr>
+<td><span class="badge risk-medium">Medium</span></td>
+<td><code>MaxDuration</code> 미사용</td>
+<td>제공 <code>T_OperationTerm.MaxDuration</code>에 값 존재하나 코드 미사용</td>
+<td>장시간 실행 작업이 DB 차원에서 감시되지 않을 수 있음</td>
+</tr>
+<tr>
+<td><span class="badge risk-medium">Medium</span></td>
+<td><code>LastExecDT</code> 단일 컬럼 의존</td>
+<td>대부분 작업의 <code>LastExecDT</code>가 최근 값으로 계속 갱신</td>
+<td>실행 시작/완료/실패/재시도 의미가 혼재</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="10-리팩터링-우선순위">10. 리팩터링 우선순위</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>우선순위</th>
+<th>개선 대상</th>
+<th>이유</th>
+<th>권장 방식</th>
+</tr></thead><tbody>
+<tr>
+<td>1</td>
+<td>DB 원자 선점</td>
+<td>결제/SMS/Push/Email 중복은 Critical</td>
+<td><code>USP_Operation_Claim</code> 또는 <code>UPDATE ... WHERE LastExecDT = @previous AND Active=1</code> + 영향 행 수 확인</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Running 상태 컬럼/이력 강화</td>
+<td>현재는 메모리 <code>actionState</code>라 다중 인스턴스 방지 불가</td>
+<td><code>Status</code>, <code>ClaimedAt</code>, <code>ClaimedBy</code>, <code>ExecID</code>, <code>RetryCount</code> 추가 검토</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>MaxDuration</code> 적용</td>
+<td>DB에 이미 존재하는 운영 기준이 코드에 반영되지 않음</td>
+<td><code>OperationType</code> 모델에 <code>MaxDuration</code> 추가 후 장시간 실행 감시</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>catch { }</code> 제거</td>
+<td>장애 원인 추적성 부족</td>
+<td>공통 <code>SetLog</code>/NLog/OperationTermHistory ERROR 기록으로 통일</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Stop/종료 제어</td>
+<td>Stop 버튼은 Timer만 멈춤</td>
+<td><code>CancellationToken</code>, 실행 Thread registry, 안전 종료 대기</td>
+</tr>
+<tr>
+<td>6</td>
+<td>설정/운영 UI 정합성</td>
+<td><code>Active</code>, <code>DisplayAlphabot</code>, <code>Term.Active</code> 불일치 다수</td>
+<td>운영 화면/보고서에서 “실제 실행 후보” 계산 컬럼 제공</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="11-다음-분석-단계">11. 다음 분석 단계</h2>
+<ol>
+<li><strong>SP 내부 확인</strong></li>
+</ol>
+<ul>
+<li><code>SystemData.dbo.USP_Operation_Update</code></li>
+<li><code>SystemData.dbo.USP_OperationTermHistory_Insert</code></li>
+<li>원자적 업데이트, 락, 중복 방지 조건이 있는지 확인해야 한다.</li>
+</ul>
+<ol>
+<li><strong>실제 실행 주체 확인</strong></li>
+</ol>
+<ul>
+<li><code>Data OIdx=30010</code>, <code>Finance OIdx=40003</code>처럼 현재 코드 조회 조건과 맞지 않지만 <code>LastExecDT</code>가 최신인 작업의 실행 주체 확인.</li>
+<li>운영 서버의 실행 exe, Windows 작업 스케줄러, 서비스, 구버전 배포본, hotfix exe 확인 필요.</li>
+</ul>
+<ol>
+<li><strong><code>MaxDuration</code> 운영 의미 확인</strong></li>
+</ol>
+<ul>
+<li>DB에는 존재하지만 코드에서 미사용이다.</li>
+<li>운영자가 이 값을 장애 판단 기준으로 믿고 있다면 실제 감시 누락 위험이 크다.</li>
+</ul>
+<ol>
+<li><strong>고위험 작업 단위 상세 추적</strong></li>
+</ol>
+<ul>
+<li>Stock <code>OIdx=5 자동결제</code>, <code>151 외부 SMS - 다날</code>, <code>1 SMS Push</code>, <code>2 APP Push</code>, <code>130 Email Push</code></li>
+<li>Radar <code>10020 공시 수집</code>, <code>10030 종목 가격 업데이트</code>, <code>10440 브리핑 푸시</code>, <code>10520 사용자 알림</code></li>
+<li>각 작업 내부의 대상 조회 조건, 처리 전 상태 변경, 완료/실패 업데이트, 재시도 정책을 별도 분석해야 한다.</li>
+</ul>
+<ol>
+<li><strong>운영 로그 대조</strong></li>
+</ol>
+<ul>
+<li><code>OperationTermHistory</code>에서 동일 <code>OIdx/OTIdx</code>의 <code>START</code>가 겹치는지 확인.</li>
+<li><code>ERROR</code> 후 <code>STOP/END</code>가 항상 남는지 확인.</li>
+<li><code>MaxDuration</code> 초과 실행 기록이 있는지 확인.</li>
+</ul>
+<hr>
+<h2 id="12-결론">12. 결론</h2>
+<p>제공된 <code>T_Operation</code>, <code>T_OperationTerm</code> 스냅샷을 반영하면, 이 AlphaBot 계열은 단순 Timer 앱이 아니라 DB 테이블을 스케줄 정의 저장소로 사용하는 운영 배치 플랫폼에 가깝다. 다만 현재 코드 기준으로는 DB 스케줄 정의 중 일부 중요한 컬럼(<code>MaxDuration</code>, <code>AliveCheck</code>, <code>EnableAlarm</code>, <code>LastSeek</code>)이 공통 스케줄러에 연결되어 있지 않다.</p>
+<p>가장 큰 운영 리스크는 다음 3가지다.</p>
+<ol>
+<li><strong>중복 선점 부재</strong>: <code>LastExecDT</code> 갱신만으로 다중 인스턴스 중복 실행을 막기 어렵다.</li>
+<li><strong>고빈도 결제/발송 작업</strong>: 5~10초 Loop 작업이 SMS, API, Email, 외부 SMS에 존재한다.</li>
+<li><strong>DB 정의와 코드 사용 범위 불일치</strong>: <code>DisplayAlphabot=0</code>인데 최근 실행된 작업, <code>MaxDuration</code> 미사용, Alive/Alarm 컬럼 미사용이 확인된다.</li>
+</ol>
+<p>따라서 다음 단계는 코드 수정이 아니라, 우선 <code>USP_Operation_Update</code>와 <code>USP_OperationTermHistory_Insert</code>의 실제 구현 및 운영 실행 주체를 확인하는 것이 안전하다.</p>
+      </article>
+    </main>
+    <div class="footer">Stripe-inspired single-file HTML report · Source preserved</div>
+  </div>
+</body>
+</html>

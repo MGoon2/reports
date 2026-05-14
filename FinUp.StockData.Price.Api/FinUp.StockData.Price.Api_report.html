@@ -1,0 +1,161 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>FinUp.StockData.Price.Api 분석 보고서</title>
+<style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.55;margin:32px;color:#1f2937}h1,h2{color:#111827}code{background:#f3f4f6;padding:2px 4px;border-radius:4px}table{border-collapse:collapse;width:100%;font-size:13px;margin:12px 0 28px}th,td{border:1px solid #d1d5db;padding:7px;vertical-align:top}th{background:#f9fafb}tr:nth-child(even){background:#fcfcfd}.note{background:#fff7ed;border-left:4px solid #f59e0b;padding:10px}.small{font-size:12px;color:#6b7280}</style></head><body>
+<h1>FinUp.StockData.Price.Api 분석 보고서</h1>
+<ul><li>생성일: 2026-05-13</li><li>분석 대상: <code>/mnt/c/Dev/FinUp.StockData.Price.Api</code></li><li>산출물: Markdown 및 HTML</li><li>범위: URL 엔드포인트 역할, <code>Web.config</code> 설정값 역할</li></ul>
+<h2>1. 요약</h2><ul>
+<li>ASP.NET Web API 2 기반 .NET Framework 4.7 API 프로젝트이며 Web API 설정이 중심입니다.</li>
+<li>공통 파이프라인은 gzip 요청 해제, CORS, 전역 예외 필터, attribute routing, 기본 API route, API 로그 handler, 상세 오류 반환 정책으로 구성됩니다.</li>
+<li>컨트롤러의 명시 Route 기준 93개 URL 항목을 확인했습니다.</li>
+<li>Redis, MongoDB, SQL Biz 계층, 외부 실시간 StockData API를 혼합 사용합니다.</li>
+</ul>
+<h2>2. 라우팅/공통 파이프라인 근거</h2>
+<table><thead><tr><th>항목</th><th>역할</th><th>근거</th></tr></thead><tbody>
+<tr><td>Application_Start</td><td>`GlobalConfiguration.Configure(WebApiConfig.Register)` 호출로 Web API만 초기화</td><td>Global.asax.cs:12-15</td></tr>
+<tr><td>CompressedRequestHandler</td><td>요청 `Content-Encoding: gzip`이면 request body를 해제</td><td>App_Start/WebApiConfig.cs:16; Handler/CompressedRequestHandler.cs:14-21</td></tr>
+<tr><td>CORS</td><td>`config.EnableCors()`와 여러 컨트롤러의 `[EnableCors(origins:&quot;*&quot;, headers:&quot;*&quot;, methods:&quot;*&quot;)]`로 교차 출처 허용</td><td>App_Start/WebApiConfig.cs:18; Controllers/PriceController.cs:24</td></tr>
+<tr><td>ExceptionFilter</td><td>예외 발생 시 Trace 기록 후 HTTP 500과 예외 Message 반환</td><td>App_Start/WebApiConfig.cs:21; Filter/ExceptionFilter.cs:10-24</td></tr>
+<tr><td>Attribute routing</td><td>`config.MapHttpAttributeRoutes()`로 컨트롤러 `[Route]`를 활성화</td><td>App_Start/WebApiConfig.cs:24-25</td></tr>
+<tr><td>DefaultApi</td><td>`api/{controller}/{id}` 기본 라우트도 존재. 단, 보고서의 엔드포인트 표는 명시 `[Route]` 기준</td><td>App_Start/WebApiConfig.cs:27-31</td></tr>
+<tr><td>WebAPILogHandler</td><td>요청/응답/상태/지연시간/IP/Origin 등을 `FinUp.Core.Log.Logger.Instance.Insert`로 기록</td><td>App_Start/WebApiConfig.cs:33; Handler/WebAPILogHandler.cs:21-150</td></tr>
+<tr><td>IncludeErrorDetailPolicy</td><td>상세 오류를 항상 반환하도록 설정하고 handler에서 로그 후 응답을 필터링하려는 구조</td><td>App_Start/WebApiConfig.cs:35-36; Handler/WebAPILogHandler.cs:88-101</td></tr>
+</tbody></table>
+<h2>3. URL 엔드포인트별 역할</h2>
+<table><thead><tr><th>#</th><th>영역</th><th>HTTP</th><th>URL</th><th>액션</th><th>역할</th><th>근거</th></tr></thead><tbody>
+<tr><td>1</td><td>Chart</td><td>GET</td><td>api/chart/capture</td><td>Capture(cidx, stockCode, height, width=600)</td><td>종목 차트 캡처 요청을 로컬 소켓 8278로 전달하고 캡처 결과 문자열을 반환</td><td>Controllers/ChartController.cs:32-67</td></tr>
+<tr><td>2</td><td>Chart</td><td>GET</td><td>api/chart/capture</td><td>Capture(date)</td><td>일자 기준 차트 캡처 요청을 로컬 소켓 8279로 전달</td><td>Controllers/ChartController.cs:69-104</td></tr>
+<tr><td>3</td><td>Chart</td><td>GET</td><td>api/chart/capture/theme</td><td>CaptureTheme(keyword, keywordIdx)</td><td>테마 차트 캡처 요청을 로컬 소켓 8280으로 전달</td><td>Controllers/ChartController.cs:106-141</td></tr>
+<tr><td>4</td><td>Chart</td><td>GET</td><td>api/chart/stockDeposit</td><td>StockDepositTrend()</td><td>주식 예탁금 추이 차트 데이터 조회</td><td>Controllers/ChartController.cs:143-151</td></tr>
+<tr><td>5</td><td>Chart</td><td>GET</td><td>api/chart/themeday</td><td>ThemeDay(keywordIdx)</td><td>테마 일자별 집계 차트 데이터 조회</td><td>Controllers/ChartController.cs:153-160</td></tr>
+<tr><td>6</td><td>Chart</td><td>GET</td><td>api/chart/lw/theme</td><td>GetThemeChartAsync(keywordIdx)</td><td>Lightweight Charts용 테마 캔들/이동평균 데이터 조회</td><td>Controllers/ChartController.cs:163-234</td></tr>
+<tr><td>7</td><td>Chart</td><td>GET</td><td>api/v2/chart/lw/theme</td><td>GetThemeChartAsync_v2(keywordIdx)</td><td>v2 테마 차트: 당일 포함 집계와 관련 종목 거래대금 볼륨 정보 추가</td><td>Controllers/ChartController.cs:236-284</td></tr>
+<tr><td>8</td><td>Check</td><td>GET</td><td>api/check/health</td><td>HealthCheck()</td><td>StockData DB 연결 문자열을 복호화해 간단한 SQL 조회로 상태 확인; 성공 시 1000, 실패 시 9999</td><td>Controllers/CheckController.cs:16-31</td></tr>
+<tr><td>9</td><td>Data</td><td>GET</td><td>api/data/hoga/last/{code}/{day}/{time}/{count}</td><td>GetLastHoga</td><td>지정 시각 이전/기준 최근 호가 N건 조회</td><td>Controllers/DataController.cs:29-39</td></tr>
+<tr><td>10</td><td>Data</td><td>GET</td><td>api/data/trader/last/{code}/{day}/{time}/{count}</td><td>GetLastTrader</td><td>지정 시각 이전/기준 최근 거래원 N건 조회</td><td>Controllers/DataController.cs:49-60</td></tr>
+<tr><td>11</td><td>Data</td><td>GET</td><td>api/data/price/last/{code}/{day}/{time}/{count}</td><td>GetLastPrice</td><td>지정 시각 이전/기준 최근 체결가 N건 조회</td><td>Controllers/DataController.cs:71-80</td></tr>
+<tr><td>12</td><td>Data</td><td>GET</td><td>api/data/hoga/{code}/{day}/{start}/{end}</td><td>GetHoga</td><td>특정 일자·구간 호가 목록 조회</td><td>Controllers/DataController.cs:84-95</td></tr>
+<tr><td>13</td><td>Data</td><td>GET</td><td>api/data/currenthoga/{code}</td><td>GetCurrentHoga</td><td>종목 현재 호가 조회</td><td>Controllers/DataController.cs:98-109</td></tr>
+<tr><td>14</td><td>Data</td><td>GET</td><td>api/data/price/{code}/{day}/{start}/{end}</td><td>GetPrice</td><td>특정 일자·구간 체결가 목록 조회</td><td>Controllers/DataController.cs:112-123</td></tr>
+<tr><td>15</td><td>Data</td><td>GET</td><td>api/data/trader/{code}/{day}/{start}/{end}</td><td>GetTrader</td><td>특정 일자·구간 거래원 목록 조회</td><td>Controllers/DataController.cs:126-137</td></tr>
+<tr><td>16</td><td>Data</td><td>GET</td><td>api/data/traderlast/{code}/{day}/{end}</td><td>GetTraderLast</td><td>특정 종료 시각 기준 최근 거래원 데이터 조회</td><td>Controllers/DataController.cs:140-151</td></tr>
+<tr><td>17</td><td>Data</td><td>GET</td><td>api/data/currenttrader/{code}</td><td>GetCurrentTrader</td><td>종목 현재 거래원 데이터 조회</td><td>Controllers/DataController.cs:154-165</td></tr>
+<tr><td>18</td><td>Data</td><td>GET</td><td>api/data/traderday/{code}/{startday}/{endday}</td><td>GetTraderDay</td><td>종목별 일자 범위 거래원 집계 조회</td><td>Controllers/DataController.cs:168-179</td></tr>
+<tr><td>19</td><td>Data</td><td>GET</td><td>api/data/stock/{code}</td><td>GetStockDetailAsync</td><td>종목 기본/상세 정보 조회</td><td>Controllers/DataController.cs:182-193</td></tr>
+<tr><td>20</td><td>Data</td><td>GET</td><td>api/data/financial/{code}/{pageNo?}/{pageSize?}/{isQuarter?}</td><td>GetFinancialDetail</td><td>종목 재무 데이터 페이징 조회; 분기 여부 옵션 지원</td><td>Controllers/DataController.cs:196-211</td></tr>
+<tr><td>21</td><td>Data</td><td>GET</td><td>api/data/vi/{code}/{date}</td><td>GetStockVIs</td><td>지정일 종목 VI(변동성 완화장치) 이력 조회</td><td>Controllers/DataController.cs:214-238</td></tr>
+<tr><td>22</td><td>Data</td><td>GET</td><td>api/data/marketopen/{isRealTime}</td><td>IsTodayMarketOpen</td><td>금일 장 개장 여부 조회</td><td>Controllers/DataController.cs:241-249</td></tr>
+<tr><td>23</td><td>Index</td><td>GET</td><td>api/index/last</td><td>GetIndexLast(codes)</td><td>지수 코드 배열의 최신 지수 데이터 조회</td><td>Controllers/IndexController.cs:16-22</td></tr>
+<tr><td>24</td><td>Keyword</td><td>GET</td><td>api/keyword/news</td><td>GetKeywordNewsAsync</td><td>키워드/타입 조건별 뉴스 목록 조회</td><td>Controllers/KeywordController.cs:33-55</td></tr>
+<tr><td>25</td><td>Keyword</td><td>GET</td><td>api/stock/calendar</td><td>GetStockOpenDateAsync</td><td>거래일/휴장일 캘린더 조회</td><td>Controllers/KeywordController.cs:58-80</td></tr>
+<tr><td>26</td><td>Keyword</td><td>GET</td><td>api/keyword/stock/industry/{industryidx}/{stockcode}</td><td>GetIndustryRelationStockAsync</td><td>업종과 종목의 관련 종목 목록 조회</td><td>Controllers/KeywordController.cs:83-106</td></tr>
+<tr><td>27</td><td>Keyword</td><td>GET</td><td>api/keyword/{keywordidx}</td><td>GetKeywordDetailPrice</td><td>키워드/테마 상세 가격 정보 조회</td><td>Controllers/KeywordController.cs:109-132</td></tr>
+<tr><td>28</td><td>Keyword</td><td>GET</td><td>api/keyword/theme/similarity/{keywordidx}</td><td>GetKeywordSimilarityTheme</td><td>유사 테마/키워드 목록 조회</td><td>Controllers/KeywordController.cs:135-158</td></tr>
+<tr><td>29</td><td>Keyword</td><td>GET</td><td>api/keyword/stock/golden-signal-form/{stockCode}</td><td>GetGoldenSignalStockData</td><td>종목의 골든시그널 화면 구성 데이터(테마/업종/뉴스)를 조회</td><td>Controllers/KeywordController.cs:161-183</td></tr>
+<tr><td>30</td><td>Keyword</td><td>GET</td><td>api/keyword/stock/holder/{stockCode}</td><td>GetStockHolder</td><td>종목 주주/보유자 관련 정보 조회</td><td>Controllers/KeywordController.cs:187-209</td></tr>
+<tr><td>31</td><td>Keyword</td><td>GET</td><td>api/keyword/stock/ranking/{type}</td><td>GetStockRanking</td><td>타입별 종목 랭킹 조회</td><td>Controllers/KeywordController.cs:212-233</td></tr>
+<tr><td>32</td><td>Keyword</td><td>GET</td><td>api/keyword/stock/theme/{stockCode}</td><td>GetStockRelationTheme</td><td>종목 관련 테마 목록 조회</td><td>Controllers/KeywordController.cs:236-257</td></tr>
+<tr><td>33</td><td>Keyword</td><td>GET</td><td>api/keyword/stock/industry/stock/{stockCode}</td><td>GetStockRelationIndustry</td><td>종목 관련 업종 목록 조회</td><td>Controllers/KeywordController.cs:260-281</td></tr>
+<tr><td>34</td><td>Keyword</td><td>GET</td><td>api/keyword/theme/diff/{keywordidx}</td><td>GetThemeDiff</td><td>테마의 기간별 차이/변동 데이터 조회; 기본은 전일~금일</td><td>Controllers/KeywordController.cs:285-337</td></tr>
+<tr><td>35</td><td>Keyword</td><td>GET</td><td>api/keyword/theme/stock/{keywordidx}</td><td>GetThemeRelationStock</td><td>테마에 속한 관련 종목 조회</td><td>Controllers/KeywordController.cs:340-361</td></tr>
+<tr><td>36</td><td>Keyword</td><td>POST</td><td>api/keyword/news/summary-search</td><td>GetThemeNewsSummarySearch</td><td>테마 뉴스 요약/검색 결과 조회</td><td>Controllers/KeywordController.cs:364-390</td></tr>
+<tr><td>37</td><td>NewsContents</td><td>GET</td><td>api/news-contents/board</td><td>UploadNewsContentsBoard(date)</td><td>뉴스 콘텐츠 HTML 본문을 조회해 text/html로 반환</td><td>Controllers/NewsContentsController.cs:34-53</td></tr>
+<tr><td>38</td><td>News</td><td>POST</td><td>api/news/NewsListPage</td><td>NewsListPage</td><td>키워드/종목 조건 뉴스 페이지 조회</td><td>Controllers/NewsController.cs:23-30</td></tr>
+<tr><td>39</td><td>News</td><td>POST</td><td>api/news/theme</td><td>NewsListPageTheme</td><td>테마 기준 뉴스 페이지 조회</td><td>Controllers/NewsController.cs:33-39</td></tr>
+<tr><td>40</td><td>News</td><td>POST</td><td>api/news/stock</td><td>NewsListPageStock</td><td>종목 기준 뉴스 페이지 조회</td><td>Controllers/NewsController.cs:42-48</td></tr>
+<tr><td>41</td><td>Price</td><td>GET</td><td>api/price/{code}</td><td>GetPrice</td><td>단일 종목 현재가 조회(Redis)</td><td>Controllers/PriceController.cs:36-52</td></tr>
+<tr><td>42</td><td>Price</td><td>POST</td><td>api/pricelist</td><td>GetPriceList</td><td>복수 종목 현재가 일괄 조회</td><td>Controllers/PriceController.cs:55-73</td></tr>
+<tr><td>43</td><td>Price</td><td>POST</td><td>api/price/diff</td><td>GetPriceDiffList</td><td>복수 종목 현재가와 등락률 데이터 조회</td><td>Controllers/PriceController.cs:76-119</td></tr>
+<tr><td>44</td><td>Price</td><td>GET</td><td>api/profit</td><td>GetItemStockProfit</td><td>Stockpoint Admin 진행 종목/수익 관련 데이터 조회</td><td>Controllers/PriceController.cs:122-136</td></tr>
+<tr><td>45</td><td>Price</td><td>GET</td><td>api/chart/nvd3/{code}</td><td>GetNvd3Chart</td><td>NVD3용 1분봉 차트 데이터 조회</td><td>Controllers/PriceController.cs:139-152</td></tr>
+<tr><td>46</td><td>Price</td><td>GET</td><td>api/chart/nvd3/minutes/{code}/{minutes}</td><td>GetCandleAllChart</td><td>NVD3용 N분봉 차트 데이터 조회</td><td>Controllers/PriceController.cs:155-168</td></tr>
+<tr><td>47</td><td>Price</td><td>GET</td><td>api/price/highlow/{code}/{from}</td><td>GetHighLow</td><td>시작 시각 이후 단일 종목 고가/저가 조회</td><td>Controllers/PriceController.cs:171-206</td></tr>
+<tr><td>48</td><td>Price</td><td>GET</td><td>api/price/highlowvalue/{code}/{from}</td><td>GetHighLowValue</td><td>시작 시각 이후 단일 종목 고가/저가/거래량/거래대금 조회</td><td>Controllers/PriceController.cs:209-245</td></tr>
+<tr><td>49</td><td>Price</td><td>POST</td><td>api/price/highlowlist</td><td>GetHighLowList</td><td>복수 종목 고가/저가/거래량/거래대금 일괄 조회; 응답 gzip 필터 적용</td><td>Controllers/PriceController.cs:248-325</td></tr>
+<tr><td>50</td><td>Price</td><td>GET</td><td>api/market/{from}/{to}/{offday?}</td><td>GetMarket</td><td>기간별 장 운영 캘린더 조회</td><td>Controllers/PriceController.cs:328-352</td></tr>
+<tr><td>51</td><td>Price</td><td>GET</td><td>api/prevday/{date}/{code}</td><td>GetPrevDay</td><td>요청일 이전 마지막 영업일의 일봉 조회</td><td>Controllers/PriceController.cs:355-377</td></tr>
+<tr><td>52</td><td>Price</td><td>GET</td><td>api/priceliststock/{code}</td><td>GetPriceListStock</td><td>체결 목록 조회; 장중은 Redis, 장외는 Mongo 백업 사용</td><td>Controllers/PriceController.cs:380-413</td></tr>
+<tr><td>53</td><td>Price</td><td>GET</td><td>api/dayprice/{code}/{from}/{to}</td><td>GetDayPrice(range)</td><td>기간 일봉 조회</td><td>Controllers/PriceController.cs:416-433</td></tr>
+<tr><td>54</td><td>Price</td><td>GET</td><td>api/dayprice/paging/{code}/{pageNo?}/{pageSize?}</td><td>GetDayPrice(paging)</td><td>일봉 페이징 조회와 수정주가 반영</td><td>Controllers/PriceController.cs:436-474</td></tr>
+<tr><td>55</td><td>Price</td><td>GET</td><td>api/price/tradesummary/{code}/{from}/{to}</td><td>GetPriceSummary</td><td>기간별 체결 요약 조회</td><td>Controllers/PriceController.cs:497-504</td></tr>
+<tr><td>56</td><td>Price</td><td>GET</td><td>api/price/minutes/{code}/{from}/{to}</td><td>GetMinutes</td><td>기간별 분봉 조회; 과거는 Mongo, 금일은 Redis 조합, 31일 이상은 빈 결과</td><td>Controllers/PriceController.cs:507-542</td></tr>
+<tr><td>57</td><td>Price</td><td>GET</td><td>api/price/limitprice/{code}</td><td>GetLimitPrice</td><td>종목 상한가/하한가 조회</td><td>Controllers/PriceController.cs:545-556</td></tr>
+<tr><td>58</td><td>Price</td><td>GET</td><td>api/price/quote/{code}</td><td>GetQuoteAsync</td><td>종목 시세 quote(현재가, 등락, 고저시가, 거래량/대금, 전일종가) 조회</td><td>Controllers/PriceController.cs:559-585</td></tr>
+<tr><td>59</td><td>Price</td><td>POST</td><td>api/price/search-history</td><td>GetSearchHistoryPrice</td><td>검색 이력에 포함된 종목/테마 가격을 묶어 조회</td><td>Controllers/PriceController.cs:588-604</td></tr>
+<tr><td>60</td><td>PriceMonitor</td><td>GET</td><td>api/pricemonitor/stock/set</td><td>SetStock</td><td>체결감시 기준 종목 캐시 구성/갱신</td><td>Controllers/PriceMonitorController.cs:16-27</td></tr>
+<tr><td>61</td><td>PriceMonitor</td><td>GET</td><td>api/pricemonitor/stock</td><td>GetStock</td><td>체결감시 기준 종목 목록 조회</td><td>Controllers/PriceMonitorController.cs:30-45</td></tr>
+<tr><td>62</td><td>PriceMonitor</td><td>POST</td><td>api/pricemonitor/rank</td><td>GetPriceMonitorRank</td><td>체결감시 상위 랭킹 조회; 장전 DB/장중 Redis 분기</td><td>Controllers/PriceMonitorController.cs:48-77</td></tr>
+<tr><td>63</td><td>PriceMonitor</td><td>POST</td><td>api/pricemonitor/stock</td><td>GetPriceMonitorStockPaging</td><td>특정 종목의 체결감시 페이징 조회</td><td>Controllers/PriceMonitorController.cs:104-127</td></tr>
+<tr><td>64</td><td>PriceMonitor</td><td>POST</td><td>api/pricemonitor/paging</td><td>GetPriceMonitorPaging</td><td>체결감시 전체 페이징 조회</td><td>Controllers/PriceMonitorController.cs:130-155</td></tr>
+<tr><td>65</td><td>PriceMonitor</td><td>POST</td><td>api/pricemonitor/list/paging</td><td>GetPriceMonitorListPaging</td><td>체결감시 목록 페이징 결과 조회</td><td>Controllers/PriceMonitorController.cs:158-180</td></tr>
+<tr><td>66</td><td>PriceMonitor</td><td>POST</td><td>api/pricemonitor/chart/price</td><td>GetStockPriceChart</td><td>체결감시 주가 차트 데이터 조회; 장전 Mongo, 장중 Redis 분기</td><td>Controllers/PriceMonitorController.cs:184-243</td></tr>
+<tr><td>67</td><td>PriceMonitor</td><td>POST</td><td>api/pricemonitor/chart/count</td><td>GetStockCountChart</td><td>체결감시 누적 빈도 차트 데이터 조회</td><td>Controllers/PriceMonitorController.cs:246-271</td></tr>
+<tr><td>68</td><td>PriceMonitor</td><td>GET</td><td>api/pricemonitor/preopen</td><td>IsPreMarketOpen</td><td>현재가 장전/장중 데이터 소스 선택 기준 확인</td><td>Controllers/PriceMonitorController.cs:275-315</td></tr>
+<tr><td>69</td><td>RadarAlarm</td><td>GET</td><td>api/alarm/alarm-list</td><td>GetServiceList()</td><td>뉴스 알람 서비스 목록 조회</td><td>Controllers/RadarAlarmController.cs:27-49</td></tr>
+<tr><td>70</td><td>RadarAlarm</td><td>GET</td><td>api/news/news_market_issue/{type}</td><td>GetServiceList(type)</td><td>시장 이슈 뉴스 알람 이력 조회</td><td>Controllers/RadarAlarmController.cs:53-69</td></tr>
+<tr><td>71</td><td>RadarAlarm</td><td>GET</td><td>api/alarm/alarm-history-issue-theme</td><td>GetIssueThemeList</td><td>이슈 테마 알람 이력 조회</td><td>Controllers/RadarAlarmController.cs:75-91</td></tr>
+<tr><td>72</td><td>RadarAlarm</td><td>GET</td><td>api/alarm/alarm-history-stock-signal/{type}</td><td>GetStockSignalList</td><td>종목 신호 알람 이력 조회</td><td>Controllers/RadarAlarmController.cs:97-113</td></tr>
+<tr><td>73</td><td>ThemeLog</td><td>POST</td><td>api/ThemeCaptureChart</td><td>GetThemeCaptureChart</td><td>테마 캡처 차트 전체/기본 목록 조회</td><td>Controllers/ThemeLogController.cs:26-33</td></tr>
+<tr><td>74</td><td>ThemeLog</td><td>POST</td><td>api/ThemeRelationStock</td><td>GetThemeRelationStock</td><td>테마 관련 종목 조회</td><td>Controllers/ThemeLogController.cs:38-45</td></tr>
+<tr><td>75</td><td>ThemeLog</td><td>GET</td><td>api/ThemeLog/ThemeRankingByDiff</td><td>GetThemeRankingByDiff</td><td>변동폭 기준 테마 랭킹 조회</td><td>Controllers/ThemeLogController.cs:50-57</td></tr>
+<tr><td>76</td><td>ThemeLog</td><td>POST</td><td>api/ThemeLog/Diff</td><td>GetThemeDiffList</td><td>테마 변동 목록 조회</td><td>Controllers/ThemeLogController.cs:67-73</td></tr>
+<tr><td>77</td><td>ThemeLog</td><td>POST</td><td>api/ThemeLog/play/info</td><td>GetThemePlayInfo</td><td>테마 재생/타임라인 정보 조회</td><td>Controllers/ThemeLogController.cs:78-84</td></tr>
+<tr><td>78</td><td>ThemeLog</td><td>POST</td><td>api/ThemeLog/play</td><td>GetThemePlay</td><td>테마 재생 구간별 차트 데이터 조회</td><td>Controllers/ThemeLogController.cs:89-95</td></tr>
+<tr><td>79</td><td>ThemeLog</td><td>POST</td><td>api/themelog</td><td>GetThemeLog</td><td>captureIdx 기준 테마 로그 조회</td><td>Controllers/ThemeLogController.cs:107-112</td></tr>
+<tr><td>80</td><td>ThemeLog</td><td>GET</td><td>api/themelog/keyword/rank</td><td>GetThemelogKeywordRank</td><td>테마로그 키워드 랭킹 조회</td><td>Controllers/ThemeLogController.cs:123-128</td></tr>
+<tr><td>81</td><td>ThemeLog</td><td>POST</td><td>api/themelog/keyword/relation-stocks</td><td>GetThemeLogRelationStocks</td><td>테마로그 키워드 관련 종목 조회</td><td>Controllers/ThemeLogController.cs:139-144</td></tr>
+<tr><td>82</td><td>ThemeLog</td><td>POST</td><td>api/themelog/keyword/Diff</td><td>GetThemelogKeywordDiffList</td><td>테마로그 키워드 변동 목록 조회</td><td>Controllers/ThemeLogController.cs:155-160</td></tr>
+<tr><td>83</td><td>TradingView</td><td>GET</td><td>api/tv/config</td><td>GetConfig</td><td>TradingView UDF config 반환(거래소/지원 resolution/symbol type)</td><td>Controllers/TradingViewController.cs:18-38</td></tr>
+<tr><td>84</td><td>TradingView</td><td>GET</td><td>api/tv/symbol_info</td><td>GetSymbolInfo</td><td>기본 심볼 메타데이터 반환</td><td>Controllers/TradingViewController.cs:42-50</td></tr>
+<tr><td>85</td><td>TradingView</td><td>GET</td><td>api/tv/symbols</td><td>GetSymbols</td><td>종목코드로 TradingView 심볼 상세 조회</td><td>Controllers/TradingViewController.cs:54-93</td></tr>
+<tr><td>86</td><td>TradingView</td><td>GET</td><td>api/tv/time</td><td>GetTime</td><td>현재 UTC Unix time 반환</td><td>Controllers/TradingViewController.cs:102-106</td></tr>
+<tr><td>87</td><td>TradingView</td><td>GET</td><td>api/tv/marks</td><td>GetMarks</td><td>TradingView 차트 이벤트/수정주가 mark 데이터 조회</td><td>Controllers/TradingViewController.cs:110-148</td></tr>
+<tr><td>88</td><td>TradingView</td><td>GET</td><td>api/v2/tv/marks</td><td>GetMarks</td><td>v2 TradingView mark 호환 경로</td><td>Controllers/TradingViewController.cs:110-148</td></tr>
+<tr><td>89</td><td>TradingView</td><td>GET</td><td>api/v3/tv/marks</td><td>GetMarks</td><td>v3 TradingView mark 호환 경로</td><td>Controllers/TradingViewController.cs:110-148</td></tr>
+<tr><td>90</td><td>TradingView</td><td>GET</td><td>api/tv/history</td><td>GetHistory</td><td>TradingView v1 OHLCV history 조회; Redis/Mongo 또는 SQL 경로 사용</td><td>Controllers/TradingViewController.cs:152-183</td></tr>
+<tr><td>91</td><td>TradingView</td><td>GET</td><td>api/v2/tv/history</td><td>GetHistoryV2</td><td>TradingView v2 history 조회; countback 옵션 지원</td><td>Controllers/TradingViewController.cs:194-224</td></tr>
+<tr><td>92</td><td>TradingView</td><td>GET</td><td>api/v3/tv/history</td><td>GetHistoryV3</td><td>TradingView v3 history 조회; 비동기 Redis/Mongo 조회 경로</td><td>Controllers/TradingViewController.cs:236-266</td></tr>
+<tr><td>93</td><td>TradingViewTicker</td><td>GET</td><td>api/v2/tv/ticker/history</td><td>GetHistoryV2</td><td>업종/티커용 TradingView v2 history 조회</td><td>Controllers/TradingViewTickerController.cs:29-53</td></tr>
+</tbody></table>
+<h2>4. Web.config 설정값 역할 분석</h2>
+<p class="note">보안상 내부 IP/호스트, 암호화된 연결 문자열 원문은 반복 기재하지 않았습니다.</p>
+<table><thead><tr><th>설정</th><th>역할</th><th>분석</th><th>근거</th></tr></thead><tbody>
+<tr><td>configSections/finup</td><td>FinUp.Core.Redis 전용 사용자 정의 설정 섹션 등록</td><td>FinUp.Core.Redis.Configuration.FinUp 타입으로 &lt;finup&gt; 섹션을 해석</td><td>Web.config:3-5</td></tr>
+<tr><td>finup.redis.clusters.cluster name=&quot;chat&quot;</td><td>Redis 클러스터 정의</td><td>채팅이라는 이름이지만 Redis 기반 가격/감시 Biz가 참조할 수 있는 공통 Redis 클러스터 설정</td><td>Web.config:6-21</td></tr>
+<tr><td>redis options allowAdmin</td><td>Redis 관리자 명령 허용 여부</td><td>true라서 관리 명령이 필요한 라이브러리 동작을 허용</td><td>Web.config:9-10</td></tr>
+<tr><td>redis options abortConnect</td><td>초기 연결 실패 시 중단 여부</td><td>false라서 시작 시 Redis 연결 실패가 있어도 재시도를 허용</td><td>Web.config:10</td></tr>
+<tr><td>redis options connectTimeout/connectRetry/syncTimeout/keepAlive</td><td>Redis 연결/재시도/동기 타임아웃/keepalive 제어</td><td>연결 안정성 및 대기 시간을 조정</td><td>Web.config:10</td></tr>
+<tr><td>redis options databases</td><td>Redis DB 인덱스 범위</td><td>0-10 범위를 사용 대상으로 선언</td><td>Web.config:10</td></tr>
+<tr><td>redis host default</td><td>Redis 기본 호스트</td><td>읽기전용이 아닌 기본 Redis endpoint. 보고서에는 보안상 endpoint 전체를 재기재하지 않음</td><td>Web.config:15</td></tr>
+<tr><td>MongoDB</td><td>주요 MongoDB 연결 문자열</td><td>Data/Index/Price/Constants에서 체결·호가·분봉·일봉 등 운영 데이터 조회에 사용</td><td>Web.config:24; Controllers/DataController.cs:19; Controllers/PriceController.cs:27</td></tr>
+<tr><td>MongoDBLab</td><td>Lab/분석 MongoDB 연결 문자열</td><td>Chart/ThemeLog/Keyword 서비스가 테마·뉴스·집계성 데이터 조회에 사용</td><td>Web.config:25; Controllers/ChartController.cs:23; Controllers/ThemeLogController.cs:21</td></tr>
+<tr><td>MongoDBLabAggregate</td><td>집계 전용 MongoDB 연결 문자열</td><td>Chart와 KeywordNewsService의 집계 조회에 사용. ChartController는 없으면 MongoDBLab으로 대체</td><td>Web.config:26; Controllers/ChartController.cs:24-29; Services/KeywordNewsService.cs:15-16</td></tr>
+<tr><td>StockData</td><td>암호화된 SQL/StockData 연결 문자열</td><td>HealthCheck에서 DecAES()로 복호화 후 DBUtil 조회 수행</td><td>Web.config:35; Controllers/CheckController.cs:19-31</td></tr>
+<tr><td>KafkaUrl</td><td>로그/이벤트 Kafka bootstrap 주소</td><td>로컬 코드 직접 참조는 없지만 FinUp.Core.Log 프로젝트 참조 및 WebAPILogHandler의 Logger.Insert 호출과 함께 로그 통신 설정으로 추정</td><td>Web.config:42; Handler/WebAPILogHandler.cs:143-150</td></tr>
+<tr><td>UseLog</td><td>로그 활성화 플래그</td><td>로컬 직접 참조는 없고 외부 FinUp.Core.Log가 읽는 설정으로 추정</td><td>Web.config:43; FinUp.StockData.Price.Api.csproj:663-665</td></tr>
+<tr><td>System</td><td>로그 시스템명</td><td>로그에 기록될 시스템 식별자. 값은 StockData.Api</td><td>Web.config:44</td></tr>
+<tr><td>SystemType</td><td>로그 시스템 유형</td><td>API 유형 서비스임을 나타내는 로그 메타데이터</td><td>Web.config:45</td></tr>
+<tr><td>LogThreshold</td><td>로그 임계값</td><td>외부 로깅 라이브러리의 수집/필터링 기준으로 추정</td><td>Web.config:46</td></tr>
+<tr><td>LogCaseType</td><td>로그 수집 케이스 유형</td><td>Collected로 설정되어 수집형 로그 정책을 나타냄</td><td>Web.config:47</td></tr>
+<tr><td>LogCommunication</td><td>로그 전송 방식</td><td>kafka로 설정되어 Kafka 기반 로그 전송을 지시</td><td>Web.config:48</td></tr>
+<tr><td>Compression</td><td>압축 사용 플래그</td><td>로컬 직접 참조는 없음. 외부 라이브러리 또는 운영 로그/통신 압축 설정으로 추정</td><td>Web.config:49</td></tr>
+<tr><td>CompressionType</td><td>압축 방식 플래그</td><td>로컬 직접 참조는 없음. 1이 특정 압축 타입을 의미하는 내부 규약으로 추정</td><td>Web.config:50</td></tr>
+<tr><td>StockDataRealtimeUrl</td><td>실시간 StockData API base URL</td><td>StockDataRealtimeApiService가 금일 분봉 데이터를 외부 API에서 가져올 때 base URL로 사용</td><td>Web.config:51; Services/StockDataRealtimeApiService.cs:19-35</td></tr>
+<tr><td>StockDataRealtimeMinuteUrlPath</td><td>실시간 분봉 API path</td><td>{base}{path}/{code} 형식의 금일 분봉 요청 경로</td><td>Web.config:52; Services/StockDataRealtimeApiService.cs:19-35</td></tr>
+<tr><td>system.diagnostics trace listener</td><td>Trace 출력 파일 대상</td><td>FinUp.Core.Diagnostics.TextFileTraceListener가 C:\trace\api\stockdata.log에 Trace를 기록</td><td>Web.config:54-60</td></tr>
+<tr><td>system.web compilation/debug</td><td>ASP.NET 컴파일 설정</td><td>targetFramework 4.7, debug=true. 운영이라면 상세 디버그 정보 노출/성능 영향 검토 필요</td><td>Web.config:69-72</td></tr>
+<tr><td>httpRuntime targetFramework</td><td>ASP.NET 런타임 호환성 대상</td><td>4.7 런타임 동작을 지정</td><td>Web.config:71</td></tr>
+<tr><td>runtime assemblyBinding</td><td>어셈블리 바인딩 리다이렉트</td><td>System.Web.Http, Newtonsoft.Json, Mongo/Redis 의존 System.* 계열 버전 충돌을 지정 버전으로 통일</td><td>Web.config:73-128</td></tr>
+<tr><td>system.codedom compilers</td><td>런타임 C#/VB 컴파일러</td><td>Razor/동적 컴파일 시 Microsoft.CodeDom provider와 언어 버전 지정</td><td>Web.config:129-134</td></tr>
+<tr><td>system.webServer handlers</td><td>IIS handler 설정</td><td>ExtensionlessUrlHandler 재등록, OPTIONS/TRACE 기본 handler 제거로 ASP.NET Web API extensionless URL 처리를 보장</td><td>Web.config:135-142</td></tr>
+</tbody></table>
+<h2>5. 데이터 흐름 관찰</h2><ul>
+<li>Redis 실시간/캐시 경로: 현재가, 고저가, 체결감시, 장중 분봉.</li>
+<li>MongoDB 이력/집계 경로: 호가/거래원/체결 이력, 분봉 과거 데이터, 테마 차트/테마로그.</li>
+<li>SQL/Biz 경로: 종목 상세, 재무, 캘린더, 뉴스 목록, 예탁금 추이.</li>
+<li>TradingView 호환 경로: /api/tv/*, /api/v2/tv/*, /api/v3/tv/*.</li>
+<li>외부 실시간 API 경로: StockDataRealtimeUrl + StockDataRealtimeMinuteUrlPath 조합.</li>
+</ul><h2>6. 주의/한계</h2><ul>
+<li>정적 분석 기준이며 실제 배포 URL/IIS 바인딩/인증/외부 DLL 내부 동작은 실행 환경 없이는 확정할 수 없습니다.</li>
+<li>일부 appSettings는 로컬 코드 직접 참조가 없고 외부 공통 라이브러리 설정으로 추정됩니다.</li>
+<li>debug=true, IncludeErrorDetailPolicy.Always, 내부 endpoint/연결 문자열은 운영 보안 검토 대상입니다.</li>
+</ul><h2>7. 검증 내역</h2><ul><li>컨트롤러 Route 어트리뷰트 파싱 결과 93개 라우트 항목 확인.</li><li>Web.config 및 라우팅/handler/filter/service 파일 확인.</li><li>산출물 생성 위치: <code>/mnt/c/reports/FinUp.StockData.Price.Api</code></li></ul>
+</body></html>
