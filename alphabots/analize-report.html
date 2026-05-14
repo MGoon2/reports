@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>analize-report</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 32px; background:#fafafa; color:#222; }
+pre { white-space: pre-wrap; word-break: break-word; background:#fff; border:1px solid #ddd; padding:24px; line-height:1.45; }
+</style>
+</head>
+<body>
+<pre># 1. 시스템 요약
+
+- 분석 대상: `FinUp.CollectData.App.AlphaBot`, `FinUp.Finance.App.AlphaBot`, `FinUp.Radar.App.AlphaBot`, `FinUp.Stock.App.AlphaBot`.
+- 앱 유형: 4개 모두 WPF `WinExe` 계열이다. `Program.cs`는 4개 프로젝트에서 발견되지 않았고, `App.xaml`의 `StartupUri=&quot;MainWindow.xaml&quot;`로 시작한다.
+- 공통 동작: `T_Operation` + `T_OperationTerm`을 주기적으로 조회해 `OperationType` 조건을 계산하고, 매핑된 업무 메서드를 별도 `Thread`에서 실행한다.
+- 주요 DB: `SystemData.dbo.T_Operation`, `SystemData.dbo.T_OperationTerm`, `SystemData.dbo.USP_Operation_Update`, `SystemData.dbo.USP_OperationTermHistory_Insert`. 업무별로 `StockData`, `ThemeRadar`, `DbStockPoint`, MongoDB, Redis, MySQL성 설정이 추가로 사용된다.
+- 운영상 핵심 위험: DB 기반 전역 선점/락 없이 프로세스 메모리의 `member.actionState`만으로 중복 실행을 막는다. 같은 앱이 2개 이상 실행되면 같은 `OIdx/OTIdx`가 중복 처리될 수 있다. 위험도: **Critical**.
+- 확인된 활성 작업 규모(DB 스냅샷 기준): Data 7개, Finance 2개, ThemeRadar 19개, StockPoint 53개 활성 작업. 근거: `/mnt/c/04_업무/T_Operation.md`.
+- 안전 개선 방향 요약: (1) 코드 변경 전 운영 인스턴스 수 확인, (2) `OIdx/OTIdx` 단위 DB lease/lock 설계, (3) `MaxDuration` 기반 복구 규칙 확인, (4) 실패 상태/재시도 정책 표준화, (5) 설정의 비밀값 분리 및 회전.
+
+# 2. 실행 진입점 분석
+
+| 항목 | 내용 | 근거 파일/메서드 |
+|---|---|---|
+| Program.cs / Main | 4개 대상 프로젝트에서 `Program.cs` 없음. WPF 빌드가 생성하는 엔트리포인트에 의존하는 구조로 판단된다. | `find ... -name Program.cs` 결과 없음, `FinUp.*.csproj`의 `OutputType=WinExe` |
+| CollectData 앱 유형 | SDK 스타일 WPF `WinExe`, `.NET 6 Windows`, `UseWPF=true`. `App.xaml`이 `MainWindow.xaml`을 시작한다. | `FinUp.CollectData.App.AlphaBot/...csproj:5-7`, `App.xaml:1-5` |
+| Finance 앱 유형 | SDK 스타일 WPF `WinExe`, `.NET 6 Windows`, `UseWPF=true`. `App.xaml`이 `MainWindow.xaml`을 시작한다. | `FinUp.Finance.App.AlphaBot/...csproj:4-6`, `App.xaml:1-5` |
+| Radar 앱 유형 | .NET Framework WPF `WinExe`, `TargetFrameworkVersion v4.7`, `App.xaml` → `MainWindow.xaml`. | `FinUp.Radar.App.AlphaBot.csproj:8-12`, `App.xaml:1-5` |
+| Stock 앱 유형 | .NET Framework WPF `WinExe`, `TargetFrameworkVersion v4.7`, `App.xaml` → `MainWindow.xaml`. | `FinUp.Stock.App.AlphaBot.csproj:8-12`, `App.xaml:1-5` |
+| CollectData 초기화 | XAML에서 `MainViewModel`을 `DataContext`로 생성한다. 생성자에서 `_biz = new AlphaBotBiz()`, `GetOperationModel()`로 `SvcType=&#x27;Data&#x27;` 작업을 로딩하고 `tObserveTimer`만 시작한다. 메인 처리 타이머는 시작 버튼/명령이 실행해야 시작된다. | `MainWindow.xaml:10-12`, `ViewModel/MainViewModel.cs:27-62`, `CommandStart_Click:135-139` |
+| Finance 초기화 | XAML에서 `MainViewModel`을 생성한다. 생성자에서 `GetOperationModel()`로 `SvcType=&#x27;Finance&#x27;` 작업을 로딩하고 `tObserveTimer`만 시작한다. 메인 처리 타이머는 시작 명령이 필요하다. | `MainWindow.xaml:10-12`, `ViewModel/MainViewModel.cs:26-61`, `CommandStart_Click:134-138` |
+| Radar 초기화 | `MainWindow.Loaded`에서 `InitializeMember()` 후 live 설정이 `REAL`이면 `btnStart_Click()`을 자동 호출한다. | `MainWindow.xaml.cs:86-100`, live config `Server=REAL` `/mnt/c/App/Config/alphabots/FinUp.Radar.App.AlphaBot.exe.config:47` |
+| Stock 초기화 | `MainWindow.Loaded`에서 `InitializeMember()`만 호출한다. 자동 `btnStart_Click()` 호출은 확인되지 않았다. | `MainWindow.xaml.cs:60-68` |
+| 종료 처리 | Radar는 `OnExit`에서 `Application.Current.Shutdown()`만 수행한다. Stock은 `OnExit`에서 `Thread.Sleep(1000)` 후 종료한다. 실행 중 작업 스레드에 대한 취소 토큰/Join/정리 루틴은 근거 없음. | `FinUp.Radar.App.AlphaBot/App.xaml.cs:56-60`, `FinUp.Stock.App.AlphaBot/App.xaml.cs:50-57` |
+
+# 3. 루프 구조 분석
+
+| 위치 | 방식 | 주기 | DB 호출 여부 | 중복 실행 가능성 | 예외 처리 | 위험도 |
+|---|---|---:|---|---|---|---|
+| CollectData `MainViewModel` | `DispatcherTimer tMainTimer` → `ProcessConfirm` → `StartConfirmProcess` → `new Thread(ProcessStart)` → 내부에서 다시 `new Thread(RunTask)` | live 설정 `AlphaBot.ObServeTime=5`, 코드도 설정값 사용 | 매 tick `ListOperationTerm(&quot;Data&quot;)`, 실행 전 `USP_Operation_Update`, 실행 이력 `USP_OperationTermHistory_Insert` | 단일 프로세스 내 `actionState` 확인은 있으나 DB 선점 없음. 다중 인스턴스/재시작 시 중복 가능 | 다수 `catch {}` 또는 빈 catch. `RunTask` 일부만 NLog | **Critical** |
+| Finance `MainViewModel` | `DispatcherTimer tMainTimer` → `ProcessConfirm` → `StartConfirmProcess` → `new Thread(ProcessStart)` → 내부에서 다시 `new Thread(RunTask)` | 코드상 5초 고정, live config도 `AlphaBot.ObServeTime=5`이나 코드에서 설정값 사용 근거 없음 | 매 tick `ListOperationTerm(&quot;Finance&quot;)`, 실행 전 `USP_Operation_Update`, 실행 이력 Insert | DB 선점 없음. `LastExecDT`를 실행 전에 갱신하므로 실패/종료 시 Once 작업 유실 가능 | 초기화/업데이트/스케줄링에서 빈 catch 다수 | **High** |
+| Radar `MainWindow` | `DispatcherTimer tMainTimer`; REAL이면 자동 시작. 작업은 `new Thread(ProcessStart)`로 분리 | 5초 (`const int iObserveTime=5`) | 매 tick `ListOperationTerm()`, 실행 전 `USP_Operation_Update`, 이력 Insert | `actionState`는 프로세스 메모리 한정. 다중 인스턴스 중복 가능 | 스케줄링 예외는 UI 로그, 일부 `catch {}`와 Trace | **Critical** |
+| Stock `MainWindow` | `DispatcherTimer tMainTimer`, `tObserveTimer`, `tAlphaBotTimer`; 작업은 `new Thread(ProcessStart)` | 메인 5초, 관찰 1초, Alive 60초 | 매 tick `ListOperationTerm()`, `ProcessStart`에서 `USP_Operation_Update`, 이력 Insert | `actionState` 메모리 한정. 수동 실행과 다중 인스턴스 경합 가능 | `ProcessStart`는 ERROR/END 이력 기록. 일부 하위 코드에서 빈 catch/throw ex 존재 | **Critical** |
+| CollectData 크롤링 발송 | `Task.Run(async () =&gt; await SendMessageList(...))`를 여러 곳에서 fire-and-forget로 호출 | 상위 작업 주기에 따름 | MongoDB/Kafka/Telegram 사용 | `Task.Run`을 await하지 않아 실행 이력 STOP이 외부 발송 완료보다 먼저 기록될 수 있음 | SendMessageAsync 예외는 throw하나 fire-and-forget 작업 예외는 상위 RunTask가 직접 관찰하지 못할 수 있음 | **High** |
+| Stock 추천종목 수동 비교 | 업무 내부 `Thread.Sleep(nProcessSleep)` 후 재조회 | `nProcessSleep` 값 출처 추가 확인 필요 | Sleep 전후 DB 조회 | 실행 스레드 장기 점유. Stop 버튼/앱 종료 시 취소 불가 | 건별 catch는 콘솔 출력, 외부로 상태 DB 기록 근거 부족 | **Medium** |
+| CollectData `KoreaBriefing` | `while(true)`로 직전 평일 탐색 | 조건 충족 시 break | MongoDB 조회 | 날짜 계산 루프는 break 조건이 있으나 보호 카운터 없음 | catch에서 기존 리스트 반환 | **Low** |
+
+# 4. DB 폴링 흐름
+
+| 순서 | 쿼리/테이블/SP | 코드 위치 | 처리 의미 | 위험 |
+|---:|---|---|---|---|
+| 1 | `SystemData.dbo.T_Operation` + `T_OperationTerm`, `SvcType=@SvcType`, `DisplayAlphabot=1`, `DelDT IS NULL`, `WITH(NOLOCK)` | CollectData `FinUp.Core.DS.Dac/.../SqlOperationDac.cs:15-49` | Data 서비스 작업/스케줄 조회 | `WITH(NOLOCK)`으로 더티리드 가능. MaxDuration을 조회하지 않아 장기 실행/복구 판단에 사용되지 않음. **High** |
+| 2 | 같은 구조, `SvcType=&#x27;Finance&#x27;` 파라미터 | Finance `SqlOperationDao.cs:19-53` | Finance 작업/스케줄 조회 | 조회 건수 제한 없음. 활성 작업이 적어 현재 부하는 낮지만 구조상 전량 조회. **Medium** |
+| 3 | 같은 구조, `SvcType=&#x27;ThemeRadar&#x27;` 고정 | Radar `FinUp.Radar/Sql/SqlOperation.cs:11-47` | ThemeRadar 작업/스케줄 조회 | 5초마다 전체 스케줄 재조회. `WITH(NOLOCK)`. **Medium** |
+| 4 | 같은 구조, `SvcType=&#x27;StockPoint&#x27;` 고정 | Stock `FinUp.Stock.App/Sql/SqlSender.cs:12-47` | StockPoint 작업/스케줄 조회 | 활성 53개 작업을 5초마다 재평가. 다중 앱이면 DB 부하/중복 위험 증가. **High** |
+| 5 | `SystemData.dbo.USP_Operation_Update` | CollectData `AlphaBotBiz.cs:284-290`, Finance `AlphaBotBiz.cs:265-271`, Radar `MainWindow.xaml.cs:447-454`, Stock `MainWindow.xaml.cs:702-704` | `LastExecDT` 갱신 | 대부분 실행 전 갱신이다. 실행 실패/프로그램 종료 시 실제 미처리인데 최근 실행으로 기록될 수 있음. **Critical** |
+| 6 | `SystemData.dbo.USP_OperationTermHistory_Insert` START/ERROR/STOP/END/ALIVE | CollectData `AlphaBotBiz.cs:337-367`, Finance `AlphaBotBiz.cs:318-348`, Radar `MainWindow.xaml.cs:1001-1031`, Stock `MainWindow.xaml.cs:693-729`, SQL 정의 `SqlSender.cs:382-397` | 작업 실행 이력 기록 | 이력은 남지만 실제 처리 대상 레코드의 선점/상태와 별개다. catch에서 이력 실패를 삼키는 코드 존재. **Medium** |
+| 7 | `StockData.dbo.T_StockCalendar` 서브쿼리 | 각 `ListOperationTerm` SQL | 장중/휴일 판단 | 인덱스 필요 컬럼: `YYYY_MM_DD`. 실제 인덱스 존재는 추가 확인 필요. **Medium** |
+| 8 | 업무별 큐/상태 테이블/SP | 예: Radar Push `sqlPush.ProcQueuePushList`, Receipt `USPOrderAutoReceiptList`, Stock `USP_OrderAutoQueue_List` 등 | 실제 반복 업무 데이터 조회 | 개별 SP/테이블의 선점·상태 업데이트는 이번 범위에서 일부만 확인됨. 전체 중복 방지는 추가 확인 필요. **추가 확인 필요** |
+
+# 5. 반복 업무 처리 흐름
+
+| 업무 | 시작 조건 | 처리 내용 | 성공 처리 | 실패 처리 | 중복 위험 |
+|---|---|---|---|---|---|
+| 공통 스케줄러 | `Active=1`, `OperationTerm=Loop/Once`, 시간 조건 만족 | `OIdx`별 action 매핑 후 별도 스레드에서 실행 | `LastExecDT` 갱신, `OperationTermHistory` START/STOP 또는 END 기록 | 일부는 ERROR 이력, 일부는 빈 catch/Trace/Console/NLog | DB 선점 없음. 다중 인스턴스에서 **Critical** |
+| CollectData 뉴스 크롤링 `OIdx=30010` | DB 스냅샷: Loop 30초, 24시간, Active=1 | `CrawlerSite.Run` → 사이트 목록 크롤링/필터/메시지 발송 | `Success(&quot;&quot;)`, 상위 RunTask STOP 이력 | `logger.Error` 후 `Error(ex)` 반환 | 메시지 발송이 `Task.Run` fire-and-forget. STOP 이력과 실제 외부 발송 완료 불일치 가능. **High** |
+| CollectData 정책/파트너스 발송 `OIdx=30011/30012` | Once 08:00, Active=1 | MongoDB 조회 후 Telegram 발송 | 상위 STOP 이력 | 발송 Task 예외 관찰 불명확 | 동일 뉴스 URL 캐시는 메모리 기반으로 보이며 재시작 시 중복 발송 가능. **High** |
+| Finance 랭킹/인베스트RSS | `OIdx=40001` Loop 3600초, `40002` Loop 10800초 | `Ranking.Run`, `InvestRss.Run` | 상위 이력 기록 | 빈 catch가 많아 실패 원인 누락 가능 | 작업 수는 적으나 전역 선점 없음. **Medium** |
+| Radar 공시/가격/키워드/푸시 | `ThemeRadar` active 작업 19개, 예: 공시 30초, 가격 60초 | `Process.cs`에서 `DisclosureApi`, `StockPrice`, `KeywordAnalysis`, `Push` 등 실행 | 상위 이력 기록, 일부 업무 로그 | `StartProcess ERROR`, 일부 Trace/빈 catch | 30~60초 주기 작업이 많고 외부 API/Redis/Mongo 포함. 다중 실행 시 **Critical** |
+| Stock SMS/Push/API Service/모니터링/결제 | `StockPoint` active 작업 53개. 예: SMS 5초, APP Push 10초, API Service 10초, Email 10초, 다날 SMS 5초 | `GetActionOperation`에서 다수 업무 메서드로 매핑 | Stock은 `ProcessStart`에서 START/ERROR/END 이력 기록 | 하위 `Push` 등 일부 catch 무시, 일부 `throw ex` | 알림/SMS/결제/포인트 등 중복 처리 영향이 큼. **Critical** |
+| Stock Alive | `tAlphaBotTimer` 60초 | `OIdx=100`, `OTIdx=100` ALIVE 이력 기록 | ALIVE 이력 | 예외 시 UI/로그 | Alive는 모니터링용이나 실제 작업 복구/중단 로직은 아님. **Low** |
+
+# 6. 예외 및 복구 구조
+
+| 위치 | 현재 방식 | 문제 | 개선 방향 |
+|---|---|---|---|
+| CollectData 초기화/관찰/수동 실행 | `catch (FinUpExeption ex) {}`, `catch {}` | 초기화 실패, 관찰 실패, 수동 실행 실패가 운영자에게 보이지 않을 수 있음 | 최소 NLog/이력/알림으로 예외 기록. 코드 변경 전 실패 로그 샘플 확인 |
+| Finance 초기화/업데이트/스케줄링 | 다수 빈 catch | DB 조회 실패 시 타이머는 살아 있어도 작업 목록/상태 갱신이 멈출 수 있음 | `OIdx/OTIdx` 없는 공통 예외도 파일/DB/알림에 남기기 |
+| Radar 초기화 | `MessageBox.Show(ex.Message)` + Trace | 서버형 운영 앱에서 MessageBox는 무인 운영 장애를 유발할 수 있음 | MessageBox 의존 제거 계획 수립, 파일/Telegram/API 로그 확인 |
+| Radar/Stock App UnhandledException | Dispatcher 예외를 handled 처리 | 전체 종료는 막지만, 실패 업무의 DB 상태/재시도 정책은 보장하지 않음 | 예외별 `OIdx/OTIdx/ExecID` 연결 강화 |
+| Stock `ProcessStart` | START, ERROR, END 이력은 기록하고 finally에서 `actionState=Stop` | 이력 기록 실패는 `SetOperationTermHistory` 내부 catch로 무시됨. 작업별 부분 성공/외부 성공 후 DB 실패는 구분 불명확 | 이력 SP 실패 알림, 외부 호출 후 DB 업데이트 실패 보상 절차 정의 |
+| DB 커넥션 | Stock/Radar 구형 `DBUtil`은 `Close()`는 하지만 `SqlConnection/SqlCommand/SqlDataAdapter`에 `using/Dispose`가 일관되지 않음. Query 기반 Core/Finance는 `using(SqlCommand)` 근거 있음 | 장시간 프로세스에서 커맨드/어댑터 Dispose 부족 위험. 단, 실제 풀 누수는 운영 카운터 확인 필요 | 작은 단위로 `using` 적용 계획. 변경 전 커넥션 풀/에러 로그 확인 |
+| 실행 중 종료 | 타이머 Stop/Shutdown/Sleep만 확인. CancellationToken/Join 없음 | 실행 중 스레드가 외부 API/DB 작업 중 종료되면 중간 상태 복구 불명확 | DB lease + 재시작 시 `Running` 초과 작업 복구 규칙 필요 |
+
+# 7. 중복 처리 위험
+
+| 시나리오 | 원인 | 영향 | 방지 방법 |
+|---|---|---|---|
+| 같은 AlphaBot을 두 서버/프로세스에서 실행 | DB 선점 없이 프로세스 메모리 `actionState`만 확인 | SMS/Push/결제/포인트/뉴스 발송 중복. **Critical** | `OIdx/OTIdx`별 DB lease 테이블 또는 `sp_getapplock`, owner/expire 기반 선점 |
+| Once 작업이 실행 전 `LastExecDT`만 갱신되고 앱 종료 | CollectData/Finance/Radar는 thread 시작 전 `USP_Operation_Update` 호출 | 실제 미처리인데 당일 실행 완료처럼 판단될 수 있음. **High** | START 이력과 END 이력 기준 복구, LastExecDT는 성공 후 또는 lease 상태와 분리 |
+| 외부 발송 Task를 await하지 않음 | CollectData `Task.Run(async...)` fire-and-forget | Telegram/Kafka 실패가 상위 STOP 이력과 분리되어 누락/중복 재발송 가능. **High** | 외부 발송 완료를 기다리고 결과별 이력/중복키 기록 |
+| 메모리 캐시 기반 URL 중복 방지 | `CrawlerSiteUrl.Instance`는 코드상 프로세스 메모리로 보임 | 앱 재시작 시 같은 뉴스 재발송 가능 | DB/Mongo에 URL+채널 unique key 또는 발송 이력 TTL 저장 |
+| ManualExec와 자동 실행 경합 | DB `ManualExec=1`이고 `actionState==Stop`이면 즉시 실행 | 타이머 조건과 수동 실행이 가까울 때 중복 가능 | 수동 실행도 동일 DB lease 사용, ManualExec 처리 후 원자적 reset 확인 |
+| MaxDuration 미사용 | 스냅샷에는 `MaxDuration`이 있으나 주요 ListOperationTerm SQL에서 선택하지 않음 | 장기 실행 감지/강제 복구가 앱 레벨에서 동작하지 않음 | `MaxDuration` 조회/이력과 연계한 stuck 작업 경보/복구 설계 |
+
+# 8. 외부 API 호출
+
+| 위치 | 설명 | 외부 호출 정보 Url 또는 기타 |
+|---|---|---|
+| CollectData live config | 뉴스 크롤링 후 Telegram/Kafka 전송 설정, MongoDB, Naver/Upbit/TradingEconomics/프록시 설정 포함. 비밀값은 보고서에서 마스킹. | `/mnt/c/App/Config/alphabots/FinUp.CollectData.App.AlphaBot.dll.config:8-12`, `:25`, `:81-100`, `:104-107` |
+| CollectData `CrawlerSite` | Telegram 전송 및 Kafka 전송. 여러 `Task.Run`으로 비동기 발송. | `CrawlerSite.cs:115-126`, `:690-754`, `:766-827`, `:888-972` |
+| Finance live config | 파일 서버/이미지 URL/파일 계정 설정. | `/mnt/c/App/Config/alphabots/FinUp.Finance.App.Alphabot.dll.config:9-14` |
+| Radar live config | Redis, MongoDB, stockdata/radar API, cache API, Telegram, API log, OG 이미지 경로. | `/mnt/c/App/Config/alphabots/FinUp.Radar.App.AlphaBot.exe.config:40-78` |
+| Radar `ThemeLogSendMessage`, `StockPrice` 등 | WebRequest/HttpWebRequest로 Radar/stockdata/cache API 호출. | `Operation/ProcessUnit/ThemeLogSendMessage.cs:116`, `Operation/ProcessUnit/StockPrice.cs:158`, `:668` |
+| Stock live config | StockPoint/StockData/Chat/ThemeRadar API, AWS, Naver, Bitly, YouTube, DB/SMS 관련 비밀값 포함. | `/mnt/c/App/Config/alphabots/FinUp.Stock.App.AlphaBot.exe.config:9-78` |
+| Stock `Process` | AWS CloudWatch, Firebase Admin, Bitly API 초기화/호출. | `Operation/Process.cs:80-88`, `:233-250` |
+| Stock `Push` | FCM legacy endpoint 및 Apple push 래퍼 사용. 일부 catch 무시. | `Operation/Push.cs:148-173`, `:255-257` |
+| Stock `NaverLogin` | Naver OAuth/Login/Cafe API 호출 코드 존재. | `Utils/NaverLogin.cs` 내 `HttpWebRequest`/OAuth 메서드 다수, live config `Naver*` 키 |
+
+# 9. 설정/배포 확인 사항
+
+| 항목 | 위치 | 설명 | 위험 |
+|---|---|---|---|
+| 라이브 설정 파일 | `/mnt/c/App/Config/alphabots/` | 4개 config 존재: CollectData dll, Finance dll, Radar exe, Stock exe | 실제 배포 파일과 소스 config가 다를 수 있음. **Medium** |
+| 비밀값/계정 | live config 다수 | Telegram bot token, 파일 계정, 프록시 계정, AWS, Naver, Bitly, Chat API key 등 민감값 존재 | 파일 접근 권한/비밀 회전 필요. **High** |
+| 서버 모드 | Radar/Stock live config | `Server=REAL`, Radar `ServerType=PUBLIC` | 실서버 자동 시작/외부 발송 가능. 운영 테스트 시 주의. **High** |
+| 외부 실행파일 경로 | Radar `PathOmega`, `ThemeCrawler`; Stock `StockRadarPath`, `XingDataPath` | 로컬 `C:\App\...` 경로 하드코딩 | 배포 경로 변경 시 장애. **Medium** |
+| 공유 폴더 경로 | Finance FilePath, Radar PathOgImage | `10.0.0.12`/UNC 경로 사용 | 네트워크/권한 장애 시 작업 실패. **Medium** |
+| 로그 | CollectData NLog file target, Radar `Logs.txt`, Stock `LogWriter`/Telegram | 로그 방식이 프로젝트별로 다름 | `OIdx/OTIdx/ExecID` 검색 일관성 부족. **Medium** |
+| DB 스케줄 | `/mnt/c/04_업무/T_Operation.md`, `T_OperationTerm.md` | 현재 활성/주기/MaxDuration 확인 가능 | 앱 코드가 MaxDuration을 사용하지 않는 근거가 있어 운영 모니터링 별도 확인 필요. **High** |
+
+# 10. 추가 확인 필요 사항
+
+1. 운영 인스턴스 수: 각 AlphaBot이 실제 서버에서 1개만 실행되는지, Hot-standby/스케줄러/윈도우 시작프로그램 중복이 없는지 확인 필요.
+2. DB 스키마/인덱스: `SystemData.dbo.T_Operation(OIdx, SvcType, DisplayAlphabot, DelDT)`, `T_OperationTerm(OIdx, Active, DelDT, Type, OnceTime, LoopInterval)`, `StockData.dbo.T_StockCalendar(YYYY_MM_DD)` 인덱스 확인 필요.
+3. `SystemData.dbo.USP_Operation_Update`, `USP_OperationTermHistory_Insert` 내부 로직 확인 필요: 원자적 선점/중복 방지/MaxDuration 처리 여부는 코드 호출부만으로 확정 불가.
+4. 업무별 실제 대상 테이블/SP 확인 필요: SMS/Push/결제/포인트/뉴스/랭킹 업무는 하위 `Sql*` 클래스와 DB SP 내부까지 추적해야 최종 중복 위험을 확정할 수 있다.
+5. 운영 로그 샘플 필요: `ExecID`, `OIdx`, `OTIdx`, START/ERROR/END/STOP 누락 패턴, 외부 API 실패 로그, DB timeout 로그.
+6. 설정 보안 확인 필요: `/mnt/c/App/Config/alphabots` 접근 권한, 비밀값 저장 방식, 최근 회전일, Git 포함 여부.
+7. 안전 개선 계획: 우선 코드 변경 없이 운영 현황/DB SP 확인 → 그 다음 작은 변경 단위로 (a) 로그 보강, (b) DB lease 도입, (c) LastExecDT 성공 후 갱신 분리, (d) CancellationToken/종료 대기, (e) 민감 설정 분리 순서로 검토한다.
+
+---
+
+## 완료 감사 체크리스트
+
+| 요구사항 | 증거/결과 |
+|---|---|
+| 코드 수정 금지 | 소스 파일 변경 없음. 보고서 파일만 `/mnt/c/reports/alphabots/`에 생성 |
+| 4개 프로젝트 분석 | CollectData/Finance/Radar/Stock 각각 진입점, 루프, DB 폴링, 설정을 표로 정리 |
+| DB 스냅샷 반영 | `/mnt/c/04_업무/T_Operation.md`, `T_OperationTerm.md`에서 활성 작업/주기 요약 반영 |
+| 라이브 설정 반영 | `/mnt/c/App/Config/alphabots` 4개 config의 DB/API/비밀값/경로 확인 반영 |
+| 지정 Markdown 형식 | `# 1` ~ `# 10` 제목 및 요청 표 포함 |
+| 위험도 표기 | Critical/High/Medium/Low 사용 |
+| 근거 없을 때 추측 금지 | SP 내부/인덱스/운영 인스턴스 수 등은 추가 확인 필요로 표시 |
+</pre>
+</body>
+</html>
