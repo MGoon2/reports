@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>05. 위험 요소 보고서</title>
+<style>
+:root{--primary:#fcd535;--active:#f0b90b;--ink:#181a20;--body:#eaecef;--muted:#929aa5;--dark:#0b0e11;--card:#1e2329;--elev:#2b3139;--line:#2b3139;--up:#0ecb81;--down:#f6465d;--info:#3b82f6;}
+*{box-sizing:border-box} body{margin:0;background:var(--dark);color:var(--body);font-family:BinanceNova,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.6} a{color:var(--primary);text-decoration:none}.wrap{max-width:1160px;margin:0 auto;padding:28px 24px 72px}.top{position:sticky;top:0;background:rgba(11,14,17,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);z-index:10}.top .inner{max-width:1160px;margin:0 auto;padding:14px 24px;display:flex;gap:12px;align-items:center;justify-content:space-between}.brand{color:var(--primary);font-weight:700}.nav a{margin-left:12px;color:var(--muted);font-size:13px}.hero{padding:42px 0 22px;border-bottom:1px solid var(--line)}.badge{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:999px;color:var(--primary);font-size:12px;font-weight:700;padding:6px 12px}.hero h1{font-size:42px;line-height:1.12;letter-spacing:-.4px;margin:18px 0 8px;color:#fff}.hero p{color:var(--muted)}main{padding-top:20px}h1,h2,h3,h4{color:#fff;line-height:1.25}h1{font-size:38px}h2{font-size:28px;margin-top:36px;padding-top:8px;border-top:1px solid var(--line)}h3{font-size:21px;margin-top:28px}h4{font-size:16px}p{margin:12px 0;color:var(--body)}blockquote{margin:16px 0;padding:14px 16px;border-left:4px solid var(--primary);background:#11151a;border-radius:6px;color:var(--muted)}code{background:#11151a;color:#fff;padding:2px 6px;border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}pre{background:#11151a;border:1px solid var(--line);border-radius:12px;padding:16px;overflow:auto;color:#fff}pre code{background:transparent;padding:0}pre.mermaid{background:#11151a;color:#fff;border:1px solid var(--line);border-radius:12px;padding:18px}table{width:100%;border-collapse:collapse;margin:16px 0 24px;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:table}th,td{padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:top;font-size:14px}th{color:var(--primary);background:#11151a;text-align:left;font-weight:700}tr:last-child td{border-bottom:0}ul,ol{padding-left:24px}li{margin:6px 0}.footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}.pill{display:inline-block;border-radius:999px;padding:2px 9px;background:rgba(252,213,53,.12);color:var(--primary);border:1px solid rgba(252,213,53,.35);font-size:12px;font-weight:700}@media(max-width:800px){.hero h1{font-size:30px}.wrap{padding:20px 16px}.top .inner{padding:12px 16px;display:block}.nav{margin-top:8px}.nav a{margin:0 10px 0 0}table{display:block;overflow-x:auto;white-space:nowrap}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{if(window.mermaid) mermaid.initialize({startOnLoad:true,theme:'dark'});});</script>
+</head>
+<body>
+<header class="top"><div class="inner"><div class="brand">FinUp AlphaBot Analysis</div><nav class="nav"><a href="total_report.html">Total</a><a href="01_project_inventory.html">Inventory</a><a href="02_dependency_map.html">Dependencies</a><a href="03_db_access_map.html">DB</a><a href="04_runtime_flow.html">Runtime</a><a href="05_risk_report.html">Risk</a><a href="06_refactoring_plan.html">Refactor</a></nav></div></header>
+<div class="wrap">
+<section class="hero"><h1>05. 위험 요소 보고서</h1><p>Markdown 원본을 HTML로 변환한 정적 보고서입니다. Mermaid 블록은 브라우저에서 렌더링됩니다.</p></section>
+<main>
+<h1 id="05-위험-요소-보고서">05. 위험 요소 보고서</h1>
+<h2 id="요약-위험-매트릭스">요약 위험 매트릭스</h2>
+<pre class="mermaid">quadrantChart
+  title AlphaBot 위험도 / 발생 가능성
+  x-axis &quot;낮은 발생 가능성&quot; --&gt; &quot;높은 발생 가능성&quot;
+  y-axis &quot;낮은 영향&quot; --&gt; &quot;높은 영향&quot;
+  quadrant-1 &quot;즉시 대응&quot;
+  quadrant-2 &quot;감시 필요&quot;
+  quadrant-3 &quot;낮은 우선순위&quot;
+  quadrant-4 &quot;구조 개선&quot;
+  &quot;비밀값 config 집중&quot;: [0.82, 0.95]
+  &quot;예외 시 STOP 이력 누락&quot;: [0.70, 0.88]
+  &quot;UI+스케줄+DB 단일 프로세스&quot;: [0.78, 0.82]
+  &quot;Thread 상태 공유 lock 부재&quot;: [0.65, 0.76]
+  &quot;외부 API/크롤러 변경 취약&quot;: [0.75, 0.70]
+  &quot;레거시 패키지/Framework 혼합&quot;: [0.55, 0.58]</pre>
+<h2 id="Critical-위험">Critical 위험</h2>
+<table><thead><tr><th>ID</th><th>위험</th><th>영향</th><th>대상</th><th>근거</th><th>권고</th></tr></thead><tbody>
+<tr><td>CR-01</td><td>예외 발생 시 실행 턴 이력 불완전</td><td>START 후 STOP/ERROR 누락 시 운영자가 실행 중/실패 상태를 오판할 수 있음</td><td>CollectData, Finance, Radar</td><td>CollectData <code>AlphaBotBiz.cs:348-373</code>, Finance <code>AlphaBotBiz.cs:329-353</code>, Radar <code>MainWindow.xaml.cs:1001-1036</code></td><td><code>try/catch/finally</code> 표준화, catch에서 ERROR 기록, finally에서 STOP/END 기록</td></tr>
+<tr><td>CR-02</td><td>운영 비밀값/접속정보가 config에 집중</td><td>유출 시 DB/API/텔레그램/AWS/Naver/Bitly/YouTube 등 접근 위험</td><td>전 프로젝트, 특히 Stock</td><td><code>App.config</code>/<code>App.*.config</code> 키: <code>DB*</code>, <code>*Token</code>, <code>*Key</code>, <code>*Pwd</code>, <code>AWS*</code>, <code>Naver*</code></td><td>Secret vault/환경변수/권한분리. 기존 값은 보고서에 기록하지 않음</td></tr>
+<tr><td>CR-03</td><td>Stock AlphaBot 생성자에서 외부 SDK 초기화와 DB 접근이 즉시 수행</td><td>앱 시작 실패가 전체 운영 배치 중단으로 이어질 수 있음</td><td>Stock</td><td><code>Process.cs:78-89</code>, <code>Process.cs:94-115</code>, <code>ProcessBase.cs:129-133</code></td><td>지연 초기화, 실패 격리, 기능별 circuit breaker</td></tr>
+</tbody></table>
+<h2 id="High-위험">High 위험</h2>
+<table><thead><tr><th>ID</th><th>위험</th><th>영향</th><th>대상</th><th>근거</th><th>권고</th></tr></thead><tbody>
+<tr><td>H-01</td><td>빈 catch/침묵 실패 다수</td><td>장애 원인 추적 불가, 재시도/알림 누락</td><td>전체</td><td>CollectData 빈 catch 16, Finance 11, Radar 23, Stock 15개 정적 집계</td><td>최소 로그+컨텍스트+재throw/상태반영 기준 수립</td></tr>
+<tr><td>H-02</td><td>Thread 직접 생성 및 상태 공유</td><td>중복 실행, race condition, UI thread와 worker 상태 불일치 가능</td><td>전체</td><td><code>new Thread(...ProcessStart...)</code>, <code>member.actionState</code> 공유</td><td><code>Task</code>/scheduler abstraction, lock/Interlocked, cancellation token</td></tr>
+<tr><td>H-03</td><td>WPF UI가 스케줄러/운영 배치 호스트 역할</td><td>UI 종료/Dispatcher 장애가 배치 중단으로 직결</td><td>전체</td><td><code>App.xaml StartupUri</code>, <code>DispatcherTimer</code>, <code>MainWindow</code> 중심 실행</td><td>Worker Service/Windows Service 분리 검토</td></tr>
+<tr><td>H-04</td><td>외부 HTTP/API/크롤러 의존성 집중</td><td>외부 HTML/API 변경, 차단, timeout에 취약</td><td>CollectData, Radar, Stock, Finance</td><td><code>HttpClient</code>, <code>WebRequest</code>, <code>WebClient</code>, <code>CefSharp</code>, <code>WebDriverManager</code>, Naver/Telegram/AWS</td><td>timeout/retry/backoff/contract test/비동기 제어 표준화</td></tr>
+<tr><td>H-05</td><td>SQL/SP 호출이 문자열 생성 계층에 분산</td><td>SP 변경 영향 분석 어려움, SQL injection/escaping 책임 산재</td><td>전체</td><td>다수 <code>Sql*</code> 클래스, <code>ExecQuery</code>, <code>GetDataTable</code>, <code>Proc*/USP*</code> 호출</td><td>SP catalog, typed repository, parameterized execution 점검</td></tr>
+</tbody></table>
+<h2 id="프로젝트별-위험-상세">프로젝트별 위험 상세</h2>
+<table><thead><tr><th>프로젝트</th><th>핵심 위험</th><th>근거</th></tr></thead><tbody>
+<tr><td>CollectData</td><td>크롤러/텔레그램/Kafka/DB가 Biz에 집중, <code>throw new Exception(ex.Message)</code>로 stack 손실</td><td><code>CrawlerSite.cs:69</code>, <code>829-966</code>, <code>BaseCrawler.cs:34/54/68</code></td></tr>
+<tr><td>Finance</td><td>파일 다운로드/impersonation 계정/DBStockData 의존, 예외 침묵</td><td><code>InvestRss.cs:165-174</code>, <code>App.config</code> 키, <code>AlphaBotBiz.cs:92-98</code></td></tr>
+<tr><td>Radar</td><td>REAL이면 자동 시작, DB/Redis/Mongo/Telegram/결제/API 혼합, Trace 로그 위주</td><td><code>MainWindow.xaml.cs:95-98</code>, <code>102-106</code>, <code>Operation/ProcessUnit/*</code></td></tr>
+<tr><td>Stock</td><td>가장 큰 단일 프로세스: AWS/Firebase/YouTube/결제/푸시/이메일/API 큐/외부 업로드</td><td><code>ProcessBase.cs:72-95</code>, <code>ProcessUnit.cs</code>, <code>.csproj</code> 외부 references</td></tr>
+</tbody></table>
+<h2 id="로그-처리-위험">로그 처리 위험</h2>
+<table><thead><tr><th>프로젝트</th><th>로그 방식</th><th>위험</th></tr></thead><tbody>
+<tr><td>CollectData</td><td>NLog + UI observable log + Console/Debug 일부</td><td>NLog 설정 로드 실패 catch가 비어 있음 (<code>AlphaBotBiz.cs:32-39</code>)</td></tr>
+<tr><td>Finance</td><td>UI observable log + Console</td><td>중앙 로그 부족, <code>Console.WriteLine</code>은 WPF 운영에서 누락 가능</td></tr>
+<tr><td>Radar</td><td><code>Trace</code> <code>Logs.txt</code> + UI log + TelegramSender 일부</td><td>로그 파일 고정명/경로와 Trace 중심 처리, 예외 컨텍스트 부족</td></tr>
+<tr><td>Stock</td><td><code>LogWriter</code>, UI, Telegram alert, App global exception handler</td><td>Telegram 채널/토큰 설정 의존, <code>SetLog</code> catch 비어 있음 (<code>MainWindow.xaml.cs:840-872</code>)</td></tr>
+</tbody></table>
+<h2 id="비밀값-노출-주의">비밀값 노출 주의</h2>
+<p>본 보고서는 값 자체를 저장하지 않았다. 다만 다음 종류의 키가 소스 설정 파일에 존재한다.</p>
+<ul>
+<li>- DB/connection: <code>DBThemeRadar</code>, <code>DBStockData</code>, <code>DBStockPoint</code>, <code>MongoConnection*</code>, <code>RedisConnection</code>, <code>ConnectionKafka</code></li>
+<li>- token/key: <code>HtsTelegramBotToken</code>, <code>TelegramBotKey</code>, <code>ChatApiKey</code>, <code>AWSAccessKey</code>, <code>AWSSecretKey</code>, <code>NaverApiClientSecretId</code>, <code>bitlyToken</code>, <code>YoutubeDataAPIKey</code></li>
+<li>- credential: <code>InfoStockID</code>, <code>InfoStockPassword</code>, <code>FileUserID</code>, <code>FileUserPwd</code>, <code>ServerID</code>, <code>ServerPWD</code>, <code>NaverLoginId</code>, <code>NaverLoginPw</code></li>
+</ul>
+</main>
+<div class="footer">Source: 05_risk_report.md · Output: 05_risk_report.html · No source-code project files modified.</div>
+</div>
+</body>
+</html>

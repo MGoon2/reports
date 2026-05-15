@@ -1,0 +1,383 @@
+{
+  "generated_at": "2026-05-15T11:51:54+09:00",
+  "root": "/mnt/c/Dev",
+  "csv": "/mnt/c/reports/code-research/api-endpoint/finup_api_endpoints.csv",
+  "endpoint_rows": 421,
+  "unique_endpoint_urls": 358,
+  "api_projects_from_csv": [
+    "FinUp.Auth.Api",
+    "FinUp.Chat.Api",
+    "FinUp.Chat.Api.Badge",
+    "FinUp.Chat.Api.Channel",
+    "FinUp.Chat.NET.Api",
+    "FinUp.Chat.NET.Api.Badge",
+    "FinUp.Chat.NET.Api.Channel",
+    "FinUp.Chat.NET.Api.ChannerView",
+    "FinUp.Chat.NET.Api.Push",
+    "FinUp.General.Api",
+    "FinUp.LogData.Api",
+    "FinUp.Mars.Api",
+    "FinUp.Radar.Api",
+    "FinUp.Stock.Api",
+    "FinUp.Stock.Scraper.Api",
+    "FinUp.StockData.Price.Api",
+    "FinUp.StockData.Price.Api.Channel",
+    "FinUp.StockData.Price.Api.RealTime"
+  ],
+  "discovered_api_projects_excluded": [
+    "FinUp.Auth.Api",
+    "FinUp.Chat.Api",
+    "FinUp.Chat.Api.Badge",
+    "FinUp.Chat.Api.Channel",
+    "FinUp.Chat.NET.Api",
+    "FinUp.Chat.NET.Api.Badge",
+    "FinUp.Chat.NET.Api.Channel",
+    "FinUp.Chat.NET.Api.ChannerView",
+    "FinUp.Chat.NET.Api.Push",
+    "FinUp.General.Api",
+    "FinUp.LogData.Api",
+    "FinUp.Mars.Api",
+    "FinUp.Radar.Api",
+    "FinUp.Stock.Api",
+    "FinUp.StockData.Price.Api",
+    "FinUp.StockData.Price.Api.Channel",
+    "FinUp.StockData.Price.Api.RealTime"
+  ],
+  "analyzed_non_api_projects": [
+    "FinUP.Mars",
+    "FinUp.Analysis.News.Model",
+    "FinUp.Analysis.Theme.App.Aggregate",
+    "FinUp.Analysis.Theme.Biz",
+    "FinUp.Analysis.Theme.Model",
+    "FinUp.Chat.Admin",
+    "FinUp.Chat.App.CI",
+    "FinUp.Chat.Biz",
+    "FinUp.Chat.Model",
+    "FinUp.Chat.NET.Model",
+    "FinUp.Chat.Net.Log",
+    "FinUp.Chat.Web",
+    "FinUp.Chat.Web.React",
+    "FinUp.CollectData.App.Crawler.Biz",
+    "FinUp.CollectData.App.Crawler.News",
+    "FinUp.CollectData.App.Crawler.News.Biz",
+    "FinUp.Company",
+    "FinUp.Company.Web",
+    "FinUp.Core",
+    "FinUp.Core.AWS",
+    "FinUp.Core.Data",
+    "FinUp.Core.Data.MongoDB",
+    "FinUp.Core.Diagnostics",
+    "FinUp.Core.Fundamentals",
+    "FinUp.Core.HealthCheck",
+    "FinUp.Core.HttpModule",
+    "FinUp.Core.Jwt",
+    "FinUp.Core.Log",
+    "FinUp.Core.NET",
+    "FinUp.Core.NET.Data",
+    "FinUp.Core.NET.Data.MongoDB",
+    "FinUp.Core.NET.Jwt",
+    "FinUp.Core.NET.Kafka",
+    "FinUp.Core.NET.Log",
+    "FinUp.Core.NET.Redis",
+    "FinUp.Core.NET.Telegram",
+    "FinUp.Core.NET.Wpf",
+    "FinUp.Core.Redis",
+    "FinUp.Core.Standard",
+    "FinUp.Core.Telegram",
+    "FinUp.Finance",
+    "FinUp.Finance.Admin",
+    "FinUp.General",
+    "FinUp.General.Admin",
+    "FinUp.General.MobileWeb",
+    "FinUp.General.Web",
+    "FinUp.Guide",
+    "FinUp.Guide.Admin",
+    "FinUp.LogData",
+    "FinUp.LogData.App.Count",
+    "FinUp.LogData.App.Hits",
+    "FinUp.LogData.App.Main",
+    "FinUp.LogData.App.Session",
+    "FinUp.LogData.Biz",
+    "FinUp.LogData.Dac",
+    "FinUp.LogData.Kafka",
+    "FinUp.LogData.Model",
+    "FinUp.LogData.MongoDB",
+    "FinUp.Mars.Admin",
+    "FinUp.Mars.Web",
+    "FinUp.Radar",
+    "FinUp.Radar.App.AlphaBot",
+    "FinUp.Radar.App.MyKeyword",
+    "FinUp.Radar.Web",
+    "FinUp.Radar.Web.Admin",
+    "FinUp.Radar.Web.Mobile",
+    "FinUp.Stock",
+    "FinUp.Stock.Admin",
+    "FinUp.Stock.App",
+    "FinUp.Stock.App.AlphaBot",
+    "FinUp.Stock.App.AlphaBot.Test",
+    "FinUp.Stock.Challenger",
+    "FinUp.Stock.ChallengerWeb",
+    "FinUp.Stock.Mentor",
+    "FinUp.Stock.MobileWeb",
+    "FinUp.Stock.Web",
+    "FinUp.StockData.Biz",
+    "FinUp.StockData.Biz.Mapper",
+    "FinUp.StockData.Biz.MongoDB",
+    "FinUp.StockData.Biz.Redis",
+    "FinUp.StockData.ChartCapture.App",
+    "FinUp.StockData.Fundamentals",
+    "FinUp.StockData.Log",
+    "FinUp.StockData.Model",
+    "FinUp.StockData.Price.App",
+    "FinUp.StockData.Price.DataMapper",
+    "FinUp.StockData.Price.Kiwoom",
+    "FinUp.StockData.Price.Middleware.App",
+    "FinUp.StockData.Price.eBest",
+    "FinUp.StockData.Price.eBest.App",
+    "FinUp.StockData.RoboAnalysis.App",
+    "FinUp.StockData.Signal.App",
+    "FinUp.StockData.SignalQueue.App",
+    "FinUp.StockData.StockWatch.App",
+    "FinUp.Tssa",
+    "FinUp.Tssa.Admin",
+    "FinUp.Tssa.MobileWeb",
+    "FinUp.Tssa.Web",
+    "Finup.Chat.NET.Blazor.Core",
+    "Finup.Chat.NET.Blazor.WASM"
+  ],
+  "analyzed_non_api_project_count": 100,
+  "candidate_patterns": 453,
+  "scanned_files": 14565,
+  "candidate_hit_lines": 205,
+  "usage_hits": 492,
+  "used_endpoint_rows": 122,
+  "unused_endpoint_rows": 299,
+  "by_confidence": {
+    "High": 394,
+    "Medium": 98
+  },
+  "by_match_type": {
+    "exact": 351,
+    "param-literals": 98,
+    "template-exact": 43
+  },
+  "top_using_projects": [
+    [
+      "Finup.Chat.NET.Blazor.Core",
+      122
+    ],
+    [
+      "FinUp.Stock.App.AlphaBot",
+      38
+    ],
+    [
+      "FinUp.Stock.Admin",
+      32
+    ],
+    [
+      "FinUp.Finance",
+      31
+    ],
+    [
+      "FinUp.Stock.MobileWeb",
+      28
+    ],
+    [
+      "FinUp.Stock.Mentor",
+      26
+    ],
+    [
+      "FinUp.Radar.App.AlphaBot",
+      25
+    ],
+    [
+      "FinUp.Stock.Web",
+      18
+    ],
+    [
+      "FinUp.Finance.Admin",
+      15
+    ],
+    [
+      "FinUp.General.Admin",
+      14
+    ],
+    [
+      "FinUp.General",
+      13
+    ],
+    [
+      "FinUp.StockData.ChartCapture.App",
+      12
+    ],
+    [
+      "FinUp.Radar.Web.Admin",
+      12
+    ],
+    [
+      "FinUp.Chat.Web",
+      11
+    ],
+    [
+      "FinUp.Stock",
+      11
+    ],
+    [
+      "Finup.Chat.NET.Blazor.WASM",
+      10
+    ],
+    [
+      "FinUp.Chat.Admin",
+      9
+    ],
+    [
+      "FinUp.General.MobileWeb",
+      6
+    ],
+    [
+      "FinUp.General.Web",
+      6
+    ],
+    [
+      "FinUp.Guide.Admin",
+      5
+    ]
+  ],
+  "api_summary": [
+    {
+      "api_project": "FinUp.Auth.Api",
+      "endpoint_count": 10,
+      "used_endpoint_count": 5,
+      "usage_hit_count": 14,
+      "unused_endpoint_count": 5
+    },
+    {
+      "api_project": "FinUp.Chat.Api",
+      "endpoint_count": 35,
+      "used_endpoint_count": 9,
+      "usage_hit_count": 23,
+      "unused_endpoint_count": 26
+    },
+    {
+      "api_project": "FinUp.Chat.Api.Badge",
+      "endpoint_count": 4,
+      "used_endpoint_count": 1,
+      "usage_hit_count": 2,
+      "unused_endpoint_count": 3
+    },
+    {
+      "api_project": "FinUp.Chat.Api.Channel",
+      "endpoint_count": 4,
+      "used_endpoint_count": 0,
+      "usage_hit_count": 0,
+      "unused_endpoint_count": 4
+    },
+    {
+      "api_project": "FinUp.Chat.NET.Api",
+      "endpoint_count": 136,
+      "used_endpoint_count": 40,
+      "usage_hit_count": 129,
+      "unused_endpoint_count": 96
+    },
+    {
+      "api_project": "FinUp.Chat.NET.Api.Badge",
+      "endpoint_count": 2,
+      "used_endpoint_count": 1,
+      "usage_hit_count": 6,
+      "unused_endpoint_count": 1
+    },
+    {
+      "api_project": "FinUp.Chat.NET.Api.Channel",
+      "endpoint_count": 4,
+      "used_endpoint_count": 3,
+      "usage_hit_count": 49,
+      "unused_endpoint_count": 1
+    },
+    {
+      "api_project": "FinUp.Chat.NET.Api.ChannerView",
+      "endpoint_count": 5,
+      "used_endpoint_count": 0,
+      "usage_hit_count": 0,
+      "unused_endpoint_count": 5
+    },
+    {
+      "api_project": "FinUp.Chat.NET.Api.Push",
+      "endpoint_count": 1,
+      "used_endpoint_count": 1,
+      "usage_hit_count": 6,
+      "unused_endpoint_count": 0
+    },
+    {
+      "api_project": "FinUp.General.Api",
+      "endpoint_count": 5,
+      "used_endpoint_count": 2,
+      "usage_hit_count": 12,
+      "unused_endpoint_count": 3
+    },
+    {
+      "api_project": "FinUp.LogData.Api",
+      "endpoint_count": 6,
+      "used_endpoint_count": 3,
+      "usage_hit_count": 86,
+      "unused_endpoint_count": 3
+    },
+    {
+      "api_project": "FinUp.Mars.Api",
+      "endpoint_count": 14,
+      "used_endpoint_count": 0,
+      "usage_hit_count": 0,
+      "unused_endpoint_count": 14
+    },
+    {
+      "api_project": "FinUp.Radar.Api",
+      "endpoint_count": 23,
+      "used_endpoint_count": 14,
+      "usage_hit_count": 63,
+      "unused_endpoint_count": 9
+    },
+    {
+      "api_project": "FinUp.Stock.Api",
+      "endpoint_count": 56,
+      "used_endpoint_count": 9,
+      "usage_hit_count": 43,
+      "unused_endpoint_count": 47
+    },
+    {
+      "api_project": "FinUp.Stock.Scraper.Api",
+      "endpoint_count": 3,
+      "used_endpoint_count": 0,
+      "usage_hit_count": 0,
+      "unused_endpoint_count": 3
+    },
+    {
+      "api_project": "FinUp.StockData.Price.Api",
+      "endpoint_count": 93,
+      "used_endpoint_count": 33,
+      "usage_hit_count": 57,
+      "unused_endpoint_count": 60
+    },
+    {
+      "api_project": "FinUp.StockData.Price.Api.Channel",
+      "endpoint_count": 2,
+      "used_endpoint_count": 1,
+      "usage_hit_count": 2,
+      "unused_endpoint_count": 1
+    },
+    {
+      "api_project": "FinUp.StockData.Price.Api.RealTime",
+      "endpoint_count": 18,
+      "used_endpoint_count": 0,
+      "usage_hit_count": 0,
+      "unused_endpoint_count": 18
+    }
+  ],
+  "outputs": {
+    "detail_csv": "/mnt/c/reports/code-research/api-endpoint/finup_endpoint_usage_detail.csv",
+    "unused_csv": "/mnt/c/reports/code-research/api-endpoint/finup_endpoint_unused.csv",
+    "markdown": "/mnt/c/reports/code-research/api-endpoint/finup_endpoint_usage_report.md",
+    "html": "/mnt/c/reports/code-research/api-endpoint/finup_endpoint_usage_report.html",
+    "patterns": "/mnt/c/reports/code-research/api-endpoint/finup_endpoint_usage_patterns.txt"
+  },
+  "unit_test_projects_excluded": true,
+  "unit_test_usage_rows_removed": 54
+}

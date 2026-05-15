@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>리스크 및 리팩터링 포인트 - Code Analysis</title>
+  <style>
+:root {
+  --bg: #f6f8fb;
+  --panel: #ffffff;
+  --ink: #1f2937;
+  --muted: #6b7280;
+  --line: #d9e0ea;
+  --accent: #2563eb;
+  --accent-soft: #e8f0ff;
+  --danger: #b91c1c;
+  --code-bg: #0f172a;
+  --code-ink: #e5e7eb;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", "Malgun Gothic", Arial, sans-serif;
+  line-height: 1.65;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); min-height: 100vh; }
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: auto;
+  padding: 24px 18px;
+  background: #111827;
+  color: #f9fafb;
+}
+.sidebar h1 { font-size: 18px; line-height: 1.3; margin: 0 0 14px; }
+.sidebar .meta { color: #cbd5e1; font-size: 12px; margin-bottom: 18px; }
+.nav-section { margin: 18px 0 8px; color: #93c5fd; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.sidebar ul { margin: 0; padding: 0; list-style: none; }
+.sidebar li { margin: 4px 0; }
+.sidebar a { display: block; padding: 7px 9px; border-radius: 8px; color: #e5e7eb; font-size: 13px; }
+.sidebar a:hover, .sidebar a.active { background: rgba(37, 99, 235, .35); text-decoration: none; }
+.content { padding: 36px; }
+.report {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 36px 42px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, .08);
+}
+.report-header {
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--line);
+}
+.report-header h1 { margin: 0 0 6px; font-size: 32px; letter-spacing: -0.04em; }
+.report-header .source { color: var(--muted); font-size: 13px; }
+.toc {
+  margin: 18px 0 28px;
+  padding: 16px 18px;
+  background: var(--accent-soft);
+  border: 1px solid #c7d7fe;
+  border-radius: 12px;
+}
+.toc-title { font-weight: 700; margin-bottom: 8px; }
+.toc ul { margin: 0; padding-left: 20px; }
+h1, h2, h3, h4 { line-height: 1.28; letter-spacing: -0.025em; }
+h1 { font-size: 30px; margin: 24px 0 18px; }
+h2 { font-size: 24px; margin: 34px 0 12px; padding-bottom: 7px; border-bottom: 1px solid var(--line); }
+h3 { font-size: 19px; margin: 26px 0 10px; }
+h4 { font-size: 16px; margin: 20px 0 8px; }
+p { margin: 10px 0; }
+ul, ol { padding-left: 24px; }
+li { margin: 3px 0; }
+.table-wrap { width: 100%; overflow-x: auto; margin: 16px 0 24px; border: 1px solid var(--line); border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; min-width: 680px; background: #fff; }
+th, td { padding: 9px 11px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
+th { position: sticky; top: 0; background: #f1f5f9; color: #0f172a; font-weight: 700; }
+tr:nth-child(even) td { background: #fbfdff; }
+code {
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: #eef2f7;
+  color: #0f172a;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--code-bg);
+  color: var(--code-ink);
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+blockquote { margin: 14px 0; padding: 10px 16px; border-left: 4px solid var(--accent); background: #f8fafc; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 28px 0; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #e5e7eb; color: #374151; font-size: 12px; }
+.redacted { color: var(--danger); font-weight: 700; }
+.report-section { page-break-before: always; margin-top: 42px; padding-top: 16px; border-top: 3px solid var(--line); }
+.report-section:first-of-type { page-break-before: auto; border-top: 0; margin-top: 0; padding-top: 0; }
+.footer { margin-top: 42px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: relative; height: auto; }
+  .content { padding: 18px; }
+  .report { padding: 24px 18px; border-radius: 12px; }
+}
+@media print {
+  .layout { display: block; }
+  .sidebar { display: none; }
+  body { background: #fff; }
+  .content { padding: 0; }
+  .report { max-width: none; border: 0; box-shadow: none; }
+  a { color: inherit; }
+}
+</style>
+</head>
+<body>
+  <div class="layout">
+    
+<aside class="sidebar">
+  <h1>Code Analysis HTML</h1>
+  <div class="meta">생성: 2026-05-15 16:55:17<br>경로: docs/code-analysis/html</div>
+  <div class="nav-section">개별 보고서</div>
+  <ul><li><a href="00_PROJECT_SUMMARY.html">프로젝트 요약</a></li><li><a href="01_FOLDER_STRUCTURE.html">폴더 구조 분석</a></li><li><a href="02_PROJECT_SETTINGS.html">프로젝트 설정 분석</a></li><li><a href="03_CODE_STRUCTURE.html">코드 구조 분석</a></li><li><a href="04_NAMESPACE_CLASS_METHOD_REPORT.html">네임스페이스/클래스/메소드 분석</a></li><li><a href="05_PROJECT_REFERENCES.html">프로젝트 참조 관계</a></li><li><a href="06_RUNTIME_FLOW.html">런타임 흐름 분석</a></li><li><a class="active" href="07_RISKS_AND_REFACTORING_POINTS.html">리스크 및 리팩터링 포인트</a></li></ul>
+  <div class="nav-section">통합 보고서</div>
+  <ul><li><a href="Total_Report.html">Total Report</a></li></ul>
+</aside>
+
+    <main class="content">
+      <article class="report">
+        <header class="report-header">
+          <h1>리스크 및 리팩터링 포인트</h1>
+          <div class="source">Source: docs/code-analysis/07_RISKS_AND_REFACTORING_POINTS.md · HTML generated from Markdown report</div>
+        </header>
+        <nav class="toc"><div class="toc-title">목차</div><ul><li class="toc-l1"><a href="#07_RISKS_AND_REFACTORING_POINTS--리스크-및-리팩터링-포인트">리스크 및 리팩터링 포인트</a></li><li class="toc-l2"><a href="#07_RISKS_AND_REFACTORING_POINTS--리스크-요약">리스크 요약</a></li><li class="toc-l2"><a href="#07_RISKS_AND_REFACTORING_POINTS--필수-점검-항목별-판정">필수 점검 항목별 판정</a></li><li class="toc-l2"><a href="#07_RISKS_AND_REFACTORING_POINTS--리팩터링-우선순위">리팩터링 우선순위</a></li><li class="toc-l2"><a href="#07_RISKS_AND_REFACTORING_POINTS--확인-필요">확인 필요</a></li><li class="toc-l2"><a href="#07_RISKS_AND_REFACTORING_POINTS--분석-한계">분석 한계</a></li></ul></nav>
+        <h1 id="07_RISKS_AND_REFACTORING_POINTS--리스크-및-리팩터링-포인트">리스크 및 리팩터링 포인트</h1>
+<h2 id="07_RISKS_AND_REFACTORING_POINTS--리스크-요약">리스크 요약</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>심각도</th><th>유형</th><th>위치</th><th>근거/영향</th><th>권고</th></tr></thead>
+<tbody>
+<tr><td>높음</td><td>민감정보/자격증명 노출</td><td>App.config, Operation/ProcessBase.cs:27-35, PushCertify/<em>, </em>.pfx/*.p12</td><td>DB 연결 문자열/서버 계정/API 키/토큰/인증서 파일이 설정 또는 소스/프로젝트 콘텐츠로 포함되어 있다. 값은 리포트에서 마스킹했다.</td><td>비밀 저장소/환경 변수로 이동하고 저장소 이력 내 노출 여부를 점검한다.</td></tr>
+<tr><td>높음</td><td>예외 삼킴</td><td>MainWindow.xaml.cs:266, 754, 777, 826, 872, 900; Operation/Process.cs:161; Operation/Push.cs 다수</td><td>catch { } 또는 예외 객체 미사용 catch가 있어 장애 원인 추적이 어려울 수 있다.</td><td>최소 ERROR 로그/컨텍스트 기록 후 재시도·스킵·중단 정책을 명시한다.</td></tr>
+<tr><td>높음</td><td>Thread 기반 동시성/중복 실행</td><td>MainWindow.xaml.cs:293-335, 352-400, 678-730</td><td>타이머 Tick에서 새 Thread를 생성하고 actionState로 중복 방지하지만 상태 변경 전후 원자성/락이 없다. 수동 실행과 자동 실행이 경합할 수 있다.</td><td>작업별 lock/SemaphoreSlim/중앙 스케줄러와 CancellationToken 기반 실행 상태 전이를 사용한다.</td></tr>
+<tr><td>중간</td><td>Thread.Sleep 기반 대기</td><td>Operation/ProcessUnit.cs:671-672, App.xaml.cs:54</td><td>작업 스레드를 Sleep으로 점유하며 취소/종료 신호를 확인하지 않는다.</td><td>Task.Delay + CancellationToken 또는 스케줄러 재진입 방식으로 변경한다.</td></tr>
+<tr><td>중간</td><td>DB 커넥션 Dispose 확인 필요</td><td>MainWindow.xaml.cs:115-128, Operation/ProcessBase.cs:140-157 및 ProcessUnit 전반</td><td>DBUtil/DBUtilMySQL 인스턴스를 즉시 생성해 사용하지만 이 타입의 Dispose/connection 관리 구현은 현재 폴더 외부 참조 프로젝트에 있어 확인 필요하다.</td><td>참조 프로젝트의 DBUtil 구현을 확인하고 IDisposable/using 또는 커넥션 풀 정책을 명확히 한다.</td></tr>
+<tr><td>중간</td><td>트랜잭션 경계/외부 호출 혼재 가능성</td><td>Operation/ProcessUnit.cs:4646-4699</td><td>TransactionScope 내부에서 여러 DB 작업을 수행한다. 외부 호출은 해당 블록 내에서 확인되지 않았지만 범위와 타임아웃 정책은 확인 필요하다.</td><td>트랜잭션 범위를 최소화하고 타임아웃/격리수준/실패 보상 정책을 명시한다.</td></tr>
+<tr><td>중간</td><td>하드코딩된 엔드포인트/경로</td><td>Operation/ProcessBase.cs:33-44, App.config, Operation/ProcessUnit.cs:807/1722</td><td>운영 API URL, 외부 실행 파일 경로, 일부 토큰/엔드포인트가 코드/설정에 고정되어 있다.</td><td>환경별 설정 파일/배포 파이프라인 변수로 분리하고 검증 로직을 추가한다.</td></tr>
+<tr><td>중간</td><td>async void 오류 전파</td><td>Operation/ProcessUnit.cs:3200, 5073, 6168, 7468</td><td>async void 메소드가 작업 메소드로 사용되어 호출자가 완료/실패를 기다릴 수 없다.</td><td>Task 반환으로 바꾸고 ProcessStart가 비동기 작업을 관찰하도록 설계한다.</td></tr>
+<tr><td>중간</td><td>외부 프로세스 중복 실행/수명 관리</td><td>Operation/ProcessUnit.cs:784-808, 1712-1723</td><td>StockRadar/XingData 실행 시 기존 프로세스 확인, 종료, 헬스체크가 명확하지 않다.</td><td>프로세스 존재 확인, PID 기록, 종료/재시작 정책을 추가한다.</td></tr>
+<tr><td>중간</td><td>스케줄 설정 DB 의존/검증 부족</td><td>MainWindow.xaml.cs:123-191, 293-335, 742-828</td><td>LoopInterval/OnceTime 등 DB 설정값을 신뢰하며 null/범위 오류는 일부 catch에서 삼켜질 수 있다.</td><td>설정값 유효성 검사와 실패 시 안전 기본값/알림을 추가한다.</td></tr>
+</tbody></table></div>
+<h2 id="07_RISKS_AND_REFACTORING_POINTS--필수-점검-항목별-판정">필수 점검 항목별 판정</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>점검 항목</th><th>판정</th><th>근거</th></tr></thead>
+<tbody>
+<tr><td>무한 루프 위험</td><td>낮음~중간</td><td>while(true) 기반 메인 루프는 확인되지 않지만 타이머 기반 지속 실행 구조이며 중지 시 실행 중 Thread 취소는 확인 필요</td></tr>
+<tr><td>예외 삼킴</td><td>높음</td><td>MainWindow.xaml.cs와 Push/Process 일부에 catch {{ }} 또는 미사용 catch 존재</td></tr>
+<tr><td>DB 커넥션 누수 가능성</td><td>확인 필요</td><td>DBUtil 구현이 참조 프로젝트에 있어 Dispose/using 확인 필요</td></tr>
+<tr><td>트랜잭션 장시간 유지</td><td>중간</td><td>TransactionScope 사용 구간 존재. 외부 호출 포함은 확인되지 않으나 범위/타임아웃 확인 필요</td></tr>
+<tr><td>Thread.Sleep 대기</td><td>중간</td><td>Operation/ProcessUnit.cs:671-672, App.xaml.cs:54</td></tr>
+<tr><td>동시성 문제</td><td>높음</td><td>DispatcherTimer Tick + new Thread + actionState 플래그만으로 중복 방지</td></tr>
+<tr><td>하드코딩 설정</td><td>높음</td><td>ProcessBase의 API URL/토큰성 상수, App.config의 경로/계정/키</td></tr>
+<tr><td>로그 부족</td><td>중간~높음</td><td>로그 없는 catch와 throw ex 사용으로 원인 추적/스택 보존 저하</td></tr>
+<tr><td>장애 복구 불명확</td><td>중간</td><td>작업별 재시도/중단/스킵 정책이 일관되지 않음</td></tr>
+</tbody></table></div>
+<h2 id="07_RISKS_AND_REFACTORING_POINTS--리팩터링-우선순위">리팩터링 우선순위</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>우선순위</th><th>대상</th><th>개선 방향</th></tr></thead>
+<tbody>
+<tr><td>P0</td><td>비밀/인증 정보</td><td>소스/설정/인증서 저장소 분리, 저장소 이력 점검, 배포 시 Secret 주입</td></tr>
+<tr><td>P1</td><td>스케줄러/Thread 실행</td><td>Thread 직접 생성 대신 작업 큐, SemaphoreSlim, CancellationToken, Task 기반 실행으로 전환</td></tr>
+<tr><td>P1</td><td>예외/로그 정책</td><td>catch {{ }} 제거, 컨텍스트 포함 구조화 로그, throw; 사용</td></tr>
+<tr><td>P2</td><td>DB 접근</td><td>DBUtil IDisposable 확인, using 적용, 커넥션/트랜잭션 범위 축소</td></tr>
+<tr><td>P2</td><td>외부 호출</td><td>HttpClient 재사용, 타임아웃/재시도/서킷브레이커, API 오류 코드 표준화</td></tr>
+<tr><td>P3</td><td>대형 ProcessUnit 분리</td><td>결제/푸시/API/AWS/메일/포인트 등 기능별 서비스로 분할</td></tr>
+<tr><td>P3</td><td>설정 검증</td><td>시작 시 필수 설정/경로/API URL/스케줄 값 검증 및 실패 알림</td></tr>
+</tbody></table></div>
+<h2 id="07_RISKS_AND_REFACTORING_POINTS--확인-필요">확인 필요</h2>
+<ul>
+<li>실제 운영 DB의 Operation/OperationTerm 설정값과 중복 실행 사례.</li>
+<li>외부 프로젝트의 <code>DBUtil</code>, <code>LogWriter</code>, <code>NetUtil</code>, <code>SqlSender</code> 구현 세부.</li>
+<li>배포 환경에서 인증서/키 파일 접근 권한과 회전 정책.</li>
+</ul>
+<h2 id="07_RISKS_AND_REFACTORING_POINTS--분석-한계">분석 한계</h2>
+<ul>
+<li>현재 폴더의 소스와 프로젝트 파일을 기준으로 정적 분석했다. 런타임 DB 데이터, 실제 스케줄 설정값, 외부 API 응답, 배포 서버 상태는 실행 검증하지 않았다.</li>
+<li><code>FinUp.Stock.App</code> 및 <code>FinUp.Core.Fundamentals</code>는 프로젝트 참조로 확인되지만 본 리포트의 세부 클래스/메소드 분석 범위는 현재 폴더의 <code>FinUp.Stock.App.AlphaBot</code> 소스에 한정했다.</li>
+<li><code>DBUtil</code>, <code>SqlSender</code>, <code>LogWriter</code>, <code>NetUtil</code> 등 핵심 구현 일부는 참조 프로젝트에 있어 커넥션 해제/SQL 생성/로그 경로의 최종 동작은 <code>확인 필요</code>로 표시했다.</li>
+<li>민감값은 원문 대신 <code>[REDACTED]</code>로 마스킹했다.</li>
+</ul>
+        <footer class="footer">본 HTML은 docs/code-analysis Markdown 산출물을 읽기 좋게 변환한 문서입니다. 민감값은 원본 Markdown 기준으로 마스킹된 상태를 유지합니다.</footer>
+      </article>
+    </main>
+  </div>
+</body>
+</html>

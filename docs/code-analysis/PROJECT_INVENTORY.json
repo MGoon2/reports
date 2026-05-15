@@ -1,0 +1,4581 @@
+{
+  "solution": {
+    "name": "",
+    "path": "",
+    "projects": [
+      "FinUp.Stock.App.AlphaBot"
+    ]
+  },
+  "projects": [
+    {
+      "name": "FinUp.Stock.App.AlphaBot",
+      "path": "FinUp.Stock.App.AlphaBot.csproj",
+      "type": "WPF Windows App / WinExe",
+      "targetFramework": "v4.7",
+      "outputType": "WinExe",
+      "startupObject": "App.xaml StartupUri=MainWindow.xaml",
+      "references": {
+        "projectReferences": [
+          "FinUp.Core.Fundamentals",
+          "FinUp.Stock.App"
+        ],
+        "assemblyReferences": [
+          "AWSSDK.CloudWatch",
+          "AWSSDK.Core",
+          "AWSSDK.EC2",
+          "AWSSDK.RDS",
+          "FirebaseAdmin",
+          "Google.Api.Gax",
+          "Google.Api.Gax.Rest",
+          "Google.Apis",
+          "Google.Apis.Auth",
+          "Google.Apis.Core",
+          "Google.Apis.YouTube.v3",
+          "HtmlAgilityPack",
+          "Interop.DANALCOMLib",
+          "M2Mqtt.Net",
+          "Microsoft.Bcl.AsyncInterfaces",
+          "Microsoft.Extensions.DependencyInjection.Abstractions",
+          "MoonAPNS",
+          "Newtonsoft.Json",
+          "NLog",
+          "System",
+          "System.Buffers",
+          "System.CodeDom",
+          "System.Collections.Immutable",
+          "System.ComponentModel.DataAnnotations",
+          "System.configuration",
+          "System.Configuration.Install",
+          "System.Data",
+          "System.Drawing",
+          "System.Management",
+          "System.Memory",
+          "System.Numerics",
+          "System.Numerics.Vectors",
+          "System.Runtime.CompilerServices.Unsafe",
+          "System.Threading.Tasks.Extensions",
+          "System.Transactions",
+          "System.ValueTuple",
+          "System.Web",
+          "System.Web.Extensions",
+          "System.Windows.Forms",
+          "System.Xml",
+          "Microsoft.CSharp",
+          "System.Core",
+          "System.Xml.Linq",
+          "System.Data.DataSetExtensions",
+          "System.Net.Http",
+          "System.Xaml",
+          "WindowsBase",
+          "PresentationCore",
+          "PresentationFramework"
+        ],
+        "nugetPackages": [
+          "AWSSDK.CloudWatch 3.3.104.3",
+          "AWSSDK.Core 3.3.104",
+          "AWSSDK.EC2 3.3.142",
+          "AWSSDK.RDS 3.3.114",
+          "FirebaseAdmin 3.0.0",
+          "Google.Api.Gax 4.8.0",
+          "Google.Api.Gax.Rest 4.8.0",
+          "Google.Apis 1.67.0",
+          "Google.Apis.Auth 1.67.0",
+          "Google.Apis.Core 1.67.0",
+          "Google.Apis.YouTube.v3 1.43.0.1834",
+          "HtmlAgilityPack 1.11.17",
+          "Microsoft.Bcl.AsyncInterfaces 6.0.0",
+          "Microsoft.Extensions.DependencyInjection.Abstractions 6.0.0",
+          "MoonAPNS 0.0.4.188",
+          "Newtonsoft.Json 13.0.3",
+          "NLog 4.4.12",
+          "System.Buffers 4.5.1",
+          "System.CodeDom 7.0.0",
+          "System.Collections.Immutable 8.0.0",
+          "System.Management 7.0.2",
+          "System.Memory 4.5.5",
+          "System.Numerics.Vectors 4.5.0",
+          "System.Runtime.CompilerServices.Unsafe 6.0.0",
+          "System.Threading.Tasks.Extensions 4.5.4",
+          "System.ValueTuple 4.5.0"
+        ]
+      },
+      "namespaces": [
+        {
+          "name": "FinUp.Stock.App.AlphaBot",
+          "classes": [
+            {
+              "name": "App",
+              "filePath": "App.xaml.cs",
+              "summary": "App.xaml에 대한 상호 작용 논리",
+              "responsibility": "App.xaml에 대한 상호 작용 논리",
+              "methods": [
+                {
+                  "name": "App",
+                  "signature": "public App()",
+                  "summary": "App.xaml에 대한 상호 작용 논리",
+                  "input": "확인 필요",
+                  "output": "public",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "CurrentDomain_UnhandledException",
+                  "signature": "private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)",
+                  "summary": "App.xaml에 대한 상호 작용 논리",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "Dispatcher_UnhandledExceptionFilter",
+                  "signature": "private void Dispatcher_UnhandledExceptionFilter(object sender, System.Windows.Threading.DispatcherUnhandledExceptionFilterEventArgs e)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "Dispatcher_UnhandledException",
+                  "signature": "private void Dispatcher_UnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "OnExit",
+                  "signature": "protected override void OnExit(ExitEventArgs e)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "SendTelegram",
+                  "signature": "public void SendTelegram(string sMsg)",
+                  "summary": "메시지/메일/푸시를 발송한다",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "MainWindow",
+              "filePath": "MainWindow.xaml.cs",
+              "summary": "MainWindow.xaml에 대한 상호 작용 논리",
+              "responsibility": "MainWindow.xaml에 대한 상호 작용 논리",
+              "methods": [
+                {
+                  "name": "MainWindow",
+                  "signature": "public MainWindow()",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "public",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "InitializeMember",
+                  "signature": "private void InitializeMember()",
+                  "summary": "멤버 초기화",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetDBUtil",
+                  "signature": "private DBUtil GetDBUtil()",
+                  "summary": "Get DBUtil",
+                  "input": "확인 필요",
+                  "output": "DBUtil",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "Load",
+                  "signature": "private void Load()",
+                  "summary": "최초 수행 프로세스 값설정",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "ProcessObserve",
+                  "signature": "private void ProcessObserve(object sender, EventArgs e)",
+                  "summary": "프로세스 쓰레드 관찰",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "ProcessAliveAlphaBot",
+                  "signature": "private void ProcessAliveAlphaBot(object sender, EventArgs e)",
+                  "summary": "프로세스 실행 또는 타이머 처리를 수행한다",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ProcessConfirm",
+                  "signature": "private void ProcessConfirm(object sender, EventArgs e)",
+                  "summary": "멤버 초기화 후 시작 프로세스",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "UpdateData",
+                  "signature": "private void UpdateData()",
+                  "summary": "데이터 업데이트 프로그램 실행시 추가된 리스트의 상태 변경",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetActionOperation",
+                  "signature": "private ActionOperation GetActionOperation(int Idx)",
+                  "summary": "Index To Action (해당 인덱스키 별로 수행할 프로세스 맵핑)",
+                  "input": "확인 필요",
+                  "output": "ActionOperation",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ProcessStart",
+                  "signature": "private void ProcessStart(object arg)",
+                  "summary": "Action 수행",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetLoopTimeToRun",
+                  "signature": "private bool GetLoopTimeToRun(DateTime? dtLastExcute, int? iLoopInterval, int Idx)",
+                  "summary": "Loop일때 실행여부 확인",
+                  "input": "확인 필요",
+                  "output": "bool",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetBetweenTime",
+                  "signature": "private bool GetBetweenTime(TimeSpan? tStartTime, TimeSpan? tEndTime)",
+                  "summary": "Loop일때 현재 시간이 설정된 시간 사이에 있는 확인",
+                  "input": "확인 필요",
+                  "output": "bool",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetOnceTimeToRun",
+                  "signature": "private bool GetOnceTimeToRun(DateTime? dtLastExcute, TimeSpan? tsOnceTime, string sLastOnceExecDay)",
+                  "summary": "하루 한번 실행여부",
+                  "input": "확인 필요",
+                  "output": "bool",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SetLog",
+                  "signature": "private void SetLog(AlphaBotType senderType, LogWriter.LOG_TYPE logType, string sMsg)",
+                  "summary": "로그 설정",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SetOperationTermHistory",
+                  "signature": "private void SetOperationTermHistory(string OIdx, string OTIdx, string ExecID, OperationTermHistoryType OperationType, string TimeProcess, string ErrorMsg)",
+                  "summary": "상태 또는 로그/DB 값을 저장한다",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "btnStart_Click",
+                  "signature": "private void btnStart_Click(object sender, RoutedEventArgs e)",
+                  "summary": "프로세스 시작",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "btnStop_Click",
+                  "signature": "private void btnStop_Click(object sender, RoutedEventArgs e)",
+                  "summary": "프로세스 스톱",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "btnManual_Click",
+                  "signature": "private void btnManual_Click(object sender, RoutedEventArgs e)",
+                  "summary": "수동 실행",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "FinUp.Stock.App.AlphaBot.Operation",
+          "classes": [
+            {
+              "name": "Process",
+              "filePath": "Operation/Process.cs",
+              "summary": "배치/연동 업무 로직을 묶은 partial 클래스이다",
+              "responsibility": "배치/연동 업무 로직을 묶은 partial 클래스이다",
+              "methods": [
+                {
+                  "name": "Process",
+                  "signature": "public Process(WriteLog SetLog) : base(SetLog)",
+                  "summary": "생성자",
+                  "input": "확인 필요",
+                  "output": "public",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetMetric",
+                  "signature": "private void GetMetric()",
+                  "summary": "지표 조회",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetStandardUnit",
+                  "signature": "private StandardUnit GetStandardUnit(string unit)",
+                  "summary": "Get 측정 단위",
+                  "input": "확인 필요",
+                  "output": "StandardUnit",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SetOperationTermHistory",
+                  "signature": "private void SetOperationTermHistory(string OIdx, string OTIdx, string Result, string ErrorMsg)",
+                  "summary": "히스토리 DB Insert",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SetLogProcess",
+                  "signature": "private void SetLogProcess(AlphaBotType SenderType, LogWriter.LOG_TYPE LogType, string Msg)",
+                  "summary": "로그 기록",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "LogVirtualCurrency",
+                  "signature": "private void LogVirtualCurrency(string OIdx, string OTIdx, string sType, string sMsg, string sApiCode, VirtualCurrencyExchangeIdx virtualCurrencyExchangeIdx, Exception ex = null)",
+                  "summary": "가상화폐 로그 저장 공통",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "WriteLogVirtualCurrency",
+                  "signature": "private void WriteLogVirtualCurrency(VirtualCurrencyExchangeIdx senderType, LogWriter.LOG_TYPE logType, string sMsg)",
+                  "summary": "가상화폐 거래소 전용 로그기록",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ShortenUrl",
+                  "signature": "public static async Task<string> ShortenUrl(string url)",
+                  "summary": "Short URL Process",
+                  "input": "확인 필요",
+                  "output": "Task<string>",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetYoutubeLiveStatus",
+                  "signature": "public string GetYoutubeLiveStatus(string ChannelID)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "ProcessBase",
+              "filePath": "Operation/ProcessBase.cs",
+              "summary": "공통 설정 로딩, DBUtil 생성, SQL 헬퍼 초기화를 담당한다",
+              "responsibility": "공통 설정 로딩, DBUtil 생성, SQL 헬퍼 초기화를 담당한다",
+              "methods": [
+                {
+                  "name": "ProcessBase",
+                  "signature": "public ProcessBase(WriteLog SetLog)",
+                  "summary": "프로세스 실행 또는 타이머 처리를 수행한다",
+                  "input": "확인 필요",
+                  "output": "public",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetDBUtil",
+                  "signature": "protected DBUtil GetDBUtil(string sDBConn = \"\")",
+                  "summary": "Get DBUtil",
+                  "input": "확인 필요",
+                  "output": "DBUtil",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetDBUtilMySQL",
+                  "signature": "protected DBUtilMySQL GetDBUtilMySQL(string sDBConn = \"\")",
+                  "summary": "Get DBUtilMySQL",
+                  "input": "확인 필요",
+                  "output": "DBUtilMySQL",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "Process",
+              "filePath": "Operation/ProcessUnit.cs",
+              "summary": "배치/연동 업무 로직을 묶은 partial 클래스이다",
+              "responsibility": "배치/연동 업무 로직을 묶은 partial 클래스이다",
+              "methods": [
+                {
+                  "name": "OrderAuto",
+                  "signature": "public void OrderAuto(string OIdx, string OTIdx)",
+                  "summary": "자동 결제",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "AppPush",
+                  "signature": "public void AppPush(string OIdx, string OTIdx)",
+                  "summary": "앱 푸시 발송",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "SMS",
+                  "signature": "public void SMS(string OIdx, string OTIdx)",
+                  "summary": "SMS발송",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "StockCollector",
+                  "signature": "public void StockCollector(string OIdx, string OTIdx)",
+                  "summary": "종목 수집 알림",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SmsMonitor",
+                  "signature": "public void SmsMonitor(string OIdx, string OTIdx)",
+                  "summary": "개발팀 SMS발송",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SalesStockPoint",
+                  "signature": "public void SalesStockPoint(string OIdx, string OTIdx)",
+                  "summary": "매출현황",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ItemStockSearchingManual",
+                  "signature": "public void ItemStockSearchingManual(string OIdx, string OTIdx)",
+                  "summary": "종목 네이버 현재가와 비교 (이전 버전)",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "NaverStockPriceCompare",
+                  "signature": "public void NaverStockPriceCompare(string OIdx, string OTIdx)",
+                  "summary": "종목 네이버 현재가와 비교",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "Alarm",
+                  "signature": "public void Alarm(string OIdx, string OTIdx)",
+                  "summary": "메신져 알림 발송",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "OpenStockRadar",
+                  "signature": "public void OpenStockRadar(string OIdx, string OTIdx)",
+                  "summary": "StockRadar 실행",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "ApiService",
+                  "signature": "public void ApiService(string OIdx, string OTIdx)",
+                  "summary": "API Service 연동",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "ApiServiceKakao",
+                  "signature": "public void ApiServiceKakao(string OIdx, string OTIdx)",
+                  "summary": "API Service 연동 (Kakao)",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiServiceKakaoContentsReg",
+                  "signature": "private void ApiServiceKakaoContentsReg(string QIdx, string SvcCode, string SvcIdx)",
+                  "summary": "ApiService 카카오스탁 컨텐츠 등록 ComIdx: 100",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "ApiServiceKakaoContentsApproveCheck",
+                  "signature": "private void ApiServiceKakaoContentsApproveCheck(string QIdx)",
+                  "summary": "ApiService 카카오스탁 컨텐츠 승인 확인 ComIdx: 120",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiServiceKakaoSalesGet",
+                  "signature": "private void ApiServiceKakaoSalesGet(string QIdx)",
+                  "summary": "ApiService 카카오스탁 판매건수 조회 ComIdx: 110",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "ApiServiceFuturewizChatInsert",
+                  "signature": "public void ApiServiceFuturewizChatInsert(string OIdx, string OTIdx)",
+                  "summary": "VideoChat 정보를 주기적으로 T_ApiServiceQueue에 저장",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiServiceFuturewizChatGet",
+                  "signature": "private void ApiServiceFuturewizChatGet(string sQIdx)",
+                  "summary": "ApiService 퓨처위즈 채팅내역 저장 ComIdx: 200",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "KrxData",
+                  "signature": "public void KrxData(string OIdx, string OTIdx)",
+                  "summary": "KRX Data 증권거래소의 특이종목을 업데이트",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "OpenXingDataRealTime",
+                  "signature": "public void OpenXingDataRealTime(string OIdx, string OTIdx)",
+                  "summary": "실시간 종목 수집 프로그램을 실행한다.",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiVirtualCurrency",
+                  "signature": "public void ApiVirtualCurrency(string OIdx, string OTIdx)",
+                  "summary": "가상화폐 정보 수집",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetApiExchangeRateUSD",
+                  "signature": "private double GetApiExchangeRateUSD(string OIdx, string OTIdx)",
+                  "summary": "환율 정보를 가져 온다.",
+                  "input": "확인 필요",
+                  "output": "double",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetApiVirtualCurrencyBithumb",
+                  "signature": "private void GetApiVirtualCurrencyBithumb(string OIdx, string OTIdx, VirtualCurrencyExchange virtualCurrencyExchange, DataRow[] drVirtualCurrencyExchangeLink)",
+                  "summary": "빗썸 Api 호출 하여 데이터를 저장",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetApiVirtualCurrencyCoinone",
+                  "signature": "private void GetApiVirtualCurrencyCoinone(string OIdx, string OTIdx, VirtualCurrencyExchange virtualCurrencyExchange, DataRow[] drVirtualCurrencyExchangeLink)",
+                  "summary": "코인원 Api 호출 하여 데이터를 저장",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetApiVirtualCurrencyKorbit",
+                  "signature": "private void GetApiVirtualCurrencyKorbit(string OIdx, string OTIdx, VirtualCurrencyExchange virtualCurrencyExchange, DataRow[] drVirtualCurrencyExchangeLink)",
+                  "summary": "코빗 Api 호출 하여 데이터를 저장",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetApiVirtualCurrencyCpdax",
+                  "signature": "private void GetApiVirtualCurrencyCpdax(string OIdx, string OTIdx, VirtualCurrencyExchange virtualCurrencyExchange, DataRow[] drVirtualCurrencyExchangeLink)",
+                  "summary": "코인플러그 Api 호출 하여 데이터를 저장",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetApiVirtualCurrencyCoinnest",
+                  "signature": "private void GetApiVirtualCurrencyCoinnest(string OIdx, string OTIdx, VirtualCurrencyExchange virtualCurrencyExchange, DataRow[] drVirtualCurrencyExchangeLink)",
+                  "summary": "코인네스트 Api 호출 하여 데이터를 저장",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetApiVirtualCurrencyPoloniex",
+                  "signature": "private void GetApiVirtualCurrencyPoloniex(string OIdx, string OTIdx, VirtualCurrencyExchange virtualCurrencyExchange, DataRow[] drVirtualCurrencyExchangeLink)",
+                  "summary": "폴로닉스 Api 호출 하여 데이터를 저장",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetApiVirtualCurrencyBittrex",
+                  "signature": "private void GetApiVirtualCurrencyBittrex(string OIdx, string OTIdx, VirtualCurrencyExchange virtualCurrencyExchange, DataRow[] drVirtualCurrencyExchangeLink)",
+                  "summary": "비트렉스 Api 호출 하여 데이터를 저장",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetApiVirtualCurrencyUpbit",
+                  "signature": "private void GetApiVirtualCurrencyUpbit(string OIdx, string OTIdx, VirtualCurrencyExchange virtualCurrencyExchange, DataRow[] drVirtualCurrencyExchangeLink)",
+                  "summary": "업비트 Api 호출 하여 데이터를 저장",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetApiVirtualCurrencyBitfinex",
+                  "signature": "private void GetApiVirtualCurrencyBitfinex(string OIdx, string OTIdx, VirtualCurrencyExchange virtualCurrencyExchange, DataRow[] drVirtualCurrencyExchangeLink)",
+                  "summary": "파인넥스 Api 호출 하여 데이터를 저장",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "SetApiVirtualCurrencyData",
+                  "signature": "private void SetApiVirtualCurrencyData(string OIdx, string OTIdx, VirtualCurrencyExchange virtualCurrencyExchange, List<VirtualCurrency> arVirtualCurrency)",
+                  "summary": "가상화폐 정보 저장",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "SiteCheckStockPoint",
+                  "signature": "public void SiteCheckStockPoint(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "PriceMornitoring",
+                  "signature": "public void PriceMornitoring(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "HandsUpPush",
+                  "signature": "public void HandsUpPush(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "HandsUpCoupon",
+                  "signature": "public void HandsUpCoupon(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ServerChatLoadCacheCheck",
+                  "signature": "public void ServerChatLoadCacheCheck(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ServerMainWebLoadCache",
+                  "signature": "public void ServerMainWebLoadCache(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "BatContentsSatisfactionNotify",
+                  "signature": "public void BatContentsSatisfactionNotify(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "BatReviewNotify",
+                  "signature": "public void BatReviewNotify(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "BatCouponUnUsedNotify",
+                  "signature": "public void BatCouponUnUsedNotify(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "CheckSignalQueue",
+                  "signature": "public async void CheckSignalQueue(string OIdx, string OTIdx)",
+                  "summary": "상태를 검사한다",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "checkSignalPrice",
+                  "signature": "private bool checkSignalPrice(HighLowPrice item, ChatSignalQueue chatSignalQueue)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "bool",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ClearSignalQueue",
+                  "signature": "public void ClearSignalQueue(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "SetCheckChatSignal",
+                  "signature": "private void SetCheckChatSignal(int PortfolioSignalIdx, int Type)",
+                  "summary": "상태 또는 로그/DB 값을 저장한다",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiSiteHealthCheck",
+                  "signature": "public void ApiSiteHealthCheck(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "AuthAppHealthCheck",
+                  "signature": "public AppAuthTokenMember AuthAppHealthCheck()",
+                  "summary": "로그인 체크",
+                  "input": "확인 필요",
+                  "output": "AppAuthTokenMember",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "AuthRefreshHealthCheck",
+                  "signature": "public void AuthRefreshHealthCheck(AppAuthTokenMember authToken)",
+                  "summary": "토큰 체크",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "AWSMonitoring",
+                  "signature": "public void AWSMonitoring(string OIdx, string OTIdx)",
+                  "summary": "AWS 모니터링 Operation",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetMonitoringList",
+                  "signature": "private List<AWSMonitoringMember> GetMonitoringList(AWSServiceType serviceType)",
+                  "summary": "모니터링 데이터 수집 및 DB 저장",
+                  "input": "확인 필요",
+                  "output": "List<AWSMonitoringMember>",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetMonitoringMemberList",
+                  "signature": "private List<AWSMonitoringMember> GetMonitoringMemberList(AWSServiceType serviceType)",
+                  "summary": "모니터링 서비스 멤버 조회",
+                  "input": "확인 필요",
+                  "output": "List<AWSMonitoringMember>",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "IsMonitoringEnable",
+                  "signature": "private bool IsMonitoringEnable(AWSMonitoringMember monitoringMember)",
+                  "summary": "서비스의 모니터링 가능 여부 return",
+                  "input": "확인 필요",
+                  "output": "bool",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetStatistics",
+                  "signature": "private void GetStatistics(AWSMonitoringMember monitoringMember)",
+                  "summary": "모니터링 데이터 수집",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "InsertMonitoringValue",
+                  "signature": "private void InsertMonitoringValue(AWSMonitoringMember monitoringMember)",
+                  "summary": "모니터링 데이터 DB 저장",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ThresholdCheck",
+                  "signature": "private void ThresholdCheck(List<AWSMonitoringMember> monitoringList)",
+                  "summary": "임계치 체크",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetThresholdList",
+                  "signature": "private List<AWSThresholdMember> GetThresholdList()",
+                  "summary": "Get 현 시간 임계치 리스트",
+                  "input": "확인 필요",
+                  "output": "List<AWSThresholdMember>",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "InsertThresholdLog",
+                  "signature": "private void InsertThresholdLog(List<AWSThresholdLogMember> thresholdLogList)",
+                  "summary": "임계치 로그 DB 저장",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "AWSMonitoringSummaryOneHour",
+                  "signature": "public void AWSMonitoringSummaryOneHour(string OIdx, string OTIdx)",
+                  "summary": "AWS 서비스 상태/지표를 수집한다",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "AWSMonitoringSummaryOneDay",
+                  "signature": "public void AWSMonitoringSummaryOneDay(string OIdx, string OTIdx)",
+                  "summary": "AWS 서비스 상태/지표를 수집한다",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "AWSMonitoringSummaryInsert",
+                  "signature": "public void AWSMonitoringSummaryInsert(AWSSummaryType summaryType, AlphaBotType alphaBotType)",
+                  "summary": "모니터링 데이터 집계",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiServicePublishedItemStockQueueInsert",
+                  "signature": "public void ApiServicePublishedItemStockQueueInsert(string OIdx, string OTIdx)",
+                  "summary": "게시된 추천종목 ApiServiceQueue에 등록",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiServicePublishedItemStockToExternalSiteUpload",
+                  "signature": "public void ApiServicePublishedItemStockToExternalSiteUpload(string sQIdx, string sSvcIdx)",
+                  "summary": "게시된 추천종목 외부 사이트 업로드",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "ApiServiceItemStockToExternalSiteUploadDaily",
+                  "signature": "public void ApiServiceItemStockToExternalSiteUploadDaily(string OIdx, string OTIdx)",
+                  "summary": "추천종목 외부 사이트 정기 업로드",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "MyMentorActivityExpired",
+                  "signature": "public void MyMentorActivityExpired(string OIdx, string OTIdx)",
+                  "summary": "My 멘토 알리미의 멘토 활동 기간 종료예정 알람 (3일전 발송)",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "PackageISMentorItemStockUnderCnt",
+                  "signature": "public void PackageISMentorItemStockUnderCnt(string OIdx, string OTIdx)",
+                  "summary": "프리미엄 추천종목 멘토의 추천종목 등록 미달 알람 (매주 수요일 16:00)",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "MyMentorUserSelectCheck",
+                  "signature": "public void MyMentorUserSelectCheck(string OIdx, string OTIdx)",
+                  "summary": "CS에 My 멘토 알리미 사용자 중 멘토 미선택된 사용자 1:1등록",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SiteAttackCheck",
+                  "signature": "public void SiteAttackCheck(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "CheckOrderAutoReceipt",
+                  "signature": "public void CheckOrderAutoReceipt(string OIdx, string OTIdx)",
+                  "summary": "자동 결제",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "CheckReceipt",
+                  "signature": "public string[] CheckReceipt(string OSType, string Receipt)",
+                  "summary": "상태를 검사한다",
+                  "input": "확인 필요",
+                  "output": "string[]",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "CheckReceiptiOS",
+                  "signature": "public JObject CheckReceiptiOS(string receipt)",
+                  "summary": "상태를 검사한다",
+                  "input": "확인 필요",
+                  "output": "JObject",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiServicePublishedMentorMarketQueueInsert",
+                  "signature": "public void ApiServicePublishedMentorMarketQueueInsert(string OIdx, string OTIdx)",
+                  "summary": "게시된 멘토시황 ApiServiceQueue에 등록",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiServicePublishedMentorMarketToExternalSiteUpload",
+                  "signature": "public void ApiServicePublishedMentorMarketToExternalSiteUpload(string sQIdx, string sSvcIdx)",
+                  "summary": "게시된 멘토시황 외부 사이트 업로드",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "InactiveUserEmailSend",
+                  "signature": "public void InactiveUserEmailSend(string OIdx, string OTIdx)",
+                  "summary": "휴면계정 사용자 Email 전송",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "BatInactiveUserQueue",
+                  "signature": "public void BatInactiveUserQueue(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "EmailSend",
+                  "signature": "public async void EmailSend(string OIdx, string OTIdx)",
+                  "summary": "Email 전송",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "EmailSendCompleted",
+                  "signature": "private void EmailSendCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)",
+                  "summary": "메일 발송 정보 업데이트",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "LGUItemStockSearch",
+                  "signature": "public void LGUItemStockSearch(string QIdx, string OTIdx)",
+                  "summary": "슬기로운 투자생활 추천종목 조회",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "LGUDailySendMessage",
+                  "signature": "public void LGUDailySendMessage(string QIdx, string OTIdx)",
+                  "summary": "슬기로운 투자생활 알람",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SMSExternalLGUPlus",
+                  "signature": "public void SMSExternalLGUPlus(string QIdx, string OTIdx)",
+                  "summary": "외부 알림 SMS - LG U+",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "ExternalExtensionSubscribe",
+                  "signature": "public void ExternalExtensionSubscribe(string QIdx, string OTIdx)",
+                  "summary": "슬기로운 투자생활 연장 구독 처리",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ChangeServieceGuideTomorrow",
+                  "signature": "public void ChangeServieceGuideTomorrow(string QIdx, string OTIdx)",
+                  "summary": "슬기로운 투자생활 - 슬기로운 투자생활 유료전환 1일전 안내",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ChangeServieceGuideToDay",
+                  "signature": "public void ChangeServieceGuideToDay(string QIdx, string OTIdx)",
+                  "summary": "슬기로운 투자생활 - 슬기로운 투자생활 유료전환 안내(전환 당일)",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "MonitoringAWSServiceSiteCheck",
+                  "signature": "public void MonitoringAWSServiceSiteCheck(string QIdx, string OTIdx)",
+                  "summary": "사이트 동작 체크",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "UserNotifyAgreeMarketing",
+                  "signature": "public void UserNotifyAgreeMarketing(string QIdx, string OTIdx)",
+                  "summary": "마케팅 수신동의 안내",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ExternalSubscribeCancel",
+                  "signature": "public void ExternalSubscribeCancel(string OIdx, string OTIdx)",
+                  "summary": "슬기로운 투자생활 해지 처리 (LG U+)",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "LDInsightMentorDailyReportAlarm",
+                  "signature": "public void LDInsightMentorDailyReportAlarm(string QIdx, string OTIdx)",
+                  "summary": "투자 인사이트 멘토 데일리 리포트 미등록 알람",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ContentsOrderAutoEndUserNotify",
+                  "signature": "public void ContentsOrderAutoEndUserNotify(string QIdx, string OTIdx)",
+                  "summary": "자동결제 만료예정 알람",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ContentsUserCancelFreeChatMentor",
+                  "signature": "public void ContentsUserCancelFreeChatMentor(string QIdx, string OTIdx)",
+                  "summary": "멘토 무료 채팅방 -  멘토 무료 채팅장 장기간 미입장 유저 구독 해지",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "TssaChallengerLeagueUpdate",
+                  "signature": "public void TssaChallengerLeagueUpdate(string OIdx, string OTIdx)",
+                  "summary": "TSSA 챌린저 강등 처리",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "TssaLeagueUserLog",
+                  "signature": "public void TssaLeagueUserLog(string OIdx, string OTIdx)",
+                  "summary": "TSSA 통계 업데이트",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "TssaMissionUserMVP",
+                  "signature": "public void TssaMissionUserMVP(string OIdx, string OTIdx)",
+                  "summary": "리그 MVP 익일 5일 처리",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "TssaLeagueItemStockStatusUpdate",
+                  "signature": "public void TssaLeagueItemStockStatusUpdate(string OIdx, string OTIdx)",
+                  "summary": "TSSA 당일 종료 종목 처리",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SMSExternalDanal",
+                  "signature": "public void SMSExternalDanal(string QIdx, string OTIdx)",
+                  "summary": "외부 알림 SMS - 다날",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "WiseInvestStockEndBriefing",
+                  "signature": "public void WiseInvestStockEndBriefing(string QIdx, string OTIdx)",
+                  "summary": "슬기로운 투자생활 - 장마감 브리핑",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "FinUpEventItemStockStatusUpdate",
+                  "signature": "public void FinUpEventItemStockStatusUpdate(string OIdx, string OTIdx)",
+                  "summary": "FinUp 신규가입자 증대 이벤트 종목 종료 처리",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "NaverCafeAttendBoardAutoUpload",
+                  "signature": "public async void NaverCafeAttendBoardAutoUpload(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "OrderAutoWiseInvest",
+                  "signature": "public void OrderAutoWiseInvest(string OIdx, string OTIdx)",
+                  "summary": "자동 결제 - 슬기로운 투자생활",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "TssaItemStockTelegramAlarm",
+                  "signature": "public void TssaItemStockTelegramAlarm(string OIdx, string OTIdx)",
+                  "summary": "TSSA 추천종목 텔레그램 마케팅 알림 수집",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiServiceTssaItemStockTelegramAlarm",
+                  "signature": "private void ApiServiceTssaItemStockTelegramAlarm(string sQIdx, string sSvcIdx)",
+                  "summary": "TSSA 추천종목 텔레그램 마케팅 알림 등록",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "ItemStockTelegramAlarm",
+                  "signature": "public void ItemStockTelegramAlarm(string OIdx, string OTIdx)",
+                  "summary": "추천종목 텔레그램 마케팅 알림 수집",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiServiceItemStockTelegramAlarm",
+                  "signature": "private void ApiServiceItemStockTelegramAlarm(string sQIdx, string sSvcIdx)",
+                  "summary": "추천종목 텔레그램 마케팅 알림 수집",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetThemeDiff",
+                  "signature": "private string GetThemeDiff(string KeywordIdx)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ChangeServieceGuide7DaysAgo",
+                  "signature": "public void ChangeServieceGuide7DaysAgo(string QIdx, string OTIdx)",
+                  "summary": "슬기로운 투자생활 - 슬기로운 투자생활 유료전환 7일전 안내",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SuperStockKLeagueItemStockStatusUpdate",
+                  "signature": "public void SuperStockKLeagueItemStockStatusUpdate(string OIdx, string OTIdx)",
+                  "summary": "당일 종료 종목 처리",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SuperStockKLeagueUserLog",
+                  "signature": "public void SuperStockKLeagueUserLog(string OIdx, string OTIdx)",
+                  "summary": "슈퍼스탁K 통계 업데이트",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "PointDisappearanceUserQueue",
+                  "signature": "public void PointDisappearanceUserQueue(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "PointDisappearanceUserQueueEmailSend",
+                  "signature": "public void PointDisappearanceUserQueueEmailSend(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "PointDisappearanceUserProcess",
+                  "signature": "public void PointDisappearanceUserProcess(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ContentsViewLogUpdateProcess",
+                  "signature": "public void ContentsViewLogUpdateProcess(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiServiceChatUserUpsert",
+                  "signature": "public void ApiServiceChatUserUpsert(string sQidx, string sSvcIdx, string sSvcCode)",
+                  "summary": "Api 통신 - 채팅 유저 생성",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiServiceChatUserCancel",
+                  "signature": "public void ApiServiceChatUserCancel(string sQidx, string sSvcIdx, string sSvcCode)",
+                  "summary": "Api 통신 - 채팅 유저 취소",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiServiceChatInsert",
+                  "signature": "public void ApiServiceChatInsert(string sQidx, string sSvcIdx, string sSvcCode)",
+                  "summary": "Api 통신 - 채팅방 생성",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiServiceChatUpdate",
+                  "signature": "public void ApiServiceChatUpdate(string sQidx, string sSvcIdx, string sSvcCode)",
+                  "summary": "Api 통신 - 채팅방 수정",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiServiceChatUserDelete",
+                  "signature": "public void ApiServiceChatUserDelete(string sQidx, string sSvcIdx, string sSvcCode)",
+                  "summary": "Api 통신 - 채팅방 참여자 방출",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiServiceChatUserInsert",
+                  "signature": "public void ApiServiceChatUserInsert(string sQidx, string sSvcIdx, string sSvcCode)",
+                  "summary": "Api 통신 - Chat.T_User INSERT",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiServiceChatUserUpdate",
+                  "signature": "public void ApiServiceChatUserUpdate(string sQidx, string sSvcIdx, string sSvcCode)",
+                  "summary": "Api 통신 - Chat.T_User ProfileImage UPDATE",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ApiServiceUserNicknameUpdate",
+                  "signature": "public void ApiServiceUserNicknameUpdate(string sQidx, string sSvcIdx, string sSvcCode)",
+                  "summary": "Api 통신 - Chat.T_User Nickname UPDATE",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SuperStockKTopRankerItemStockAlram",
+                  "signature": "public void SuperStockKTopRankerItemStockAlram(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "YoutubeChannelLiveStatusUpdate",
+                  "signature": "public async void YoutubeChannelLiveStatusUpdate(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "BatEventBoxUserDecompose",
+                  "signature": "public void BatEventBoxUserDecompose(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "BatEventBoxUserDivisionCoinAlarm",
+                  "signature": "public void BatEventBoxUserDivisionCoinAlarm(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "BatCoinDisappearanceUserProcess",
+                  "signature": "public void BatCoinDisappearanceUserProcess(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "USPPointLogInactiveDuplicate",
+                  "signature": "public void USPPointLogInactiveDuplicate(string OIdx, string OTIdx)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "Push",
+              "filePath": "Operation/Push.cs",
+              "summary": "Android/iOS/FCM/MQTT 푸시 발송을 담당한다",
+              "responsibility": "Android/iOS/FCM/MQTT 푸시 발송을 담당한다",
+              "methods": [
+                {
+                  "name": "Push",
+                  "signature": "public Push()",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "public",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SendAndroid",
+                  "signature": "public void SendAndroid(string sDeviceId, string sMsg, string sUrl = \"\", string sGroupIdx = \"0\")",
+                  "summary": "Sends push message for android.",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SendAndroidV1",
+                  "signature": "public void SendAndroidV1(List<string> sDeviceId, string sMsg, string sUrl = \"\", string sGroupIdx = \"0\")",
+                  "summary": "신규 안드로이드 푸시",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SendIOSFcm",
+                  "signature": "public void SendIOSFcm(string sDeviceId, string sMsg, string sUrl = \"\", string sGroupIdx = \"0\")",
+                  "summary": "Sends push message for android.",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SendIOSFcmV1",
+                  "signature": "public void SendIOSFcmV1(List<string> sDeviceId, string sMsg, string sUrl = \"\", string sGroupIdx = \"0\")",
+                  "summary": "메시지/메일/푸시를 발송한다",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SendIOS",
+                  "signature": "public string SendIOS(string token, string Contents, string url, bool bIsReal, string sGroupIdx = \"0\")",
+                  "summary": "메시지/메일/푸시를 발송한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "ValidateServerCertificate",
+                  "signature": "private bool ValidateServerCertificate(Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "bool",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "HexStringToByteArray",
+                  "signature": "private byte[] HexStringToByteArray(String s)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "byte[]",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "StringToByteArray",
+                  "signature": "public byte[] StringToByteArray(string hex)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "byte[]",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SendMqtt",
+                  "signature": "public string SendMqtt(string sAppTopic, string sUserIdx, string sMsg, string sUrl = \"\", string sGroupIdx = \"0\")",
+                  "summary": "메시지/메일/푸시를 발송한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SendFCM",
+                  "signature": "public string SendFCM(string sToken, string Contents, string sUrl)",
+                  "summary": "메시지/메일/푸시를 발송한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "PushHandsUp",
+              "filePath": "Operation/Push.cs",
+              "summary": "확인 필요",
+              "responsibility": "확인 필요",
+              "methods": [
+                {
+                  "name": "SendPushMessage",
+                  "signature": "public void SendPushMessage(List<DataRow> lstData, DataRow drMessage, string sPayLoad)",
+                  "summary": "메시지/메일/푸시를 발송한다",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "SetDevicesReplace",
+                  "signature": "private string SetDevicesReplace(string sDevices)",
+                  "summary": "상태 또는 로그/DB 값을 저장한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SendPush",
+                  "signature": "private bool SendPush(string sPushMessage)",
+                  "summary": "메시지/메일/푸시를 발송한다",
+                  "input": "확인 필요",
+                  "output": "bool",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "FinUp.Stock.App.AlphaBot.Operation.ItemStockUpload",
+          "classes": [
+            {
+              "name": "ItemStockUploadUtil",
+              "filePath": "Operation/ItemStockUpload/ItemStockUploadUtil.cs",
+              "summary": "외부 연동 또는 공통 유틸리티 기능을 제공한다",
+              "responsibility": "외부 연동 또는 공통 유틸리티 기능을 제공한다",
+              "methods": [
+                {
+                  "name": "GetNaverLogin",
+                  "signature": "public static NaverLoginHelper GetNaverLogin()",
+                  "summary": "네이버 로그인 함수",
+                  "input": "확인 필요",
+                  "output": "NaverLoginHelper",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "ImagePostSend",
+                  "signature": "public static JsonResult ImagePostSend(string filePath, string type, string area)",
+                  "summary": "이미지 업로드",
+                  "input": "확인 필요",
+                  "output": "JsonResult",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ReadFileToBoundary",
+                  "signature": "public static byte[] ReadFileToBoundary(string filePath, string boundary, string mime)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "byte[]",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "HtmlToImageConvert",
+              "filePath": "Operation/ItemStockUpload/ItemStockUploadUtil.cs",
+              "summary": "확인 필요",
+              "responsibility": "확인 필요",
+              "methods": [
+                {
+                  "name": "Convert",
+                  "signature": "public JsonResult Convert(string html, string imagePath, string type, string area, int? width = null)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "JsonResult",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "PublishedItemStockUploadHtml",
+              "filePath": "Operation/ItemStockUpload/ItemStockUploadUtil.cs",
+              "summary": "확인 필요",
+              "responsibility": "확인 필요",
+              "methods": [
+                {
+                  "name": "GetResultUploadHtml",
+                  "signature": "public string GetResultUploadHtml(string cidx, DataRow drItemStock, DataTable dtProfit, DataRow drReview)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetContentsImage",
+                  "signature": "private JsonResult GetContentsImage(DataRow dr)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "JsonResult",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetProfitImage",
+                  "signature": "private JsonResult GetProfitImage(DataRow dr)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "JsonResult",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetSubscribeButtonImage",
+                  "signature": "private JsonResult GetSubscribeButtonImage()",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "JsonResult",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetReviewImage",
+                  "signature": "private JsonResult GetReviewImage(DataRow dr)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "JsonResult",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetResultHtml",
+                  "signature": "private string GetResultHtml(string bodyHtml)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetWrapperHtml",
+                  "signature": "private string GetWrapperHtml(string bodyHtml)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetContentsHtml",
+                  "signature": "private string GetContentsHtml(DataRow dr)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetProfitRowHtml",
+                  "signature": "private string GetProfitRowHtml(DataRow dr)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetSubscribeButtonHtml",
+                  "signature": "private string GetSubscribeButtonHtml()",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetReviewHtml",
+                  "signature": "private string GetReviewHtml(DataRow dr)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetWrapperHtml",
+                  "signature": "public string GetWrapperHtml(DataTable dt)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetResultHtml",
+                  "signature": "public string GetResultHtml(string html)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetDailyHtml",
+                  "signature": "private string GetDailyHtml(DataRow dr)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetButtonHtml",
+                  "signature": "private string GetButtonHtml()",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetButtonImage",
+                  "signature": "private JsonResult GetButtonImage()",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "JsonResult",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "NaverOAuthById",
+                  "signature": "public NaverOAuthById()",
+                  "summary": "Response Result Code",
+                  "input": "확인 필요",
+                  "output": "public",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "NaverOAuthById",
+                  "signature": "public NaverOAuthById(string naverId, NaverOAuth naverOAuth)",
+                  "summary": "Response Result Code",
+                  "input": "확인 필요",
+                  "output": "public",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "DailyUploadHtml",
+              "filePath": "Operation/ItemStockUpload/ItemStockUploadUtil.cs",
+              "summary": "확인 필요",
+              "responsibility": "확인 필요",
+              "methods": [
+                {
+                  "name": "GetWrapperHtml",
+                  "signature": "public string GetWrapperHtml(DataTable dt)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "DB",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetResultHtml",
+                  "signature": "public string GetResultHtml(string html)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetDailyHtml",
+                  "signature": "private string GetDailyHtml(DataRow dr)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "DB"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetButtonHtml",
+                  "signature": "private string GetButtonHtml()",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetButtonImage",
+                  "signature": "private JsonResult GetButtonImage()",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "JsonResult",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "NaverOAuthById",
+                  "signature": "public NaverOAuthById()",
+                  "summary": "Response Result Code",
+                  "input": "확인 필요",
+                  "output": "public",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "NaverOAuthById",
+                  "signature": "public NaverOAuthById(string naverId, NaverOAuth naverOAuth)",
+                  "summary": "Response Result Code",
+                  "input": "확인 필요",
+                  "output": "public",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "JsonResult",
+              "filePath": "Operation/ItemStockUpload/ItemStockUploadUtil.cs",
+              "summary": "확인 필요",
+              "responsibility": "확인 필요",
+              "methods": []
+            },
+            {
+              "name": "NaverOAuthById",
+              "filePath": "Operation/ItemStockUpload/ItemStockUploadUtil.cs",
+              "summary": "Response Result Code",
+              "responsibility": "Response Result Code",
+              "methods": [
+                {
+                  "name": "NaverOAuthById",
+                  "signature": "public NaverOAuthById()",
+                  "summary": "Response Result Code",
+                  "input": "확인 필요",
+                  "output": "public",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "NaverOAuthById",
+                  "signature": "public NaverOAuthById(string naverId, NaverOAuth naverOAuth)",
+                  "summary": "Response Result Code",
+                  "input": "확인 필요",
+                  "output": "public",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "FinUp.Stock.App.AlphaBot.Operation.Payment",
+          "classes": [
+            {
+              "name": "BillCard",
+              "filePath": "Operation/Payment/BillCard.cs",
+              "summary": "Danal 결제 요청/암복호화/파라미터 변환을 담당한다",
+              "responsibility": "Danal 결제 요청/암복호화/파라미터 변환을 담당한다",
+              "methods": [
+                {
+                  "name": "RequestPaymentDanalCard",
+                  "signature": "public OrderAutoType RequestPaymentDanalCard(string sUserIdx, string sOAIdx, string sOAQIdx, string sCaseID)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "OrderAutoType",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetReturmMessage",
+                  "signature": "private string GetReturmMessage(string sUserIdx, string sOAIdx, string sOAQIdx, string sMsg)",
+                  "summary": "자동결제 리턴 메시지",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "BillCardWiseInvest",
+              "filePath": "Operation/Payment/BillCardWiseInvest.cs",
+              "summary": "Danal 결제 요청/암복호화/파라미터 변환을 담당한다",
+              "responsibility": "Danal 결제 요청/암복호화/파라미터 변환을 담당한다",
+              "methods": [
+                {
+                  "name": "RequestPaymentDanalCardWiseInvest",
+                  "signature": "public OrderAutoType RequestPaymentDanalCardWiseInvest(string sUserIdx, string sOAIdx, string sOAQIdx, string sCaseID)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "OrderAutoType",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetReturmMessage",
+                  "signature": "private string GetReturmMessage(string sUserIdx, string sOAIdx, string sOAQIdx, string sMsg)",
+                  "summary": "자동결제 리턴 메시지",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "BillPhone",
+              "filePath": "Operation/Payment/BillPhone.cs",
+              "summary": "Danal 결제 요청/암복호화/파라미터 변환을 담당한다",
+              "responsibility": "Danal 결제 요청/암복호화/파라미터 변환을 담당한다",
+              "methods": [
+                {
+                  "name": "RequestPaymentDanalPhone",
+                  "signature": "public OrderAutoType RequestPaymentDanalPhone(string sUserIdx, string sOAIdx, string sOAQIdx, string sCaseID, string sReSubscribe = \"1\")",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "OrderAutoType",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetReturmMessage",
+                  "signature": "private string GetReturmMessage(string sUserIdx, string sOAIdx, string sOAQIdx, string sMsg)",
+                  "summary": "자동결제 리턴 메시지",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "BillPhoneWiseInvest",
+              "filePath": "Operation/Payment/BillPhoneWiseInvest.cs",
+              "summary": "Danal 결제 요청/암복호화/파라미터 변환을 담당한다",
+              "responsibility": "Danal 결제 요청/암복호화/파라미터 변환을 담당한다",
+              "methods": [
+                {
+                  "name": "RequestPaymentDanalPhoneWiseInvest",
+                  "signature": "public OrderAutoType RequestPaymentDanalPhoneWiseInvest(string sUserIdx, string sOAIdx, string sOAQIdx, string sCaseID, string sReSubscribe = \"1\")",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "OrderAutoType",
+                  "sideEffects": [
+                    "DB",
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": true,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "GetReturmMessage",
+                  "signature": "private string GetReturmMessage(string sUserIdx, string sOAIdx, string sOAQIdx, string sMsg)",
+                  "summary": "자동결제 리턴 메시지",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "FunctionCard",
+              "filePath": "Operation/Payment/FunctionCard.cs",
+              "summary": "Danal 결제 요청/암복호화/파라미터 변환을 담당한다",
+              "responsibility": "Danal 결제 요청/암복호화/파라미터 변환을 담당한다",
+              "methods": [
+                {
+                  "name": "CallCredit",
+                  "signature": "public Hashtable CallCredit(Hashtable data, bool Debug)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "Hashtable",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "toEncrypt",
+                  "signature": "public string toEncrypt(string str)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "toDecrypt",
+                  "signature": "public string toDecrypt(string str)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "hexToByteArray",
+                  "signature": "public byte[] hexToByteArray(string hex)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "byte[]",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "str2data",
+                  "signature": "public Hashtable str2data(string str, bool urldecode = true)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "Hashtable",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "data2str",
+                  "signature": "public string data2str(Hashtable data, bool urlencode = true)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "Parsor",
+                  "signature": "public Hashtable Parsor(string output, string delimiter)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "Hashtable",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "UrlEncoder",
+                  "signature": "public string UrlEncoder(string str)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "UrlDecoder",
+                  "signature": "public string UrlDecoder(string str)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ArrayToString",
+                  "signature": "public string ArrayToString(Hashtable Res)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetLocalhost",
+                  "signature": "public string GetLocalhost(string url)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "FunctionCardWiseInvest",
+              "filePath": "Operation/Payment/FunctionCardWiseInvest.cs",
+              "summary": "Danal 결제 요청/암복호화/파라미터 변환을 담당한다",
+              "responsibility": "Danal 결제 요청/암복호화/파라미터 변환을 담당한다",
+              "methods": [
+                {
+                  "name": "CallCreditWiseInvest",
+                  "signature": "public Hashtable CallCreditWiseInvest(Hashtable data, bool Debug)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "Hashtable",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "toEncryptWiseInvest",
+                  "signature": "public string toEncryptWiseInvest(string str)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "toDecryptWiseInvest",
+                  "signature": "public string toDecryptWiseInvest(string str)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "hexToByteArray",
+                  "signature": "public byte[] hexToByteArray(string hex)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "byte[]",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "str2data",
+                  "signature": "public Hashtable str2data(string str, bool urldecode = true)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "Hashtable",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "data2str",
+                  "signature": "public string data2str(Hashtable data, bool urlencode = true)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "Parsor",
+                  "signature": "public Hashtable Parsor(string output, string delimiter)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "Hashtable",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "UrlEncoder",
+                  "signature": "public string UrlEncoder(string str)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "UrlDecoder",
+                  "signature": "public string UrlDecoder(string str)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ArrayToString",
+                  "signature": "public string ArrayToString(Hashtable Res)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetLocalhost",
+                  "signature": "public string GetLocalhost(string url)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "FunctionPhone",
+              "filePath": "Operation/Payment/FunctionPhone.cs",
+              "summary": "Danal 결제 요청/암복호화/파라미터 변환을 담당한다",
+              "responsibility": "Danal 결제 요청/암복호화/파라미터 변환을 담당한다",
+              "methods": [
+                {
+                  "name": "CallTeledit",
+                  "signature": "public Hashtable CallTeledit(Hashtable Trans, bool Debug)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "Hashtable",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "Parsor",
+                  "signature": "public Hashtable Parsor(string output, string delimiter)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "Hashtable",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "MakeItemInfo",
+                  "signature": "public string MakeItemInfo(string ItemAmt, string ItemCode, string ItemName)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "MakeParam",
+                  "signature": "public string MakeParam(Hashtable Trans)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "Map2Str",
+                  "signature": "public string Map2Str(Hashtable Trans)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "toEuckr",
+                  "signature": "public string toEuckr(string str)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "FunctionPhoneWiseInvest",
+              "filePath": "Operation/Payment/FunctionPhoneWiseInvest.cs",
+              "summary": "Danal 결제 요청/암복호화/파라미터 변환을 담당한다",
+              "responsibility": "Danal 결제 요청/암복호화/파라미터 변환을 담당한다",
+              "methods": [
+                {
+                  "name": "CallTeledit",
+                  "signature": "public Hashtable CallTeledit(Hashtable Trans, bool Debug)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "Hashtable",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "Parsor",
+                  "signature": "public Hashtable Parsor(string output, string delimiter)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "Hashtable",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "MakeItemInfo",
+                  "signature": "public string MakeItemInfo(string ItemAmt, string ItemCode, string ItemName)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "MakeParam",
+                  "signature": "public string MakeParam(Hashtable Trans)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "Map2Str",
+                  "signature": "public string Map2Str(Hashtable Trans)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "toEuckr",
+                  "signature": "public string toEuckr(string str)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "FinUp.Stock.App.AlphaBot.Properties",
+          "classes": [
+            {
+              "name": "Resources",
+              "filePath": "Properties/Resources.Designer.cs",
+              "summary": "지역화된 문자열 등을 찾기 위한 강력한 형식의 리소스 클래스입니다.",
+              "responsibility": "지역화된 문자열 등을 찾기 위한 강력한 형식의 리소스 클래스입니다.",
+              "methods": [
+                {
+                  "name": "Resources",
+                  "signature": "internal Resources()",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "internal",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "Settings",
+              "filePath": "Properties/Settings.Designer.cs",
+              "summary": "확인 필요",
+              "responsibility": "확인 필요",
+              "methods": []
+            }
+          ]
+        },
+        {
+          "name": "FinUp.Stock.App.AlphaBot.Type",
+          "classes": [
+            {
+              "name": "AWSServiceType",
+              "filePath": "Type/AWSMonitoringMember.cs",
+              "summary": "데이터 전달/상태 표현용 타입이다",
+              "responsibility": "데이터 전달/상태 표현용 타입이다",
+              "methods": []
+            },
+            {
+              "name": "AWSServiceStatus",
+              "filePath": "Type/AWSMonitoringMember.cs",
+              "summary": "확인 필요",
+              "responsibility": "확인 필요",
+              "methods": []
+            },
+            {
+              "name": "AWSSummaryType",
+              "filePath": "Type/AWSMonitoringMember.cs",
+              "summary": "데이터 전달/상태 표현용 타입이다",
+              "responsibility": "데이터 전달/상태 표현용 타입이다",
+              "methods": []
+            },
+            {
+              "name": "AWSMetricMember",
+              "filePath": "Type/AWSMonitoringMember.cs",
+              "summary": "지표 멤버",
+              "responsibility": "지표 멤버",
+              "methods": []
+            },
+            {
+              "name": "AWSMonitoringMember",
+              "filePath": "Type/AWSMonitoringMember.cs",
+              "summary": "모니터링 서비스 멤버",
+              "responsibility": "모니터링 서비스 멤버",
+              "methods": []
+            },
+            {
+              "name": "AWSMonitoringValueMember",
+              "filePath": "Type/AWSMonitoringMember.cs",
+              "summary": "지표당 모니터링 측정값 멤버",
+              "responsibility": "지표당 모니터링 측정값 멤버",
+              "methods": []
+            },
+            {
+              "name": "AWSThresholdMember",
+              "filePath": "Type/AWSMonitoringMember.cs",
+              "summary": "모니터링 임계치 멤버",
+              "responsibility": "모니터링 임계치 멤버",
+              "methods": []
+            },
+            {
+              "name": "AWSThresholdValueMember",
+              "filePath": "Type/AWSMonitoringMember.cs",
+              "summary": "지표당 임계치 값 멤버",
+              "responsibility": "지표당 임계치 값 멤버",
+              "methods": []
+            },
+            {
+              "name": "AWSThresholdLogMember",
+              "filePath": "Type/AWSMonitoringMember.cs",
+              "summary": "임계치 로그 멤버",
+              "responsibility": "임계치 로그 멤버",
+              "methods": []
+            },
+            {
+              "name": "AlphaBotType",
+              "filePath": "Type/AlphaBotMember.cs",
+              "summary": "데이터 전달/상태 표현용 타입이다",
+              "responsibility": "데이터 전달/상태 표현용 타입이다",
+              "methods": []
+            },
+            {
+              "name": "ActionState",
+              "filePath": "Type/AlphaBotMember.cs",
+              "summary": "확인 필요",
+              "responsibility": "확인 필요",
+              "methods": []
+            },
+            {
+              "name": "AlphaBotMember",
+              "filePath": "Type/AlphaBotMember.cs",
+              "summary": "데이터 전달/상태 표현용 타입이다",
+              "responsibility": "데이터 전달/상태 표현용 타입이다",
+              "methods": [
+                {
+                  "name": "AlphaBotMember",
+                  "signature": "public AlphaBotMember()",
+                  "summary": "생성자",
+                  "input": "확인 필요",
+                  "output": "public",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "RaisePropertyChanged",
+                  "signature": "private void RaisePropertyChanged(string propertyName)",
+                  "summary": "Notification UI",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "AppAuthTokenMember",
+              "filePath": "Type/ApiSiteHealthCheckMember.cs",
+              "summary": "데이터 전달/상태 표현용 타입이다",
+              "responsibility": "데이터 전달/상태 표현용 타입이다",
+              "methods": []
+            },
+            {
+              "name": "AppAuthParamMember",
+              "filePath": "Type/ApiSiteHealthCheckMember.cs",
+              "summary": "ID, PWD 로그인",
+              "responsibility": "ID, PWD 로그인",
+              "methods": []
+            },
+            {
+              "name": "AppAuthRefreshParamMember",
+              "filePath": "Type/ApiSiteHealthCheckMember.cs",
+              "summary": "ID, PWD 로그인",
+              "responsibility": "ID, PWD 로그인",
+              "methods": []
+            },
+            {
+              "name": "AppAuthDefaultMember",
+              "filePath": "Type/ApiSiteHealthCheckMember.cs",
+              "summary": "ID, PWD 로그인",
+              "responsibility": "ID, PWD 로그인",
+              "methods": []
+            },
+            {
+              "name": "ChatMember",
+              "filePath": "Type/ChatMember.cs",
+              "summary": "데이터 전달/상태 표현용 타입이다",
+              "responsibility": "데이터 전달/상태 표현용 타입이다",
+              "methods": []
+            },
+            {
+              "name": "ChatSignalQueue",
+              "filePath": "Type/ChatMember.cs",
+              "summary": "확인 필요",
+              "responsibility": "확인 필요",
+              "methods": []
+            },
+            {
+              "name": "HighLowListParam",
+              "filePath": "Type/ChatMember.cs",
+              "summary": "분봉 복수 종목 조회용",
+              "responsibility": "분봉 복수 종목 조회용",
+              "methods": []
+            },
+            {
+              "name": "HighLowParam",
+              "filePath": "Type/ChatMember.cs",
+              "summary": "조회 파라메터",
+              "responsibility": "조회 파라메터",
+              "methods": []
+            },
+            {
+              "name": "HighLowPrice",
+              "filePath": "Type/ChatMember.cs",
+              "summary": "고가 저가 반환",
+              "responsibility": "고가 저가 반환",
+              "methods": []
+            },
+            {
+              "name": "OperationTerm",
+              "filePath": "Type/OperationType.cs",
+              "summary": "Operation 수행 Action",
+              "responsibility": "Operation 수행 Action",
+              "methods": []
+            },
+            {
+              "name": "ThreadStatusDispay",
+              "filePath": "Type/OperationType.cs",
+              "summary": "Operation 수행 Action",
+              "responsibility": "Operation 수행 Action",
+              "methods": []
+            },
+            {
+              "name": "OperationType",
+              "filePath": "Type/OperationType.cs",
+              "summary": "Operation 수행 Action",
+              "responsibility": "Operation 수행 Action",
+              "methods": [
+                {
+                  "name": "OperationType",
+                  "signature": "public OperationType(int OIdx, int OTIdx, OperationTerm OperationTerm, int? iLoopInterval, TimeSpan? tsOnceTime, TimeSpan? tsLoopStartTime, TimeSpan? tsLoopEndTime, int Active, int StockOpen, int OffDay)",
+                  "summary": "알림 설정",
+                  "input": "확인 필요",
+                  "output": "public",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "UpdateOperationType",
+                  "signature": "public void UpdateOperationType(OperationTerm OperationTerm, int? iLoopInterval, TimeSpan? tsOnceTime, TimeSpan? tsLoopStartTime, TimeSpan? tsLoopEndTime, int Active, int StockOpen, int OffDay)",
+                  "summary": "알림 설정",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "OrderAutoResult",
+              "filePath": "Type/OperationType.cs",
+              "summary": "확인 필요",
+              "responsibility": "확인 필요",
+              "methods": []
+            },
+            {
+              "name": "OrderAutoType",
+              "filePath": "Type/OperationType.cs",
+              "summary": "데이터 전달/상태 표현용 타입이다",
+              "responsibility": "데이터 전달/상태 표현용 타입이다",
+              "methods": []
+            },
+            {
+              "name": "OperationTermHistoryType",
+              "filePath": "Type/OperationType.cs",
+              "summary": "실행중 상태 체크 [1-시작 | 2-종료 | 3-에러 | 4-Alive]",
+              "responsibility": "실행중 상태 체크 [1-시작 | 2-종료 | 3-에러 | 4-Alive]",
+              "methods": []
+            },
+            {
+              "name": "OSType",
+              "filePath": "Type/PushTarget.cs",
+              "summary": "데이터 전달/상태 표현용 타입이다",
+              "responsibility": "데이터 전달/상태 표현용 타입이다",
+              "methods": []
+            },
+            {
+              "name": "PushTarget",
+              "filePath": "Type/PushTarget.cs",
+              "summary": "확인 필요",
+              "responsibility": "확인 필요",
+              "methods": [
+                {
+                  "name": "PushTarget",
+                  "signature": "public PushTarget(string target, string msg, string url = \"\", string sGroupKey = \"0\")",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "public",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "StringFormat",
+              "filePath": "Type/StringFormat.cs",
+              "summary": "확인 필요",
+              "responsibility": "확인 필요",
+              "methods": []
+            }
+          ]
+        },
+        {
+          "name": "FinUp.Stock.App.AlphaBot.Utils",
+          "classes": [
+            {
+              "name": "Stock",
+              "filePath": "Operation/Stock.cs",
+              "summary": "확인 필요",
+              "responsibility": "확인 필요",
+              "methods": [
+                {
+                  "name": "GetStockPrice",
+                  "signature": "public static StockPrice GetStockPrice(string sCode)",
+                  "summary": "네이버에서 현재가 검색.",
+                  "input": "확인 필요",
+                  "output": "StockPrice",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                }
+              ]
+            },
+            {
+              "name": "CommonUtil",
+              "filePath": "Utils/CommonUtil.cs",
+              "summary": "외부 연동 또는 공통 유틸리티 기능을 제공한다",
+              "responsibility": "외부 연동 또는 공통 유틸리티 기능을 제공한다",
+              "methods": [
+                {
+                  "name": "ClientIP",
+                  "signature": "public static string ClientIP()",
+                  "summary": "클라이언트 IP 주소",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "getHttpStatus",
+                  "signature": "public static HttpStatusCode getHttpStatus(string sUrl)",
+                  "summary": "Call page by get.",
+                  "input": "확인 필요",
+                  "output": "HttpStatusCode",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "getHttpSiteCheck",
+                  "signature": "public static HttpWebResponse getHttpSiteCheck(string sUrl)",
+                  "summary": "Call page by get.",
+                  "input": "확인 필요",
+                  "output": "HttpWebResponse",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "getHttpPostResponse",
+                  "signature": "public static string getHttpPostResponse(string sUrl, string param, ref string respText, Dictionary<string, string> requiredHeaders = null)",
+                  "summary": "Call page by post",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "ExecID",
+                  "signature": "public static string ExecID()",
+                  "summary": "실행 고유 아이디 생성",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "StopWatchStart",
+                  "signature": "public static Stopwatch StopWatchStart()",
+                  "summary": "실행 고유 아이디 생성",
+                  "input": "확인 필요",
+                  "output": "Stopwatch",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "StopWatchStop",
+                  "signature": "public static string StopWatchStop(Stopwatch sw)",
+                  "summary": "실행 고유 아이디 생성",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "IsValidEmail",
+                  "signature": "public static bool IsValidEmail(string email)",
+                  "summary": "실행 고유 아이디 생성",
+                  "input": "확인 필요",
+                  "output": "bool",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ExtractYoutubeChannelID",
+                  "signature": "public static string ExtractYoutubeChannelID(string LinkUrl)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "IsLiveAsync",
+                  "signature": "public static async Task<bool> IsLiveAsync(string channelUrl)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "Task<bool>",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                }
+              ]
+            },
+            {
+              "name": "EmailHelper",
+              "filePath": "Utils/EmailHelper.cs",
+              "summary": "외부 연동 또는 공통 유틸리티 기능을 제공한다",
+              "responsibility": "외부 연동 또는 공통 유틸리티 기능을 제공한다",
+              "methods": [
+                {
+                  "name": "SendMail",
+                  "signature": "public static void SendMail(string sTo, string sSubject, string sBody, bool EnableSSL = true)",
+                  "summary": "Gmail",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SendMail",
+                  "signature": "public static async System.Threading.Tasks.Task SendMail(string sTo, string sSubject, string sBody, SendCompletedEventHandler Completed, bool EnableSSL = true)",
+                  "summary": "Gmail",
+                  "input": "확인 필요",
+                  "output": "System.Threading.Tasks.Task",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "SendMail",
+                  "signature": "public static void SendMail(string sTo, string sSubject, string sBody, SendCompletedEventHandler Completed, object ObjCustom, bool EnableSSL = true)",
+                  "summary": "메시지/메일/푸시를 발송한다",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SendMail",
+                  "signature": "public static void SendMail(Account acct, string sTo, string sSubject, string sBody, SendCompletedEventHandler Completed, object ObjCustom)",
+                  "summary": "메시지/메일/푸시를 발송한다",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SendMail",
+                  "signature": "public static void SendMail(List<string> arTo, string sSubject, string sBody, bool EnableSSL = true)",
+                  "summary": "메시지/메일/푸시를 발송한다",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                }
+              ]
+            },
+            {
+              "name": "Account",
+              "filePath": "Utils/EmailHelper.cs",
+              "summary": "확인 필요",
+              "responsibility": "확인 필요",
+              "methods": []
+            },
+            {
+              "name": "LoginResult",
+              "filePath": "Utils/NaverLogin.cs",
+              "summary": "로그인 결과값",
+              "responsibility": "로그인 결과값",
+              "methods": [
+                {
+                  "name": "LoginResult",
+                  "signature": "public LoginResult(bool isLogin, CookieContainer loginCookie, NaverOAuth naverOAuthResult)",
+                  "summary": "로그인 결과값",
+                  "input": "확인 필요",
+                  "output": "public",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "NaverOAuth",
+              "filePath": "Utils/NaverLogin.cs",
+              "summary": "네이버 OAuth token값",
+              "responsibility": "네이버 OAuth token값",
+              "methods": []
+            },
+            {
+              "name": "PostReponse",
+              "filePath": "Utils/NaverLogin.cs",
+              "summary": "Post Request 응답 값",
+              "responsibility": "Post Request 응답 값",
+              "methods": []
+            },
+            {
+              "name": "CafeBoardResult",
+              "filePath": "Utils/NaverLogin.cs",
+              "summary": "카페 글 등록 응답 값",
+              "responsibility": "카페 글 등록 응답 값",
+              "methods": []
+            },
+            {
+              "name": "OAuthMeObject",
+              "filePath": "Utils/NaverLogin.cs",
+              "summary": "OAuth 본인 정보 응답 값",
+              "responsibility": "OAuth 본인 정보 응답 값",
+              "methods": []
+            },
+            {
+              "name": "OAuthMeInfoObject",
+              "filePath": "Utils/NaverLogin.cs",
+              "summary": "OAuth 본인 정보 상세 값",
+              "responsibility": "OAuth 본인 정보 상세 값",
+              "methods": []
+            },
+            {
+              "name": "NaverLoginHelper",
+              "filePath": "Utils/NaverLogin.cs",
+              "summary": "네이버 로그인",
+              "responsibility": "네이버 로그인",
+              "methods": [
+                {
+                  "name": "NaverLoginHelper",
+                  "signature": "public NaverLoginHelper(string clientId, string clientSecretId, string redirectUrl)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "public",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "SetBaseInfo",
+                  "signature": "public void SetBaseInfo(string clientId, string clientSecretId, string redirectUrl)",
+                  "summary": "상태 또는 로그/DB 값을 저장한다",
+                  "input": "확인 필요",
+                  "output": "void",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "Login",
+                  "signature": "public async Task<LoginResult> Login(string id, string pw)",
+                  "summary": "로그인 시도",
+                  "input": "확인 필요",
+                  "output": "Task<LoginResult>",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "NaverAgreeForm",
+                  "signature": "private async Task<Uri> NaverAgreeForm(string agreeFormHtml, CookieContainer cookieContainer, string referer, string loginUrl)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "Task<Uri>",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "AuthorizeUrlToLoginUrl",
+                  "signature": "private async Task<PostReponse> AuthorizeUrlToLoginUrl()",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "Task<PostReponse>",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetAccessToken",
+                  "signature": "public async Task<NaverOAuth> GetAccessToken(string code, string state)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "Task<NaverOAuth>",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetRefreshToken",
+                  "signature": "public async Task<NaverOAuth> GetRefreshToken(string refreshToken = \"\")",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "Task<NaverOAuth>",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "AsyncPostRequest",
+                  "signature": "public async Task<PostReponse> AsyncPostRequest(string Url, NameValueCollection param = null)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "Task<PostReponse>",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "AsyncPostRequest",
+                  "signature": "public async Task<PostReponse> AsyncPostRequest(string Url, byte[] data, CookieContainer cookieContainer = null, string referer = null)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "Task<PostReponse>",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "WriteCafeBoard",
+                  "signature": "public async Task<CafeBoardResult> WriteCafeBoard(string title, string content, string CafeId, string MenuId)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "Task<CafeBoardResult>",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "AccessTokenCheck",
+                  "signature": "public async Task<OAuthMeObject> AccessTokenCheck()",
+                  "summary": "access token 만료 확인하기",
+                  "input": "확인 필요",
+                  "output": "Task<OAuthMeObject>",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetNaverDynamicKey",
+                  "signature": "private string GetNaverDynamicKey()",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "GetNaverSessionInfo",
+                  "signature": "private string GetNaverSessionInfo(string dynamicKey)",
+                  "summary": "데이터를 조회하거나 계산한다",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "ConvertPassword",
+                  "signature": "private string ConvertPassword(string strSessionKey, string strId, string strPassword)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "EncryptRSA",
+                  "signature": "private string EncryptRSA(string strPublicModulusKey, string strPublicExponentKey, string strTarget)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            },
+            {
+              "name": "LZString",
+              "filePath": "Utils/NaverLogin.cs",
+              "summary": "확인 필요",
+              "responsibility": "확인 필요",
+              "methods": [
+                {
+                  "name": "getBaseValue",
+                  "signature": "private static int getBaseValue(string alphabet, char character)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "int",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "compressToBase64",
+                  "signature": "public static string compressToBase64(string input)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "decompressFromBase64",
+                  "signature": "public static string decompressFromBase64(string input)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "compressToUTF16",
+                  "signature": "public static string compressToUTF16(string input)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "decompressFromUTF16",
+                  "signature": "public static string decompressFromUTF16(string compressed)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "compressToUint8Array",
+                  "signature": "public static byte[] compressToUint8Array(string uncompressed)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "byte[]",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "decompressFromUint8Array",
+                  "signature": "public static string decompressFromUint8Array(byte[] compressed)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "compressToEncodedURIComponent",
+                  "signature": "public static string compressToEncodedURIComponent(string input)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "decompressFromEncodedURIComponent",
+                  "signature": "public static string decompressFromEncodedURIComponent(string input)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "compress",
+                  "signature": "public static string compress(string uncompressed)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "_compress",
+                  "signature": "private static string _compress(string uncompressed, int bitsPerChar, GetCharFromInt getCharFromInt)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                },
+                {
+                  "name": "decompress",
+                  "signature": "public static string decompress(string compressed)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "_decompress",
+                  "signature": "private static string _decompress(int length, int resetValue, GetNextValue getNextValue)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": true
+                }
+              ]
+            },
+            {
+              "name": "dataStruct",
+              "filePath": "Utils/NaverLogin.cs",
+              "summary": "확인 필요",
+              "responsibility": "확인 필요",
+              "methods": []
+            },
+            {
+              "name": "ReceiptiOSVerification",
+              "filePath": "Utils/ReceiptiOSVerification.cs",
+              "summary": "확인 필요",
+              "responsibility": "확인 필요",
+              "methods": [
+                {
+                  "name": "PurchaseItem",
+                  "signature": "public static string PurchaseItem(string receiptData, bool flag = true)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [
+                    "외부 호출/IO"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": false
+                },
+                {
+                  "name": "VerifyIOSReceipt",
+                  "signature": "public static int VerifyIOSReceipt(string itemID, string receiptData, bool bProduct)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "int",
+                  "sideEffects": [
+                    "외부 호출/IO",
+                    "루프/스레드/비동기"
+                  ],
+                  "dbAccess": false,
+                  "externalCall": true,
+                  "loopRelated": true
+                },
+                {
+                  "name": "CheckReceipt",
+                  "signature": "public static bool CheckReceipt(string strReceipt)",
+                  "summary": "상태를 검사한다",
+                  "input": "확인 필요",
+                  "output": "bool",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                },
+                {
+                  "name": "Base64Encode",
+                  "signature": "public static string Base64Encode(string data)",
+                  "summary": "확인 필요",
+                  "input": "확인 필요",
+                  "output": "string",
+                  "sideEffects": [],
+                  "dbAccess": false,
+                  "externalCall": false,
+                  "loopRelated": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "runtimeFlow": {
+    "entryPoint": "App.xaml StartupUri=MainWindow.xaml",
+    "initializationFlow": [
+      "App.xaml.cs:20-29: TelegramSender 생성, Dispatcher/AppDomain 예외 이벤트 등록",
+      "MainWindow.xaml.cs:60-67: Loaded 이벤트에서 InitializeMember 실행",
+      "MainWindow.xaml.cs:73-107: Process, Timer, SqlSender 생성 및 Dispatcher 예외 핸들러 설정",
+      "MainWindow.xaml.cs:123-191: ListOperationTerm 조회, AlphaBotMember/OperationType 구성",
+      "MainWindow.xaml.cs:190: tObserveTimer 즉시 시작"
+    ],
+    "mainLoopFlow": [
+      "MainWindow.xaml.cs:912-919: 시작 버튼이 tMainTimer/tAlphaBotTimer 시작",
+      "MainWindow.xaml.cs:293-335: DB 설정 업데이트 후 Loop/Once 조건 판단",
+      "MainWindow.xaml.cs:678-730: 새 Thread에서 START/END/ERROR 히스토리 기록, actionOperation 호출",
+      "Operation/ProcessUnit.cs: DB 큐 처리, 외부 API/푸시/메일/결제 수행"
+    ],
+    "shutdownFlow": [
+      "MainWindow.xaml.cs:928-934 타이머 중지",
+      "App.xaml.cs:50-57 App 종료 처리"
+    ]
+  },
+  "risks": [
+    {
+      "type": "민감정보/자격증명 노출",
+      "severity": "높음",
+      "location": "App.config, Operation/ProcessBase.cs:27-35, PushCertify/*, *.pfx/*.p12",
+      "description": "DB 연결 문자열/서버 계정/API 키/토큰/인증서 파일이 설정 또는 소스/프로젝트 콘텐츠로 포함되어 있다. 값은 리포트에서 마스킹했다.",
+      "recommendation": "비밀 저장소/환경 변수로 이동하고 저장소 이력 내 노출 여부를 점검한다."
+    },
+    {
+      "type": "예외 삼킴",
+      "severity": "높음",
+      "location": "MainWindow.xaml.cs:266, 754, 777, 826, 872, 900; Operation/Process.cs:161; Operation/Push.cs 다수",
+      "description": "catch { } 또는 예외 객체 미사용 catch가 있어 장애 원인 추적이 어려울 수 있다.",
+      "recommendation": "최소 ERROR 로그/컨텍스트 기록 후 재시도·스킵·중단 정책을 명시한다."
+    },
+    {
+      "type": "Thread 기반 동시성/중복 실행",
+      "severity": "높음",
+      "location": "MainWindow.xaml.cs:293-335, 352-400, 678-730",
+      "description": "타이머 Tick에서 새 Thread를 생성하고 actionState로 중복 방지하지만 상태 변경 전후 원자성/락이 없다. 수동 실행과 자동 실행이 경합할 수 있다.",
+      "recommendation": "작업별 lock/SemaphoreSlim/중앙 스케줄러와 CancellationToken 기반 실행 상태 전이를 사용한다."
+    },
+    {
+      "type": "Thread.Sleep 기반 대기",
+      "severity": "중간",
+      "location": "Operation/ProcessUnit.cs:671-672, App.xaml.cs:54",
+      "description": "작업 스레드를 Sleep으로 점유하며 취소/종료 신호를 확인하지 않는다.",
+      "recommendation": "Task.Delay + CancellationToken 또는 스케줄러 재진입 방식으로 변경한다."
+    },
+    {
+      "type": "DB 커넥션 Dispose 확인 필요",
+      "severity": "중간",
+      "location": "MainWindow.xaml.cs:115-128, Operation/ProcessBase.cs:140-157 및 ProcessUnit 전반",
+      "description": "DBUtil/DBUtilMySQL 인스턴스를 즉시 생성해 사용하지만 이 타입의 Dispose/connection 관리 구현은 현재 폴더 외부 참조 프로젝트에 있어 확인 필요하다.",
+      "recommendation": "참조 프로젝트의 DBUtil 구현을 확인하고 IDisposable/using 또는 커넥션 풀 정책을 명확히 한다."
+    },
+    {
+      "type": "트랜잭션 경계/외부 호출 혼재 가능성",
+      "severity": "중간",
+      "location": "Operation/ProcessUnit.cs:4646-4699",
+      "description": "TransactionScope 내부에서 여러 DB 작업을 수행한다. 외부 호출은 해당 블록 내에서 확인되지 않았지만 범위와 타임아웃 정책은 확인 필요하다.",
+      "recommendation": "트랜잭션 범위를 최소화하고 타임아웃/격리수준/실패 보상 정책을 명시한다."
+    },
+    {
+      "type": "하드코딩된 엔드포인트/경로",
+      "severity": "중간",
+      "location": "Operation/ProcessBase.cs:33-44, App.config, Operation/ProcessUnit.cs:807/1722",
+      "description": "운영 API URL, 외부 실행 파일 경로, 일부 토큰/엔드포인트가 코드/설정에 고정되어 있다.",
+      "recommendation": "환경별 설정 파일/배포 파이프라인 변수로 분리하고 검증 로직을 추가한다."
+    },
+    {
+      "type": "async void 오류 전파",
+      "severity": "중간",
+      "location": "Operation/ProcessUnit.cs:3200, 5073, 6168, 7468",
+      "description": "async void 메소드가 작업 메소드로 사용되어 호출자가 완료/실패를 기다릴 수 없다.",
+      "recommendation": "Task 반환으로 바꾸고 ProcessStart가 비동기 작업을 관찰하도록 설계한다."
+    },
+    {
+      "type": "외부 프로세스 중복 실행/수명 관리",
+      "severity": "중간",
+      "location": "Operation/ProcessUnit.cs:784-808, 1712-1723",
+      "description": "StockRadar/XingData 실행 시 기존 프로세스 확인, 종료, 헬스체크가 명확하지 않다.",
+      "recommendation": "프로세스 존재 확인, PID 기록, 종료/재시작 정책을 추가한다."
+    },
+    {
+      "type": "스케줄 설정 DB 의존/검증 부족",
+      "severity": "중간",
+      "location": "MainWindow.xaml.cs:123-191, 293-335, 742-828",
+      "description": "LoopInterval/OnceTime 등 DB 설정값을 신뢰하며 null/범위 오류는 일부 catch에서 삼켜질 수 있다.",
+      "recommendation": "설정값 유효성 검사와 실패 시 안전 기본값/알림을 추가한다."
+    }
+  ]
+}

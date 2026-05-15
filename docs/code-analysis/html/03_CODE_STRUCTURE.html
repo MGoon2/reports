@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>코드 구조 분석 - Code Analysis</title>
+  <style>
+:root {
+  --bg: #f6f8fb;
+  --panel: #ffffff;
+  --ink: #1f2937;
+  --muted: #6b7280;
+  --line: #d9e0ea;
+  --accent: #2563eb;
+  --accent-soft: #e8f0ff;
+  --danger: #b91c1c;
+  --code-bg: #0f172a;
+  --code-ink: #e5e7eb;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", "Malgun Gothic", Arial, sans-serif;
+  line-height: 1.65;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); min-height: 100vh; }
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: auto;
+  padding: 24px 18px;
+  background: #111827;
+  color: #f9fafb;
+}
+.sidebar h1 { font-size: 18px; line-height: 1.3; margin: 0 0 14px; }
+.sidebar .meta { color: #cbd5e1; font-size: 12px; margin-bottom: 18px; }
+.nav-section { margin: 18px 0 8px; color: #93c5fd; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.sidebar ul { margin: 0; padding: 0; list-style: none; }
+.sidebar li { margin: 4px 0; }
+.sidebar a { display: block; padding: 7px 9px; border-radius: 8px; color: #e5e7eb; font-size: 13px; }
+.sidebar a:hover, .sidebar a.active { background: rgba(37, 99, 235, .35); text-decoration: none; }
+.content { padding: 36px; }
+.report {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 36px 42px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, .08);
+}
+.report-header {
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--line);
+}
+.report-header h1 { margin: 0 0 6px; font-size: 32px; letter-spacing: -0.04em; }
+.report-header .source { color: var(--muted); font-size: 13px; }
+.toc {
+  margin: 18px 0 28px;
+  padding: 16px 18px;
+  background: var(--accent-soft);
+  border: 1px solid #c7d7fe;
+  border-radius: 12px;
+}
+.toc-title { font-weight: 700; margin-bottom: 8px; }
+.toc ul { margin: 0; padding-left: 20px; }
+h1, h2, h3, h4 { line-height: 1.28; letter-spacing: -0.025em; }
+h1 { font-size: 30px; margin: 24px 0 18px; }
+h2 { font-size: 24px; margin: 34px 0 12px; padding-bottom: 7px; border-bottom: 1px solid var(--line); }
+h3 { font-size: 19px; margin: 26px 0 10px; }
+h4 { font-size: 16px; margin: 20px 0 8px; }
+p { margin: 10px 0; }
+ul, ol { padding-left: 24px; }
+li { margin: 3px 0; }
+.table-wrap { width: 100%; overflow-x: auto; margin: 16px 0 24px; border: 1px solid var(--line); border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; min-width: 680px; background: #fff; }
+th, td { padding: 9px 11px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
+th { position: sticky; top: 0; background: #f1f5f9; color: #0f172a; font-weight: 700; }
+tr:nth-child(even) td { background: #fbfdff; }
+code {
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: #eef2f7;
+  color: #0f172a;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--code-bg);
+  color: var(--code-ink);
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+blockquote { margin: 14px 0; padding: 10px 16px; border-left: 4px solid var(--accent); background: #f8fafc; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 28px 0; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #e5e7eb; color: #374151; font-size: 12px; }
+.redacted { color: var(--danger); font-weight: 700; }
+.report-section { page-break-before: always; margin-top: 42px; padding-top: 16px; border-top: 3px solid var(--line); }
+.report-section:first-of-type { page-break-before: auto; border-top: 0; margin-top: 0; padding-top: 0; }
+.footer { margin-top: 42px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: relative; height: auto; }
+  .content { padding: 18px; }
+  .report { padding: 24px 18px; border-radius: 12px; }
+}
+@media print {
+  .layout { display: block; }
+  .sidebar { display: none; }
+  body { background: #fff; }
+  .content { padding: 0; }
+  .report { max-width: none; border: 0; box-shadow: none; }
+  a { color: inherit; }
+}
+</style>
+</head>
+<body>
+  <div class="layout">
+    
+<aside class="sidebar">
+  <h1>Code Analysis HTML</h1>
+  <div class="meta">생성: 2026-05-15 16:55:17<br>경로: docs/code-analysis/html</div>
+  <div class="nav-section">개별 보고서</div>
+  <ul><li><a href="00_PROJECT_SUMMARY.html">프로젝트 요약</a></li><li><a href="01_FOLDER_STRUCTURE.html">폴더 구조 분석</a></li><li><a href="02_PROJECT_SETTINGS.html">프로젝트 설정 분석</a></li><li><a class="active" href="03_CODE_STRUCTURE.html">코드 구조 분석</a></li><li><a href="04_NAMESPACE_CLASS_METHOD_REPORT.html">네임스페이스/클래스/메소드 분석</a></li><li><a href="05_PROJECT_REFERENCES.html">프로젝트 참조 관계</a></li><li><a href="06_RUNTIME_FLOW.html">런타임 흐름 분석</a></li><li><a href="07_RISKS_AND_REFACTORING_POINTS.html">리스크 및 리팩터링 포인트</a></li></ul>
+  <div class="nav-section">통합 보고서</div>
+  <ul><li><a href="Total_Report.html">Total Report</a></li></ul>
+</aside>
+
+    <main class="content">
+      <article class="report">
+        <header class="report-header">
+          <h1>코드 구조 분석</h1>
+          <div class="source">Source: docs/code-analysis/03_CODE_STRUCTURE.md · HTML generated from Markdown report</div>
+        </header>
+        <nav class="toc"><div class="toc-title">목차</div><ul><li class="toc-l1"><a href="#03_CODE_STRUCTURE--코드-구조-분석">코드 구조 분석</a></li><li class="toc-l2"><a href="#03_CODE_STRUCTURE--모듈-계층-구조">모듈/계층 구조</a></li><li class="toc-l2"><a href="#03_CODE_STRUCTURE--네임스페이스-목록">네임스페이스 목록</a></li><li class="toc-l2"><a href="#03_CODE_STRUCTURE--핵심-업무-흐름">핵심 업무 흐름</a></li><li class="toc-l2"><a href="#03_CODE_STRUCTURE--주요-패턴">주요 패턴</a></li><li class="toc-l2"><a href="#03_CODE_STRUCTURE--반복-루프-배치-처리-구조-분석">반복 루프 / 배치 처리 구조 분석</a></li><li class="toc-l2"><a href="#03_CODE_STRUCTURE--db-접근-메소드-후보">DB 접근 메소드 후보</a></li><li class="toc-l2"><a href="#03_CODE_STRUCTURE--외부-api-io-호출-메소드-후보">외부 API/IO 호출 메소드 후보</a></li><li class="toc-l2"><a href="#03_CODE_STRUCTURE--추정">추정</a></li><li class="toc-l2"><a href="#03_CODE_STRUCTURE--분석-한계">분석 한계</a></li></ul></nav>
+        <h1 id="03_CODE_STRUCTURE--코드-구조-분석">코드 구조 분석</h1>
+<h2 id="03_CODE_STRUCTURE--모듈-계층-구조">모듈/계층 구조</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>계층/모듈</th><th>주요 파일</th><th>역할</th></tr></thead>
+<tbody>
+<tr><td>App/UI</td><td>App.xaml(.cs), MainWindow.xaml(.cs)</td><td>WPF 시작, 타이머/버튼 이벤트, 작업 실행 스케줄링</td></tr>
+<tr><td>Operation</td><td>Operation/ProcessBase.cs, Process.cs, ProcessUnit.cs</td><td>공통 설정/DB 헬퍼, 업무 배치 메소드</td></tr>
+<tr><td>Payment</td><td>Operation/Payment/*.cs</td><td>Danal 카드/휴대폰 결제 요청/응답 파싱</td></tr>
+<tr><td>Push</td><td>Operation/Push.cs</td><td>Android/iOS/FCM/MQTT 푸시</td></tr>
+<tr><td>ItemStockUpload</td><td>Operation/ItemStockUpload/ItemStockUploadUtil.cs</td><td>네이버 카페 업로드용 HTML/이미지/로그인 보조</td></tr>
+<tr><td>Utils</td><td>Utils/*.cs</td><td>HTTP/메일/네이버 로그인/iOS 영수증</td></tr>
+<tr><td>Type</td><td>Type/*.cs</td><td>상태 Enum, DTO, 파라미터 모델</td></tr>
+</tbody></table></div>
+<h2 id="03_CODE_STRUCTURE--네임스페이스-목록">네임스페이스 목록</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Namespace</th><th>타입 수</th><th>대표 타입</th></tr></thead>
+<tbody>
+<tr><td>FinUp.Stock.App.AlphaBot</td><td>2</td><td>App, MainWindow</td></tr>
+<tr><td>FinUp.Stock.App.AlphaBot.Operation</td><td>5</td><td>Process, ProcessBase, Push, PushHandsUp, Process</td></tr>
+<tr><td>FinUp.Stock.App.AlphaBot.Operation.ItemStockUpload</td><td>6</td><td>ItemStockUploadUtil, HtmlToImageConvert, PublishedItemStockUploadHtml, DailyUploadHtml, JsonResult, NaverOAuthById</td></tr>
+<tr><td>FinUp.Stock.App.AlphaBot.Operation.Payment</td><td>8</td><td>BillCardWiseInvest, BillPhoneWiseInvest, BillPhone, FunctionCardWiseInvest, FunctionCard, BillCard, FunctionPhoneWiseInvest, FunctionPhone</td></tr>
+<tr><td>FinUp.Stock.App.AlphaBot.Properties</td><td>2</td><td>Resources, Settings</td></tr>
+<tr><td>FinUp.Stock.App.AlphaBot.Type</td><td>30</td><td>AppAuthTokenMember, AppAuthParamMember, AppAuthRefreshParamMember, AppAuthDefaultMember, AWSServiceType, AWSServiceStatus, AWSSummaryType, AWSMetricMember, AWSMonitoringMember, AWSMonitoringValueMember, AWSThresholdMember, AWSThresholdValueMember</td></tr>
+<tr><td>FinUp.Stock.App.AlphaBot.Utils</td><td>14</td><td>Stock, CommonUtil, EmailHelper, Account, LoginResult, NaverOAuth, PostReponse, CafeBoardResult, OAuthMeObject, OAuthMeInfoObject, NaverLoginHelper, LZString</td></tr>
+</tbody></table></div>
+<h2 id="03_CODE_STRUCTURE--핵심-업무-흐름">핵심 업무 흐름</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>단계</th><th>파일/위치</th><th>확인된 동작</th></tr></thead>
+<tbody>
+<tr><td>시작</td><td>App.xaml:5</td><td>MainWindow.xaml을 StartupUri로 지정</td></tr>
+<tr><td>초기화</td><td>MainWindow.xaml.cs:73-107</td><td>ObservableCollection, Process, DispatcherTimer, SqlSender 초기화 후 Load 호출</td></tr>
+<tr><td>스케줄 로딩</td><td>MainWindow.xaml.cs:123-191</td><td>DB에서 Operation/OperationTerm 데이터를 조회해 작업 목록 구성</td></tr>
+<tr><td>주기 확인</td><td>MainWindow.xaml.cs:293-335</td><td>5초 Tick마다 활성 작업과 Loop/Once 조건 확인</td></tr>
+<tr><td>실행</td><td>MainWindow.xaml.cs:678-730</td><td>새 Thread에서 히스토리 START/END/ERROR 기록 후 actionOperation 호출</td></tr>
+<tr><td>업무 처리</td><td>Operation/ProcessUnit.cs</td><td>결제/푸시/SMS/API/AWS/메일/네이버/포인트 등 작업 수행</td></tr>
+<tr><td>로그</td><td>MainWindow.xaml.cs:840-870</td><td>화면 로그, Telegram 오류 알림, LogWriter 파일 기록</td></tr>
+</tbody></table></div>
+<h2 id="03_CODE_STRUCTURE--주요-패턴">주요 패턴</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>분류</th><th>패턴</th><th>주요 위치</th><th>비고</th></tr></thead>
+<tbody>
+<tr><td>DB 접근</td><td>DBUtil/GetDataTable/GetDataRow/ExecQuery 사용</td><td>MainWindow.xaml.cs, Operation/ProcessUnit.cs 전반</td><td>DBUtil 구현은 외부 프로젝트라 Dispose 확인 필요</td></tr>
+<tr><td>외부 API</td><td>NetUtil/HttpClient/WebRequest/AWS/YouTube/Firebase/Naver/Bitly</td><td>Operation/Process<em>.cs, Utils/</em></td><td>타임아웃/재시도 정책 일부 확인 필요</td></tr>
+<tr><td>로그</td><td>SetLogProcess -&gt; MainWindow.SetLog -&gt; LogWriter.Writer/Telegram</td><td>MainWindow.xaml.cs:840-870, Operation/Process.cs:170-174</td><td>일부 catch는 로그 없음</td></tr>
+<tr><td>예외 처리</td><td>try/catch 다수, throw ex/catch{} 혼재</td><td>MainWindow.xaml.cs, ProcessUnit.cs, Push.cs</td><td>스택 손실/예외 삼킴 위험</td></tr>
+<tr><td>반복/배치</td><td>DispatcherTimer + Thread + DB 스케줄</td><td>MainWindow.xaml.cs:80-90, 293-335</td><td>DB 설정에 따라 Loop/Once 실행</td></tr>
+</tbody></table></div>
+<h2 id="03_CODE_STRUCTURE--반복-루프-배치-처리-구조-분석">반복 루프 / 배치 처리 구조 분석</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>반복 방식</th><th>시작 위치</th><th>반복 주기</th><th>종료 조건/비고</th></tr></thead>
+<tbody>
+<tr><td>DispatcherTimer</td><td>MainWindow.xaml.cs:80-90, 912-931</td><td>tMainTimer 5초, tObserveTimer 1초, tAlphaBotTimer 1분</td><td>Start/Stop 버튼으로 main/AlphaBot 타이머 제어, ObserveTimer는 Load 후 즉시 시작</td></tr>
+<tr><td>Thread</td><td>MainWindow.xaml.cs:335, 400, 949</td><td>조건 만족/수동 실행 시 ProcessStart를 새 Thread로 실행</td><td>member.actionState로 Running이면 skip</td></tr>
+<tr><td>Thread.Sleep</td><td>Operation/ProcessUnit.cs:671-672</td><td>ObserveStockRadar<em>3</em>1000ms 대기</td><td>중간 취소/타임아웃 확인 없음</td></tr>
+<tr><td>async void</td><td>Operation/ProcessUnit.cs:3200, 5073, 6168, 7468</td><td>비동기 작업을 void로 실행</td><td>호출 측에서 await/실패 관찰 어려움</td></tr>
+</tbody></table></div>
+<h2 id="03_CODE_STRUCTURE--db-접근-메소드-후보">DB 접근 메소드 후보</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>파일</th><th>메소드</th><th>근거</th></tr></thead>
+<tbody>
+<tr><td>Operation/ItemStockUpload/ItemStockUploadUtil.cs</td><td>GetResultUploadHtml</td><td>line 262, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ItemStockUpload/ItemStockUploadUtil.cs</td><td>GetProfitImage</td><td>line 345, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ItemStockUpload/ItemStockUploadUtil.cs</td><td>GetContentsHtml</td><td>line 400, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ItemStockUpload/ItemStockUploadUtil.cs</td><td>GetProfitRowHtml</td><td>line 427, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ItemStockUpload/ItemStockUploadUtil.cs</td><td>GetReviewHtml</td><td>line 446, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ItemStockUpload/ItemStockUploadUtil.cs</td><td>GetWrapperHtml</td><td>line 476, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ItemStockUpload/ItemStockUploadUtil.cs</td><td>GetDailyHtml</td><td>line 549, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ItemStockUpload/ItemStockUploadUtil.cs</td><td>GetWrapperHtml</td><td>line 476, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ItemStockUpload/ItemStockUploadUtil.cs</td><td>GetDailyHtml</td><td>line 549, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/Payment/BillCardWiseInvest.cs</td><td>RequestPaymentDanalCardWiseInvest</td><td>line 27, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/Payment/BillPhoneWiseInvest.cs</td><td>RequestPaymentDanalPhoneWiseInvest</td><td>line 30, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/Payment/BillPhone.cs</td><td>RequestPaymentDanalPhone</td><td>line 32, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/Payment/BillCard.cs</td><td>RequestPaymentDanalCard</td><td>line 29, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/Process.cs</td><td>GetMetric</td><td>line 94, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/Process.cs</td><td>SetOperationTermHistory</td><td>line 149, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessBase.cs</td><td>ProcessBase</td><td>line 97, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessBase.cs</td><td>GetDBUtil</td><td>line 140, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessBase.cs</td><td>GetDBUtilMySQL</td><td>line 152, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>MainWindow.xaml.cs</td><td>GetDBUtil</td><td>line 115, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>MainWindow.xaml.cs</td><td>Load</td><td>line 123, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>MainWindow.xaml.cs</td><td>UpdateData</td><td>line 352, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>MainWindow.xaml.cs</td><td>ProcessStart</td><td>line 678, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>MainWindow.xaml.cs</td><td>SetOperationTermHistory</td><td>line 884, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>OrderAuto</td><td>line 51, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>AppPush</td><td>line 167, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>SMS</td><td>line 348, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>StockCollector</td><td>line 399, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>SmsMonitor</td><td>line 431, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>SalesStockPoint</td><td>line 457, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ItemStockSearchingManual</td><td>line 504, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>NaverStockPriceCompare</td><td>line 574, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>Alarm</td><td>line 745, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiService</td><td>line 823, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiServiceKakao</td><td>line 913, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiServiceKakaoContentsReg</td><td>line 931, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiServiceKakaoContentsApproveCheck</td><td>line 1085, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiServiceKakaoSalesGet</td><td>line 1182, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiServiceFuturewizChatInsert</td><td>line 1275, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiServiceFuturewizChatGet</td><td>line 1301, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>KrxData</td><td>line 1411, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiVirtualCurrency</td><td>line 1739, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiVirtualCurrencyBithumb</td><td>line 1954, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiVirtualCurrencyCoinone</td><td>line 2048, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiVirtualCurrencyKorbit</td><td>line 2140, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiVirtualCurrencyCpdax</td><td>line 2228, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiVirtualCurrencyCoinnest</td><td>line 2316, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiVirtualCurrencyPoloniex</td><td>line 2404, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiVirtualCurrencyBittrex</td><td>line 2498, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiVirtualCurrencyUpbit</td><td>line 2626, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiVirtualCurrencyBitfinex</td><td>line 2726, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>SetApiVirtualCurrencyData</td><td>line 2830, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>PriceMornitoring</td><td>line 2912, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>HandsUpPush</td><td>line 2987, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>HandsUpCoupon</td><td>line 3019, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>BatContentsSatisfactionNotify</td><td>line 3121, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>BatReviewNotify</td><td>line 3150, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>BatCouponUnUsedNotify</td><td>line 3174, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>CheckSignalQueue</td><td>line 3199, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ClearSignalQueue</td><td>line 3292, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetMonitoringMemberList</td><td>line 3567, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>InsertMonitoringValue</td><td>line 3857, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetThresholdList</td><td>line 4006, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>InsertThresholdLog</td><td>line 4056, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>AWSMonitoringSummaryInsert</td><td>line 4139, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiServicePublishedItemStockQueueInsert</td><td>line 4177, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiServicePublishedItemStockToExternalSiteUpload</td><td>line 4210, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiServiceItemStockToExternalSiteUploadDaily</td><td>line 4331, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>MyMentorActivityExpired</td><td>line 4404, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>PackageISMentorItemStockUnderCnt</td><td>line 4428, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>MyMentorUserSelectCheck</td><td>line 4446, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>CheckOrderAutoReceipt</td><td>line 4514, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiServicePublishedMentorMarketQueueInsert</td><td>line 4820, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiServicePublishedMentorMarketToExternalSiteUpload</td><td>line 4853, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>InactiveUserEmailSend</td><td>line 4957, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>BatInactiveUserQueue</td><td>line 5044, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>EmailSend</td><td>line 5073, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>EmailSendCompleted</td><td>line 5138, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>LGUItemStockSearch</td><td>line 5172, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>LGUDailySendMessage</td><td>line 5215, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>SMSExternalLGUPlus</td><td>line 5251, DBUtil/ExecQuery/GetDataTable 등</td></tr>
+</tbody></table></div>
+<h2 id="03_CODE_STRUCTURE--외부-api-io-호출-메소드-후보">외부 API/IO 호출 메소드 후보</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>파일</th><th>메소드</th><th>근거</th></tr></thead>
+<tbody>
+<tr><td>Operation/ItemStockUpload/ItemStockUploadUtil.cs</td><td>GetNaverLogin</td><td>line 22, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ItemStockUpload/ItemStockUploadUtil.cs</td><td>ImagePostSend</td><td>line 93, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ItemStockUpload/ItemStockUploadUtil.cs</td><td>NaverOAuthById</td><td>line 627, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ItemStockUpload/ItemStockUploadUtil.cs</td><td>NaverOAuthById</td><td>line 627, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ItemStockUpload/ItemStockUploadUtil.cs</td><td>NaverOAuthById</td><td>line 627, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Payment/BillCardWiseInvest.cs</td><td>RequestPaymentDanalCardWiseInvest</td><td>line 27, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Payment/BillPhoneWiseInvest.cs</td><td>RequestPaymentDanalPhoneWiseInvest</td><td>line 30, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Payment/BillPhone.cs</td><td>RequestPaymentDanalPhone</td><td>line 32, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Payment/FunctionCardWiseInvest.cs</td><td>CallCreditWiseInvest</td><td>line 195, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Payment/FunctionCard.cs</td><td>CallCredit</td><td>line 65, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Payment/BillCard.cs</td><td>RequestPaymentDanalCard</td><td>line 29, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Payment/FunctionPhoneWiseInvest.cs</td><td>CallTeledit</td><td>line 45, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Payment/FunctionPhone.cs</td><td>CallTeledit</td><td>line 43, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Process.cs</td><td>Process</td><td>line 78, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Process.cs</td><td>GetMetric</td><td>line 94, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Process.cs</td><td>ShortenUrl</td><td>line 233, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Process.cs</td><td>GetYoutubeLiveStatus</td><td>line 265, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Push.cs</td><td>Push</td><td>line 47, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Push.cs</td><td>SendAndroid</td><td>line 59, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Push.cs</td><td>SendAndroidV1</td><td>line 99, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Push.cs</td><td>SendIOSFcm</td><td>line 144, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Push.cs</td><td>SendIOSFcmV1</td><td>line 175, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Push.cs</td><td>SendMqtt</td><td>line 289, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Push.cs</td><td>SendFCM</td><td>line 306, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Push.cs</td><td>SendPush</td><td>line 416, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/Stock.cs</td><td>GetStockPrice</td><td>line 16, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/CommonUtil.cs</td><td>getHttpStatus</td><td>line 39, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/CommonUtil.cs</td><td>getHttpSiteCheck</td><td>line 54, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/CommonUtil.cs</td><td>getHttpPostResponse</td><td>line 74, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/CommonUtil.cs</td><td>IsLiveAsync</td><td>line 168, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/EmailHelper.cs</td><td>SendMail</td><td>line 22, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/EmailHelper.cs</td><td>SendMail</td><td>line 40, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/EmailHelper.cs</td><td>SendMail</td><td>line 61, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/EmailHelper.cs</td><td>SendMail</td><td>line 82, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/EmailHelper.cs</td><td>SendMail</td><td>line 103, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/NaverLogin.cs</td><td>LoginResult</td><td>line 26, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/NaverLogin.cs</td><td>Login</td><td>line 156, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/NaverLogin.cs</td><td>GetAccessToken</td><td>line 337, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/NaverLogin.cs</td><td>GetRefreshToken</td><td>line 354, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/NaverLogin.cs</td><td>AsyncPostRequest</td><td>line 375, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/NaverLogin.cs</td><td>AsyncPostRequest</td><td>line 424, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/NaverLogin.cs</td><td>WriteCafeBoard</td><td>line 476, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/NaverLogin.cs</td><td>AccessTokenCheck</td><td>line 561, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/NaverLogin.cs</td><td>GetNaverDynamicKey</td><td>line 622, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/NaverLogin.cs</td><td>GetNaverSessionInfo</td><td>line 665, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/ReceiptiOSVerification.cs</td><td>PurchaseItem</td><td>line 21, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Utils/ReceiptiOSVerification.cs</td><td>VerifyIOSReceipt</td><td>line 77, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>App.xaml.cs</td><td>App</td><td>line 20, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>App.xaml.cs</td><td>CurrentDomain_UnhandledException</td><td>line 30, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>App.xaml.cs</td><td>Dispatcher_UnhandledException</td><td>line 42, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>App.xaml.cs</td><td>OnExit</td><td>line 49, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>MainWindow.xaml.cs</td><td>GetActionOperation</td><td>line 419, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>NaverStockPriceCompare</td><td>line 574, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>Alarm</td><td>line 745, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>OpenStockRadar</td><td>line 784, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiService</td><td>line 823, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiServiceKakaoContentsReg</td><td>line 931, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiServiceKakaoContentsApproveCheck</td><td>line 1085, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiServiceKakaoSalesGet</td><td>line 1182, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiServiceFuturewizChatGet</td><td>line 1301, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>KrxData</td><td>line 1411, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>OpenXingDataRealTime</td><td>line 1712, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiExchangeRateUSD</td><td>line 1899, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiVirtualCurrencyBithumb</td><td>line 1954, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiVirtualCurrencyCoinone</td><td>line 2048, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiVirtualCurrencyKorbit</td><td>line 2140, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiVirtualCurrencyCpdax</td><td>line 2228, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiVirtualCurrencyCoinnest</td><td>line 2316, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiVirtualCurrencyPoloniex</td><td>line 2404, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiVirtualCurrencyBittrex</td><td>line 2498, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiVirtualCurrencyUpbit</td><td>line 2626, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetApiVirtualCurrencyBitfinex</td><td>line 2726, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ServerChatLoadCacheCheck</td><td>line 3043, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ServerMainWebLoadCache</td><td>line 3091, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>CheckSignalQueue</td><td>line 3199, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>SetCheckChatSignal</td><td>line 3332, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>ApiSiteHealthCheck</td><td>line 3348, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>AWSMonitoring</td><td>line 3488, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>GetMonitoringMemberList</td><td>line 3567, HTTP/SDK/Process/File/Push 등</td></tr>
+<tr><td>Operation/ProcessUnit.cs</td><td>IsMonitoringEnable</td><td>line 3631, HTTP/SDK/Process/File/Push 등</td></tr>
+</tbody></table></div>
+<h2 id="03_CODE_STRUCTURE--추정">추정</h2>
+<ul>
+<li><code>SqlSender</code>, <code>SqlApi</code>, <code>SqlProcess</code> 등은 SQL 문자열 생성기이며 실제 DB 실행은 <code>DBUtil</code> 계열이 담당하는 구조로 추정된다.</li>
+<li><code>AlphaBotMember.actionOperation</code>은 <code>ProcessUnit</code>의 각 업무 메소드 delegate를 저장해 스케줄러가 실행하는 구조로 추정된다.</li>
+</ul>
+<h2 id="03_CODE_STRUCTURE--분석-한계">분석 한계</h2>
+<ul>
+<li>현재 폴더의 소스와 프로젝트 파일을 기준으로 정적 분석했다. 런타임 DB 데이터, 실제 스케줄 설정값, 외부 API 응답, 배포 서버 상태는 실행 검증하지 않았다.</li>
+<li><code>FinUp.Stock.App</code> 및 <code>FinUp.Core.Fundamentals</code>는 프로젝트 참조로 확인되지만 본 리포트의 세부 클래스/메소드 분석 범위는 현재 폴더의 <code>FinUp.Stock.App.AlphaBot</code> 소스에 한정했다.</li>
+<li><code>DBUtil</code>, <code>SqlSender</code>, <code>LogWriter</code>, <code>NetUtil</code> 등 핵심 구현 일부는 참조 프로젝트에 있어 커넥션 해제/SQL 생성/로그 경로의 최종 동작은 <code>확인 필요</code>로 표시했다.</li>
+<li>민감값은 원문 대신 <code>[REDACTED]</code>로 마스킹했다.</li>
+</ul>
+        <footer class="footer">본 HTML은 docs/code-analysis Markdown 산출물을 읽기 좋게 변환한 문서입니다. 민감값은 원본 Markdown 기준으로 마스킹된 상태를 유지합니다.</footer>
+      </article>
+    </main>
+  </div>
+</body>
+</html>

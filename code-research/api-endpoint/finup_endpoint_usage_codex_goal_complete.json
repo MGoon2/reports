@@ -1,0 +1,13 @@
+{
+  "goal": {
+    "threadId": "019e292d-2053-7ac0-8dc4-244a8bc0c4ef",
+    "objective": "Complete all ultragoal stories in .omx/ultragoal/goals.json: G001-analyze-all-finup-projects-under-mnt Analyze all FinUp.* projects under /mnt/c/Dev excluding FinUp.*Api pr...",
+    "status": "complete",
+    "tokensUsed": 92804,
+    "timeUsedSeconds": 610,
+    "createdAt": 1778811196,
+    "updatedAt": 1778811837
+  },
+  "remainingTokens": null,
+  "completionBudgetReport": null
+}

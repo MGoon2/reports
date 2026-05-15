@@ -2,14 +2,443 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>analize-report</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AlphaBot 운영 분석 리포트</title>
 <style>
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 32px; background:#fafafa; color:#222; }
-pre { white-space: pre-wrap; word-break: break-word; background:#fff; border:1px solid #ddd; padding:24px; line-height:1.45; }
+:root {
+  --rosso: #da291c;
+  --rosso-dark: #9d2211;
+  --canvas: #181818;
+  --elevated: #242424;
+  --card: #303030;
+  --ink: #ffffff;
+  --body: #b7b7b7;
+  --muted: #8f8f8f;
+  --line: #303030;
+  --light: #ffffff;
+  --light-soft: #f7f7f7;
+  --light-line: #d2d2d2;
+  --warning: #f13a2c;
+  --success: #03904a;
+  --info: #4c98b9;
+  --yellow: #fff200;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: FerrariSans, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+a { color: inherit; }
+
+.hero {
+  min-height: 82vh;
+  display: grid;
+  align-items: end;
+  padding: 32px 96px 72px;
+  background:
+    linear-gradient(180deg, rgba(24, 24, 24, .36), rgba(24, 24, 24, .9) 72%),
+    linear-gradient(112deg, #050505 0%, #181818 54%, #2a0704 100%);
+  border-bottom: 1px solid var(--line);
+}
+
+.nav {
+  position: fixed;
+  z-index: 10;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 96px;
+  background: rgba(24, 24, 24, .84);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .65px;
+  text-transform: uppercase;
+}
+
+.mark {
+  width: 10px;
+  height: 38px;
+  background: var(--rosso);
+  display: inline-block;
+}
+
+.nav-meta {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+
+.hero-inner {
+  max-width: 1120px;
+}
+
+.eyebrow {
+  color: var(--rosso);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+h1 {
+  max-width: 980px;
+  margin: 0;
+  font-size: 80px;
+  font-weight: 500;
+  line-height: 1.02;
+}
+
+.hero-copy {
+  max-width: 740px;
+  margin: 32px 0 0;
+  color: var(--body);
+  font-size: 16px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  max-width: 980px;
+  margin-top: 56px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+
+.stat {
+  background: rgba(24, 24, 24, .88);
+  padding: 24px;
+}
+
+.stat strong {
+  display: block;
+  color: var(--ink);
+  font-size: 56px;
+  line-height: 1;
+}
+
+.stat span {
+  display: block;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 80px;
+  width: min(1480px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 72px 0 96px;
+}
+
+.toc {
+  position: sticky;
+  top: 88px;
+  align-self: start;
+  padding: 24px 0;
+}
+
+.toc-title {
+  color: var(--rosso);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.toc a {
+  display: block;
+  padding: 10px 0;
+  color: var(--body);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+}
+
+.toc a:hover {
+  color: var(--ink);
+}
+
+.content {
+  min-width: 0;
+}
+
+.section {
+  padding: 0 0 72px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 72px;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+h2 {
+  margin: 0 0 32px;
+  color: var(--ink);
+  font-size: 42px;
+  font-weight: 500;
+  line-height: 1.12;
+}
+
+h3 {
+  margin: 40px 0 20px;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+p, li {
+  color: var(--body);
+}
+
+ul, ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+li + li {
+  margin-top: 10px;
+}
+
+code {
+  color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: .92em;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin: 24px 0 0;
+  border: 1px solid var(--line);
+  background: var(--elevated);
+}
+
+table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 16px 18px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+}
+
+th {
+  color: var(--ink);
+  background: #111;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+
+td {
+  color: var(--body);
+}
+
+tr:last-child td {
+  border-bottom: 0;
+}
+
+.risk {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+.risk-critical { background: var(--rosso); }
+.risk-high { background: var(--warning); }
+.risk-medium { background: var(--info); }
+.risk-low { background: var(--success); }
+.risk-check { background: var(--card); border: 1px solid var(--line); }
+
+.divider {
+  height: 1px;
+  margin: 48px 0;
+  background: var(--line);
+}
+
+.audit {
+  background: var(--light);
+  color: var(--canvas);
+  padding: 64px;
+}
+
+.audit h2,
+.audit td,
+.audit th,
+.audit p,
+.audit li,
+.audit code {
+  color: var(--canvas);
+}
+
+.audit .table-wrap {
+  background: var(--light-soft);
+  border-color: var(--light-line);
+}
+
+.audit th {
+  background: #ebebeb;
+}
+
+.audit td,
+.audit th {
+  border-color: var(--light-line);
+}
+
+.audit code {
+  background: #ebebeb;
+  border-color: var(--light-line);
+}
+
+@media (max-width: 920px) {
+  h1 {
+    font-size: 56px;
+  }
+
+  h2 {
+    font-size: 36px;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding-top: 48px;
+  }
+
+  .hero {
+    padding-left: 48px;
+    padding-right: 48px;
+  }
+
+  .nav {
+    padding-left: 48px;
+    padding-right: 48px;
+  }
+
+  .audit {
+    padding: 48px;
+  }
+
+  .toc {
+    position: static;
+    padding: 0;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .hero {
+    min-height: 760px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  h1 {
+    font-size: 44px;
+  }
+
+  h2 {
+    font-size: 30px;
+  }
+
+  .stat strong {
+    font-size: 42px;
+  }
+
+  .nav {
+    padding: 0 20px;
+  }
+
+  .nav-meta {
+    display: none;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .layout {
+    width: calc(100% - 32px);
+  }
+}
 </style>
 </head>
 <body>
-<pre># 1. 시스템 요약
+<header class="nav">
+  <div class="brand"><span class="mark"></span><span>AlphaBot Report</span></div>
+  <div class="nav-meta">Operational Risk Analysis</div>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Ferrari styled technical briefing</div>
+    <h1>AlphaBot 운영 구조 분석</h1>
+    <p class="hero-copy">4개 AlphaBot WPF 애플리케이션의 실행 진입점, DB 폴링, 반복 업무, 중복 처리 위험, 복구 구조를 운영 관점에서 재정리한 리포트입니다.</p>
+    <div class="stats" aria-label="핵심 활성 작업 규모">
+      <div class="stat"><strong>7</strong><span>Data jobs</span></div>
+      <div class="stat"><strong>2</strong><span>Finance jobs</span></div>
+      <div class="stat"><strong>19</strong><span>ThemeRadar jobs</span></div>
+      <div class="stat"><strong>53</strong><span>StockPoint jobs</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="layout">
+  <aside class="toc" id="toc" aria-label="목차"></aside>
+  <main class="content" id="report"></main>
+</div>
+
+<script type="text/plain" id="markdown-source"># 1. 시스템 요약
 
 - 분석 대상: `FinUp.CollectData.App.AlphaBot`, `FinUp.Finance.App.AlphaBot`, `FinUp.Radar.App.AlphaBot`, `FinUp.Stock.App.AlphaBot`.
 - 앱 유형: 4개 모두 WPF `WinExe` 계열이다. `Program.cs`는 4개 프로젝트에서 발견되지 않았고, `App.xaml`의 `StartupUri=&quot;MainWindow.xaml&quot;`로 시작한다.
@@ -143,6 +572,167 @@ pre { white-space: pre-wrap; word-break: break-word; background:#fff; border:1px
 | 지정 Markdown 형식 | `# 1` ~ `# 10` 제목 및 요청 표 포함 |
 | 위험도 표기 | Critical/High/Medium/Low 사용 |
 | 근거 없을 때 추측 금지 | SP 내부/인덱스/운영 인스턴스 수 등은 추가 확인 필요로 표시 |
-</pre>
+</script>
+<script>
+const sourceEl = document.getElementById("markdown-source");
+const target = document.getElementById("report");
+const toc = document.getElementById("toc");
+
+function decodeEntities(value) {
+  const textarea = document.createElement("textarea");
+  textarea.innerHTML = value;
+  return textarea.value;
+}
+
+function escapeHtml(value) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function slugify(value, index) {
+  const slug = value
+    .replace(/^#+\s*/, "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^\w가-힣]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return slug || `section-${index}`;
+}
+
+function inline(value) {
+  let html = escapeHtml(value);
+  html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+  html = html.replace(/\*\*(.+?)\*\*/g, (_, text) => riskBadge(text));
+  return html;
+}
+
+function riskBadge(text) {
+  const label = escapeHtml(text);
+  const key = text.toLowerCase();
+  if (key === "critical") return `<span class="risk risk-critical">${label}</span>`;
+  if (key === "high") return `<span class="risk risk-high">${label}</span>`;
+  if (key === "medium") return `<span class="risk risk-medium">${label}</span>`;
+  if (key === "low") return `<span class="risk risk-low">${label}</span>`;
+  if (text.includes("추가 확인 필요")) return `<span class="risk risk-check">${label}</span>`;
+  return `<strong>${label}</strong>`;
+}
+
+function parseTable(lines, start) {
+  const rows = [];
+  let index = start;
+  while (index < lines.length && /^\|.*\|$/.test(lines[index].trim())) {
+    rows.push(lines[index].trim());
+    index += 1;
+  }
+
+  const split = (row) => row.slice(1, -1).split("|").map((cell) => cell.trim());
+  const headers = split(rows[0]);
+  const bodyRows = rows.slice(2).map(split);
+  const head = headers.map((cell) => `<th>${inline(cell)}</th>`).join("");
+  const body = bodyRows.map((row) => {
+    const cells = row.map((cell) => `<td>${inline(cell)}</td>`).join("");
+    return `<tr>${cells}</tr>`;
+  }).join("");
+
+  return {
+    html: `<div class="table-wrap"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`,
+    next: index
+  };
+}
+
+function parseList(lines, start, ordered) {
+  const tag = ordered ? "ol" : "ul";
+  const items = [];
+  let index = start;
+  const pattern = ordered ? /^\d+\.\s+/ : /^-\s+/;
+  while (index < lines.length && pattern.test(lines[index].trim())) {
+    items.push(lines[index].trim().replace(pattern, ""));
+    index += 1;
+  }
+  return {
+    html: `<${tag}>${items.map((item) => `<li>${inline(item)}</li>`).join("")}</${tag}>`,
+    next: index
+  };
+}
+
+function renderMarkdown(markdown) {
+  const lines = markdown.split(/\r?\n/);
+  const html = [];
+  const headings = [];
+  let sectionOpen = false;
+  let index = 0;
+
+  while (index < lines.length) {
+    const line = lines[index].trim();
+
+    if (!line) {
+      index += 1;
+      continue;
+    }
+
+    if (line === "---") {
+      html.push('<div class="divider"></div>');
+      index += 1;
+      continue;
+    }
+
+    if (line.startsWith("## ")) {
+      html.push(`<h3>${inline(line.slice(3))}</h3>`);
+      index += 1;
+      continue;
+    }
+
+    if (line.startsWith("# ")) {
+      if (sectionOpen) html.push("</section>");
+      const title = line.slice(2).trim();
+      const id = slugify(title, headings.length + 1);
+      const auditClass = title.includes("완료 감사") ? " audit" : "";
+      headings.push({ id, title });
+      html.push(`<section class="section${auditClass}" id="${id}"><h2>${inline(title)}</h2>`);
+      sectionOpen = true;
+      index += 1;
+      continue;
+    }
+
+    if (/^\|.*\|$/.test(line) && index + 1 < lines.length && /^\|[\s:\-|]+\|$/.test(lines[index + 1].trim())) {
+      const table = parseTable(lines, index);
+      html.push(table.html);
+      index = table.next;
+      continue;
+    }
+
+    if (/^-\s+/.test(line)) {
+      const list = parseList(lines, index, false);
+      html.push(list.html);
+      index = list.next;
+      continue;
+    }
+
+    if (/^\d+\.\s+/.test(line)) {
+      const list = parseList(lines, index, true);
+      html.push(list.html);
+      index = list.next;
+      continue;
+    }
+
+    html.push(`<p>${inline(line)}</p>`);
+    index += 1;
+  }
+
+  if (sectionOpen) html.push("</section>");
+
+  toc.innerHTML = '<div class="toc-title">Contents</div>' + headings
+    .map((heading) => `<a href="#${heading.id}">${escapeHtml(heading.title)}</a>`)
+    .join("");
+
+  return html.join("");
+}
+
+target.innerHTML = renderMarkdown(decodeEntities(sourceEl.textContent.trim()));
+</script>
 </body>
 </html>

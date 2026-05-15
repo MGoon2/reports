@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FinUp AlphaBot 종합 분석 보고서</title>
+<style>
+:root{--primary:#fcd535;--active:#f0b90b;--ink:#181a20;--body:#eaecef;--muted:#929aa5;--dark:#0b0e11;--card:#1e2329;--elev:#2b3139;--line:#2b3139;--up:#0ecb81;--down:#f6465d;--info:#3b82f6;}
+*{box-sizing:border-box} body{margin:0;background:var(--dark);color:var(--body);font-family:BinanceNova,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5} a{color:var(--primary);text-decoration:none}.wrap{max-width:1180px;margin:0 auto;padding:32px 24px 64px}.hero{padding:56px 0 36px;border-bottom:1px solid var(--line)}.badge{display:inline-flex;gap:8px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:999px;color:var(--primary);font-size:12px;font-weight:600;padding:7px 12px}.hero h1{font-size:52px;line-height:1.08;letter-spacing:-.6px;margin:20px 0 12px;color:#fff}.hero p{color:var(--muted);max-width:860px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:28px 0}.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}.stat .num{font-family:BinancePlex,BinanceNova,sans-serif;color:var(--primary);font-size:34px;font-weight:700}.stat .label{color:var(--muted);font-size:13px}.section{margin-top:36px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px}h2{font-size:28px;margin:0 0 16px;color:#fff}h3{font-size:18px;margin:24px 0 10px;color:#fff}.pill{display:inline-block;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}.critical{background:rgba(246,70,93,.14);color:var(--down);border:1px solid rgba(246,70,93,.35)}.high{background:rgba(252,213,53,.12);color:var(--primary);border:1px solid rgba(252,213,53,.35)}.ok{background:rgba(14,203,129,.12);color:var(--up);border:1px solid rgba(14,203,129,.35)}table{width:100%;border-collapse:collapse;margin:12px 0 20px;background:#181a20;border-radius:8px;overflow:hidden}th,td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top;font-size:14px}th{color:var(--primary);background:#11151a;text-align:left;font-weight:700}td{color:var(--body)}tr:last-child td{border-bottom:0}.flow{background:#11151a;border:1px solid var(--line);border-radius:12px;padding:18px;overflow:auto;color:#fff}.node{display:inline-block;background:var(--elev);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:6px}.arrow{color:var(--primary);font-weight:700;margin:0 4px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}.note{border-left:4px solid var(--primary);background:#11151a;padding:14px 16px;border-radius:6px;color:var(--muted)}code{background:#11151a;color:#fff;padding:2px 6px;border-radius:4px}.footer{color:var(--muted);font-size:12px;margin-top:28px}@media(max-width:900px){.grid,.cols{grid-template-columns:1fr}.hero h1{font-size:36px}.wrap{padding:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <h1>FinUp AlphaBot 종합 분석 보고서</h1>
+    <p>대상은 <code>/mnt/c/Dev</code>의 <code>FinUp.*AlphaBot*</code> 중 Test 제외 프로젝트다. 소스 수정, 빌드/실행, 패키지 설치, 운영 DB/API 접근 없이 정적 분석만 수행했다. 비밀번호·connection string·API key 값은 포함하지 않았다.</p>
+    <div class="grid">
+      <div class="stat"><div class="num">4</div><div class="label">대상 제품군 루트</div></div>
+      <div class="stat"><div class="num">6</div><div class="label">분석 대상 csproj</div></div>
+      <div class="stat"><div class="num">3</div><div class="label">Critical 위험 영역</div></div>
+      <div class="stat"><div class="num">7</div><div class="label">작성 산출물</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>1. 프로젝트 인벤토리</h2>
+    <table>
+      <thead><tr><th>제품군</th><th>프로젝트</th><th>분류</th><th>역할</th><th>진입점</th></tr></thead>
+      <tbody>
+        <tr><td>CollectData</td><td>FinUp.CollectData.App.AlphaBot</td><td>WPF WinExe</td><td>뉴스/지표/크롤러 AlphaBot UI</td><td>App.xaml → MainWindow → MainViewModel</td></tr>
+        <tr><td>CollectData</td><td>FinUp.CollectData.App.AlphaBot.Biz</td><td>Library</td><td>크롤러 작업 매핑, 스케줄 판정, 이력 기록</td><td>AlphaBotBiz</td></tr>
+        <tr><td>Finance</td><td>FinUp.Finance.App.Alphabot</td><td>WPF WinExe</td><td>금융 RSS/랭킹/일정 UI</td><td>App.xaml → MainViewModel</td></tr>
+        <tr><td>Finance</td><td>FinUp.Finance.App.Alphabot.Biz</td><td>Library</td><td>Finance 작업 매핑, DAO, RSS/파일 처리</td><td>AlphaBotBiz</td></tr>
+        <tr><td>Radar</td><td>FinUp.Radar.App.AlphaBot</td><td>WPF WinExe</td><td>공시/뉴스/테마/푸시/결제/텔레그램 스케줄러</td><td>MainWindow.Loaded</td></tr>
+        <tr><td>Stock</td><td>FinUp.Stock.App.AlphaBot</td><td>WPF WinExe</td><td>주식/결제/푸시/API 큐/AWS/외부 업로드 스케줄러</td><td>MainWindow.Loaded</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section">
+    <h2>2. 의존성 구조</h2>
+    <div class="flow">
+      <span class="node">CollectData.App</span><span class="arrow">→</span><span class="node">CollectData.Biz</span><span class="arrow">→</span><span class="node">FinUp.Core.DS.Dac</span><br/>
+      <span class="node">Finance.App</span><span class="arrow">→</span><span class="node">Finance.Biz</span><span class="arrow">→</span><span class="node">FinUp.Core.NET/Data</span><br/>
+      <span class="node">Radar.App</span><span class="arrow">→</span><span class="node">Core.Data/MongoDB/Redis/Log</span><span class="arrow">+</span><span class="node">FinUp.Radar</span><span class="arrow">+</span><span class="node">StockData.*</span><br/>
+      <span class="node">Stock.App.AlphaBot</span><span class="arrow">→</span><span class="node">FinUp.Stock.App</span><span class="arrow">+</span><span class="node">FinUp.Core.Fundamentals</span>
+    </div>
+    <p class="note">Radar와 Stock은 .NET Framework 4.7 기반의 레거시 assembly reference와 프로젝트 참조가 혼재하며, Stock은 AWS/Firebase/Google/결제/푸시/외부 업로드 의존성이 한 실행 파일에 집중되어 있다.</p>
+  </section>
+
+  <section class="section">
+    <h2>3. 런타임 흐름</h2>
+    <table>
+      <thead><tr><th>공통 단계</th><th>내용</th><th>위험</th></tr></thead>
+      <tbody>
+        <tr><td>초기화</td><td>WPF StartupUri/MainWindow.Loaded에서 설정과 OperationTerm 로드</td><td>DB/설정 실패 시 스케줄 대상 로드 실패</td></tr>
+        <tr><td>관찰 타이머</td><td>1초 DispatcherTimer가 UI 상태와 다음 실행시간 갱신</td><td>UI Dispatcher에 운영 관찰 결합</td></tr>
+        <tr><td>메인 타이머</td><td>5초 또는 설정값 주기로 Active/Loop/Once/OffDay 판정</td><td>중복 실행 방지는 actionState 의존</td></tr>
+        <tr><td>작업 실행</td><td>Thread로 ProcessStart/RunTask 실행 후 DB 이력 기록</td><td>CollectData/Finance/Radar는 예외 시 STOP 이력 누락 가능</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section">
+    <h2>4. DB/SP 접근</h2>
+    <div class="cols">
+      <div>
+        <h3>주요 연결 키</h3>
+        <table><tbody>
+          <tr><th>CollectData</th><td>DBThemeRadar, MongoConnection*, ConnectionKafka</td></tr>
+          <tr><th>Finance</th><td>DBStockData</td></tr>
+          <tr><th>Radar</th><td>DBThemeRadar*, MongoConnection*, RedisConnection</td></tr>
+          <tr><th>Stock</th><td>DBStockPoint, ApiDBStockPoint, DBMessageService*</td></tr>
+        </tbody></table>
+      </div>
+      <div>
+        <h3>대표 SP 계열</h3>
+        <table><tbody>
+          <tr><th>CollectData</th><td>ProcOperationUpdate, ProcScheduleNews*, USPMarket*</td></tr>
+          <tr><th>Finance</th><td>USPRankingInsert, USPStockScheduleInsert, USP_FinanceUpNews_Insert</td></tr>
+          <tr><th>Radar</th><td>ProcQueuePush*, USPThemeLogPush*, USPReportInsert</td></tr>
+          <tr><th>Stock</th><td>ProcApiService*, USPMonitoringAWS*, USPEmailQueue*, USPSignalQueue*</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>5. 핵심 위험</h2>
+    <table>
+      <thead><tr><th>등급</th><th>위험</th><th>대상</th><th>요약</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill critical">Critical</span></td><td>예외 시 실행 턴 이력 불완전</td><td>CollectData, Finance, Radar</td><td>START 후 catch 경로에서 STOP/ERROR 이력이 누락될 수 있다.</td></tr>
+        <tr><td><span class="pill critical">Critical</span></td><td>비밀값/접속정보 config 집중</td><td>전체, 특히 Stock</td><td>DB, Token, Key, Pwd 계열 키가 설정 파일에 존재한다. 값은 본 보고서에 없다.</td></tr>
+        <tr><td><span class="pill critical">Critical</span></td><td>Stock 초기화 실패 전파</td><td>Stock</td><td>Process 생성자에서 AWS/Firebase/DB성 작업이 즉시 초기화된다.</td></tr>
+        <tr><td><span class="pill high">High</span></td><td>빈 catch/침묵 실패</td><td>전체</td><td>장애 원인, OIdx/OTIdx, 작업명 로그가 누락되는 경로가 많다.</td></tr>
+        <tr><td><span class="pill high">High</span></td><td>Thread 직접 생성 및 공유 상태</td><td>전체</td><td>actionState 직접 공유로 race/중복 실행 가능성이 있다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section">
+    <h2>6. 리팩터링 우선순위</h2>
+    <ol>
+      <li><strong>실행 이력 표준화:</strong> 모든 프로젝트를 <code>START → ERROR? → END/STOP</code> finally 패턴으로 맞춘다.</li>
+      <li><strong>빈 catch 제거:</strong> 최소 OIdx/OTIdx/작업명/예외 타입/메시지를 로그에 남긴다.</li>
+      <li><strong>Secret 외부화:</strong> config 값은 vault/환경변수 참조로 이전한다.</li>
+      <li><strong>스케줄러 추출:</strong> DispatcherTimer/UI와 worker 실행을 분리한다.</li>
+      <li><strong>SP catalog 작성:</strong> Proc/USP 호출을 프로젝트·작업·입출력 기준으로 관리한다.</li>
+      <li><strong>외부 API 표준화:</strong> timeout, retry, backoff, circuit breaker를 적용한다.</li>
+    </ol>
+    <p class="note">자세한 파일별 근거와 Mermaid 다이어그램은 같은 폴더의 <code>01_project_inventory.md</code> ~ <code>06_refactoring_plan.md</code>에 분리했다.</p>
+  </section>
+
+  <div class="footer">Generated by static analysis. Design source: codex-design Binance DESIGN.md. No source files were modified; reports only were written under /mnt/c/reports/alphabots/docs.</div>
+</div>
+</body>
+</html>

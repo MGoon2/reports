@@ -1,0 +1,20 @@
+{
+  "aiSlopCleaner": {
+    "status": "passed",
+    "evidence": "/mnt/c/reports/code-research/api-endpoint/finup_endpoint_usage_cleanup_report.md; no fallback-like findings; no product source edits"
+  },
+  "verification": {
+    "status": "passed",
+    "commands": [
+      "python3 -m py_compile /mnt/c/reports/code-research/api-endpoint/analyze_finup_endpoint_usage.py",
+      "python3 artifact consistency assertions",
+      "git -C /mnt/c/Dev status --short --untracked-files=no"
+    ],
+    "evidence": "VALIDATION PASS {'detail_rows': 838, 'unused_rows': 292, 'html_bytes': 247082}; git status had no tracked product source changes"
+  },
+  "codeReview": {
+    "recommendation": "APPROVE",
+    "architectStatus": "CLEAR",
+    "evidence": "/mnt/c/reports/code-research/api-endpoint/finup_endpoint_usage_code_review.md"
+  }
+}

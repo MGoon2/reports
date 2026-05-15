@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>03. DB 접근 및 Stored Procedure 호출 맵</title>
+<style>
+:root{--primary:#fcd535;--active:#f0b90b;--ink:#181a20;--body:#eaecef;--muted:#929aa5;--dark:#0b0e11;--card:#1e2329;--elev:#2b3139;--line:#2b3139;--up:#0ecb81;--down:#f6465d;--info:#3b82f6;}
+*{box-sizing:border-box} body{margin:0;background:var(--dark);color:var(--body);font-family:BinanceNova,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.6} a{color:var(--primary);text-decoration:none}.wrap{max-width:1160px;margin:0 auto;padding:28px 24px 72px}.top{position:sticky;top:0;background:rgba(11,14,17,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);z-index:10}.top .inner{max-width:1160px;margin:0 auto;padding:14px 24px;display:flex;gap:12px;align-items:center;justify-content:space-between}.brand{color:var(--primary);font-weight:700}.nav a{margin-left:12px;color:var(--muted);font-size:13px}.hero{padding:42px 0 22px;border-bottom:1px solid var(--line)}.badge{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:999px;color:var(--primary);font-size:12px;font-weight:700;padding:6px 12px}.hero h1{font-size:42px;line-height:1.12;letter-spacing:-.4px;margin:18px 0 8px;color:#fff}.hero p{color:var(--muted)}main{padding-top:20px}h1,h2,h3,h4{color:#fff;line-height:1.25}h1{font-size:38px}h2{font-size:28px;margin-top:36px;padding-top:8px;border-top:1px solid var(--line)}h3{font-size:21px;margin-top:28px}h4{font-size:16px}p{margin:12px 0;color:var(--body)}blockquote{margin:16px 0;padding:14px 16px;border-left:4px solid var(--primary);background:#11151a;border-radius:6px;color:var(--muted)}code{background:#11151a;color:#fff;padding:2px 6px;border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}pre{background:#11151a;border:1px solid var(--line);border-radius:12px;padding:16px;overflow:auto;color:#fff}pre code{background:transparent;padding:0}pre.mermaid{background:#11151a;color:#fff;border:1px solid var(--line);border-radius:12px;padding:18px}table{width:100%;border-collapse:collapse;margin:16px 0 24px;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:table}th,td{padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:top;font-size:14px}th{color:var(--primary);background:#11151a;text-align:left;font-weight:700}tr:last-child td{border-bottom:0}ul,ol{padding-left:24px}li{margin:6px 0}.footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}.pill{display:inline-block;border-radius:999px;padding:2px 9px;background:rgba(252,213,53,.12);color:var(--primary);border:1px solid rgba(252,213,53,.35);font-size:12px;font-weight:700}@media(max-width:800px){.hero h1{font-size:30px}.wrap{padding:20px 16px}.top .inner{padding:12px 16px;display:block}.nav{margin-top:8px}.nav a{margin:0 10px 0 0}table{display:block;overflow-x:auto;white-space:nowrap}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{if(window.mermaid) mermaid.initialize({startOnLoad:true,theme:'dark'});});</script>
+</head>
+<body>
+<header class="top"><div class="inner"><div class="brand">FinUp AlphaBot Analysis</div><nav class="nav"><a href="total_report.html">Total</a><a href="01_project_inventory.html">Inventory</a><a href="02_dependency_map.html">Dependencies</a><a href="03_db_access_map.html">DB</a><a href="04_runtime_flow.html">Runtime</a><a href="05_risk_report.html">Risk</a><a href="06_refactoring_plan.html">Refactor</a></nav></div></header>
+<div class="wrap">
+<section class="hero"><h1>03. DB 접근 및 Stored Procedure 호출 맵</h1><p>Markdown 원본을 HTML로 변환한 정적 보고서입니다. Mermaid 블록은 브라우저에서 렌더링됩니다.</p></section>
+<main>
+<h1 id="03-DB-접근-및-Stored-Procedure-호출-맵">03. DB 접근 및 Stored Procedure 호출 맵</h1>
+<blockquote>값/접속 문자열은 기록하지 않고 키/호출 위치만 기록한다. 실제 DB 접속은 수행하지 않았다.</blockquote>
+<h2 id="DB-접근-구조-요약">DB 접근 구조 요약</h2>
+<pre class="mermaid">flowchart TD
+  C[CollectData AlphaBot] --&gt;|SqlOperationDac| CoreDSDac[FinUp.Core.DS.Dac]
+  C --&gt;|MongoClient| Mongo[(MongoDB)]
+  C --&gt;|Kafka config| Kafka[(Kafka)]
+
+  F[Finance AlphaBot] --&gt;|SqlOperationDao/Sql*Dao| CoreNETData[FinUp.Core.NET.Data]
+  F --&gt; DBStock[(DBStockData)]
+
+  R[Radar AlphaBot] --&gt;|DBUtil + SqlOperation/Sql*| DBRadar[(DBThemeRadar)]
+  R --&gt; Mongo2[(MongoDB)]
+  R --&gt; Redis[(Redis)]
+
+  S[Stock AlphaBot] --&gt;|DBUtil + SqlSender/SqlApi/...| DBStockPoint[(DBStockPoint)]
+  S --&gt;|DBUtilMySQL| MySQL[(MessageService DB)]
+  S --&gt; AWS[(AWS CloudWatch/RDS/EC2)]</pre>
+<h2 id="설정-기반-DB-캐시-연결-키">설정 기반 DB/캐시 연결 키</h2>
+<table><thead><tr><th>프로젝트</th><th>연결 키/이름</th><th>접근 코드</th><th>비고</th></tr></thead><tbody>
+<tr><td>CollectData</td><td><code>DBThemeRadar</code>, <code>MongoConnection</code>, <code>ConnectionKafka</code></td><td><code>Config/AppSetting.cs:9-13</code>, <code>Biz/Config/AppSetting.cs:10-14</code></td><td>connectionStrings 기반, 일부 <code>.DecAES()</code> 사용</td></tr>
+<tr><td>Finance</td><td><code>DBStockData</code></td><td><code>App.config</code> connectionStrings, <code>SqlOperationDao.ListOperationTerm(&amp;quot;Finance&amp;quot;)</code></td><td>DAO 계층이 SQL 생성/실행 담당</td></tr>
+<tr><td>Radar</td><td><code>DBThemeRadar</code>, <code>DBThemeRadarReal</code>, <code>MongoConnection*</code>, <code>RedisConnection</code></td><td><code>Config/AppSetting.cs</code>, <code>MainWindow.xaml.cs:213-216</code></td><td>appSettings 기반 DBUtil 생성</td></tr>
+<tr><td>Stock</td><td><code>DBStockPoint</code>, <code>ApiDBStockPoint</code>, <code>DBMessageServiceLgu</code>, <code>DBMessageServiceDanal</code></td><td><code>MainWindow.xaml.cs:29</code>, <code>Operation/ProcessBase.cs:74-95</code>, <code>ProcessBase.cs:140-157</code></td><td>SQL DB + MySQL 유틸 혼합</td></tr>
+</tbody></table>
+<h2 id="주요-DB-접근-코드-위치">주요 DB 접근 코드 위치</h2>
+<table><thead><tr><th>프로젝트</th><th>위치</th><th>접근 방식</th><th>근거</th></tr></thead><tbody>
+<tr><td>CollectData</td><td><code>AlphaBotBiz.cs</code></td><td><code>SqlOperationDac.ListOperationTerm(&amp;quot;Data&amp;quot;)</code>, <code>ProcOperationUpdate</code>, <code>ProcOperationTermHistoryInsert</code></td><td><code>AlphaBotBiz.cs:50</code>, <code>146</code>, <code>286</code>, <code>487</code></td></tr>
+<tr><td>CollectData</td><td><code>CrawlerInfoStock.cs</code>, <code>CrawlerIndex.cs</code>, <code>CrawlerNaverStockRank.cs</code></td><td>ScheduleNews/MarketIndex/Naver rank insert 계열 SP 호출</td><td><code>CrawlerInfoStock.cs:115-134</code>, <code>CrawlerIndex.cs:163</code>, <code>CrawlerNaverStockRank.cs:65</code></td></tr>
+<tr><td>Finance</td><td><code>AlphaBotBiz.cs</code></td><td><code>SqlOperationDao.ListOperationTerm(&amp;quot;Finance&amp;quot;)</code>, <code>ProcOperationUpdate</code>, history insert</td><td><code>AlphaBotBiz.cs:36</code>, <code>127</code>, <code>267</code>, <code>467</code></td></tr>
+<tr><td>Finance</td><td><code>Operation/Unit/*.cs</code></td><td>Ranking/StockSchedule/FinanceUpNews insert</td><td><code>Ranking.cs:19</code>, <code>StockSchedule.cs:19</code>, <code>InvestRss.cs:147</code></td></tr>
+<tr><td>Radar</td><td><code>MainWindow.xaml.cs</code></td><td><code>DBUtil.GetDataTable</code>, <code>ExecQuery</code>, operation term/history update</td><td><code>MainWindow.xaml.cs:213-232</code>, <code>449</code>, <code>965-991</code>, <code>1072</code></td></tr>
+<tr><td>Radar</td><td><code>Operation/ProcessUnit/*</code></td><td>공시/푸시/뉴스/테마/결제/검색 SP 호출</td><td><code>Operation/Process.cs:51-286</code>, <code>Operation/ProcessUnit/*</code></td></tr>
+<tr><td>Stock</td><td><code>MainWindow.xaml.cs</code></td><td><code>DBUtil.GetDataTable</code>, <code>ProcOperationUpdate</code>, <code>USPOperationTermHistoryInsert</code></td><td><code>MainWindow.xaml.cs:115-128</code>, <code>703</code>, <code>889</code></td></tr>
+<tr><td>Stock</td><td><code>Operation/ProcessBase.cs</code>, <code>Operation/ProcessUnit.cs</code></td><td><code>SqlSender</code>, <code>SqlApi</code>, <code>SqlChat</code>, <code>SqlAWSMonitoring</code>, MySQL util</td><td><code>ProcessBase.cs:50-69</code>, <code>131-157</code>, <code>ProcessUnit.cs</code></td></tr>
+</tbody></table>
+<h2 id="Stored-Procedure-SQL-생성-호출-샘플">Stored Procedure/SQL 생성 호출 샘플</h2>
+<table><thead><tr><th>프로젝트</th><th>대표 호출</th><th>첫 발견 위치</th><th>의미</th></tr></thead><tbody>
+<tr><td>CollectData</td><td><code>ProcOperationUpdate</code></td><td><code>ViewModel/MainViewModel.cs:168</code></td><td>실행 시각 업데이트</td></tr>
+<tr><td>CollectData</td><td><code>ProcOperationTermHistoryInsert</code></td><td><code>AlphaBotBiz.cs:487</code></td><td>실행 이력 START/STOP/ERROR 기록</td></tr>
+<tr><td>CollectData</td><td><code>ProcScheduleNewsInsert</code>, <code>ProcScheduleNewsDetailInsert</code>, <code>ProcScheduleNewsKeywordInsert</code></td><td><code>CrawlerInfoStock.cs:115-134</code></td><td>일정 뉴스 수집 저장</td></tr>
+<tr><td>CollectData</td><td><code>USPMarketIndexDayInsert</code>, <code>USPMarketIndicatorInsert</code></td><td><code>CrawlerIndex.cs:163</code>, <code>403</code></td><td>시장 지표 저장</td></tr>
+<tr><td>Finance</td><td><code>USPRankingInsert</code></td><td><code>Operation/Unit/Ranking.cs:19</code></td><td>금융 랭킹 저장</td></tr>
+<tr><td>Finance</td><td><code>USPStockScheduleInsert</code></td><td><code>Operation/Unit/StockSchedule.cs:19</code></td><td>주식 일정 저장</td></tr>
+<tr><td>Finance</td><td><code>USP_FinanceUpNews_Insert</code></td><td><code>Operation/Unit/InvestRss.cs:147</code></td><td>금융 뉴스 저장</td></tr>
+<tr><td>Radar</td><td><code>ProcOperationUpdate</code>, <code>ProcOperationTermHistoryInsert</code></td><td><code>MainWindow.xaml.cs:449</code>, <code>1072</code></td><td>실행 시각/이력</td></tr>
+<tr><td>Radar</td><td><code>ProcQueuePushList</code>, <code>USPPushFormatSend</code>, <code>USPPushNonUserLogInsert</code></td><td><code>Push.cs</code>, <code>AttentionNews.cs</code></td><td>푸시 대상/발송/로그</td></tr>
+<tr><td>Radar</td><td><code>USPThemeLogPush*</code>, <code>USPUserAlarmSummaryInsert</code></td><td><code>ThemeLogAlarmUser.cs</code>, <code>UserAlarmSummary.cs</code></td><td>테마 로그/사용자 알림</td></tr>
+<tr><td>Stock</td><td><code>USPOperationTermHistoryInsert</code></td><td><code>MainWindow.xaml.cs:889</code></td><td>실행 이력</td></tr>
+<tr><td>Stock</td><td><code>ProcApiServiceQueueHistoryInsert</code>, <code>ProcApiServiceUpdate</code></td><td><code>Operation/ProcessUnit.cs:1048</code>, <code>1135</code></td><td>API 큐 처리 이력/상태</td></tr>
+<tr><td>Stock</td><td><code>USPMonitoringAWS*</code></td><td><code>Operation/ProcessUnit.cs:3861</code>, <code>4012</code>, <code>4067</code>, <code>4143</code></td><td>AWS 모니터링</td></tr>
+<tr><td>Stock</td><td><code>USPEmailQueue*</code>, <code>USPSignalQueue*</code>, <code>USPPushQueueList</code></td><td><code>Operation/ProcessUnit.cs:5006</code>, <code>3205</code>, <code>2992</code></td><td>이메일/채팅/푸시 큐</td></tr>
+</tbody></table>
+<h2 id="DB-장애-영향-분석">DB 장애 영향 분석</h2>
+<table><thead><tr><th>등급</th><th>조건</th><th>영향</th><th>근거</th></tr></thead><tbody>
+<tr><td>Critical</td><td>초기 <code>ListOperationTerm</code> 실패 후 목록이 비거나 null</td><td>스케줄 대상 자체가 로드되지 않거나 UI 초기화가 침묵 실패할 수 있음</td><td>CollectData <code>AlphaBotBiz.cs:111-116</code>, Finance <code>AlphaBotBiz.cs:92-98</code>, Radar <code>MainWindow.xaml.cs:221-294</code>, Stock <code>MainWindow.xaml.cs:123-190</code></td></tr>
+<tr><td>Critical</td><td>실행 이력 START 기록 후 작업 중 예외 발생</td><td>CollectData/Finance/Radar는 <code>RunTask</code> catch에서 STOP/ERROR 이력 누락 가능. Stock은 finally로 END 기록</td><td>CollectData <code>AlphaBotBiz.cs:348-373</code>, Finance <code>AlphaBotBiz.cs:329-353</code>, Radar <code>MainWindow.xaml.cs:1001-1036</code>, Stock <code>MainWindow.xaml.cs:691-730</code></td></tr>
+<tr><td>High</td><td>설정 파일 내 DB/API/토큰 값 집중</td><td>운영 비밀값이 config에 위치. 값은 보고서에 기록하지 않음</td><td>각 <code>App.config</code>/<code>App.*.config</code> 키 목록</td></tr>
+<tr><td>High</td><td>SQL 생성 문자열이 다수 프로젝트/외부 참조에 분산</td><td>SP 변경 영향 추적이 어려움</td><td><code>Sql*</code> 클래스 및 참조 프로젝트 사용</td></tr>
+</tbody></table>
+</main>
+<div class="footer">Source: 03_db_access_map.md · Output: 03_db_access_map.html · No source-code project files modified.</div>
+</div>
+</body>
+</html>

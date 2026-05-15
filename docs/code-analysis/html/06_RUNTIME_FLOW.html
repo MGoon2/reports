@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>런타임 흐름 분석 - Code Analysis</title>
+  <style>
+:root {
+  --bg: #f6f8fb;
+  --panel: #ffffff;
+  --ink: #1f2937;
+  --muted: #6b7280;
+  --line: #d9e0ea;
+  --accent: #2563eb;
+  --accent-soft: #e8f0ff;
+  --danger: #b91c1c;
+  --code-bg: #0f172a;
+  --code-ink: #e5e7eb;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", "Malgun Gothic", Arial, sans-serif;
+  line-height: 1.65;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); min-height: 100vh; }
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: auto;
+  padding: 24px 18px;
+  background: #111827;
+  color: #f9fafb;
+}
+.sidebar h1 { font-size: 18px; line-height: 1.3; margin: 0 0 14px; }
+.sidebar .meta { color: #cbd5e1; font-size: 12px; margin-bottom: 18px; }
+.nav-section { margin: 18px 0 8px; color: #93c5fd; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.sidebar ul { margin: 0; padding: 0; list-style: none; }
+.sidebar li { margin: 4px 0; }
+.sidebar a { display: block; padding: 7px 9px; border-radius: 8px; color: #e5e7eb; font-size: 13px; }
+.sidebar a:hover, .sidebar a.active { background: rgba(37, 99, 235, .35); text-decoration: none; }
+.content { padding: 36px; }
+.report {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 36px 42px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, .08);
+}
+.report-header {
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--line);
+}
+.report-header h1 { margin: 0 0 6px; font-size: 32px; letter-spacing: -0.04em; }
+.report-header .source { color: var(--muted); font-size: 13px; }
+.toc {
+  margin: 18px 0 28px;
+  padding: 16px 18px;
+  background: var(--accent-soft);
+  border: 1px solid #c7d7fe;
+  border-radius: 12px;
+}
+.toc-title { font-weight: 700; margin-bottom: 8px; }
+.toc ul { margin: 0; padding-left: 20px; }
+h1, h2, h3, h4 { line-height: 1.28; letter-spacing: -0.025em; }
+h1 { font-size: 30px; margin: 24px 0 18px; }
+h2 { font-size: 24px; margin: 34px 0 12px; padding-bottom: 7px; border-bottom: 1px solid var(--line); }
+h3 { font-size: 19px; margin: 26px 0 10px; }
+h4 { font-size: 16px; margin: 20px 0 8px; }
+p { margin: 10px 0; }
+ul, ol { padding-left: 24px; }
+li { margin: 3px 0; }
+.table-wrap { width: 100%; overflow-x: auto; margin: 16px 0 24px; border: 1px solid var(--line); border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; min-width: 680px; background: #fff; }
+th, td { padding: 9px 11px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
+th { position: sticky; top: 0; background: #f1f5f9; color: #0f172a; font-weight: 700; }
+tr:nth-child(even) td { background: #fbfdff; }
+code {
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: #eef2f7;
+  color: #0f172a;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--code-bg);
+  color: var(--code-ink);
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+blockquote { margin: 14px 0; padding: 10px 16px; border-left: 4px solid var(--accent); background: #f8fafc; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 28px 0; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #e5e7eb; color: #374151; font-size: 12px; }
+.redacted { color: var(--danger); font-weight: 700; }
+.report-section { page-break-before: always; margin-top: 42px; padding-top: 16px; border-top: 3px solid var(--line); }
+.report-section:first-of-type { page-break-before: auto; border-top: 0; margin-top: 0; padding-top: 0; }
+.footer { margin-top: 42px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: relative; height: auto; }
+  .content { padding: 18px; }
+  .report { padding: 24px 18px; border-radius: 12px; }
+}
+@media print {
+  .layout { display: block; }
+  .sidebar { display: none; }
+  body { background: #fff; }
+  .content { padding: 0; }
+  .report { max-width: none; border: 0; box-shadow: none; }
+  a { color: inherit; }
+}
+</style>
+</head>
+<body>
+  <div class="layout">
+    
+<aside class="sidebar">
+  <h1>Code Analysis HTML</h1>
+  <div class="meta">생성: 2026-05-15 16:55:17<br>경로: docs/code-analysis/html</div>
+  <div class="nav-section">개별 보고서</div>
+  <ul><li><a href="00_PROJECT_SUMMARY.html">프로젝트 요약</a></li><li><a href="01_FOLDER_STRUCTURE.html">폴더 구조 분석</a></li><li><a href="02_PROJECT_SETTINGS.html">프로젝트 설정 분석</a></li><li><a href="03_CODE_STRUCTURE.html">코드 구조 분석</a></li><li><a href="04_NAMESPACE_CLASS_METHOD_REPORT.html">네임스페이스/클래스/메소드 분석</a></li><li><a href="05_PROJECT_REFERENCES.html">프로젝트 참조 관계</a></li><li><a class="active" href="06_RUNTIME_FLOW.html">런타임 흐름 분석</a></li><li><a href="07_RISKS_AND_REFACTORING_POINTS.html">리스크 및 리팩터링 포인트</a></li></ul>
+  <div class="nav-section">통합 보고서</div>
+  <ul><li><a href="Total_Report.html">Total Report</a></li></ul>
+</aside>
+
+    <main class="content">
+      <article class="report">
+        <header class="report-header">
+          <h1>런타임 흐름 분석</h1>
+          <div class="source">Source: docs/code-analysis/06_RUNTIME_FLOW.md · HTML generated from Markdown report</div>
+        </header>
+        <nav class="toc"><div class="toc-title">목차</div><ul><li class="toc-l1"><a href="#06_RUNTIME_FLOW--런타임-흐름-분석">런타임 흐름 분석</a></li><li class="toc-l2"><a href="#06_RUNTIME_FLOW--프로그램-시작점">프로그램 시작점</a></li><li class="toc-l2"><a href="#06_RUNTIME_FLOW--초기화-순서">초기화 순서</a></li><li class="toc-l2"><a href="#06_RUNTIME_FLOW--설정-로딩">설정 로딩</a></li><li class="toc-l2"><a href="#06_RUNTIME_FLOW--반복-루프-진입점-스케줄-판단">반복 루프 진입점/스케줄 판단</a></li><li class="toc-l2"><a href="#06_RUNTIME_FLOW--db-조회-처리-흐름">DB 조회/처리 흐름</a></li><li class="toc-l2"><a href="#06_RUNTIME_FLOW--외부-호출-흐름">외부 호출 흐름</a></li><li class="toc-l2"><a href="#06_RUNTIME_FLOW--예외-처리-종료-조건">예외 처리/종료 조건</a></li><li class="toc-l2"><a href="#06_RUNTIME_FLOW--확인-필요">확인 필요</a></li><li class="toc-l2"><a href="#06_RUNTIME_FLOW--분석-한계">분석 한계</a></li></ul></nav>
+        <h1 id="06_RUNTIME_FLOW--런타임-흐름-분석">런타임 흐름 분석</h1>
+<h2 id="06_RUNTIME_FLOW--프로그램-시작점">프로그램 시작점</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>위치</th><th>확인된 사실</th></tr></thead>
+<tbody>
+<tr><td>App.xaml:5</td><td>StartupUri="MainWindow.xaml"로 WPF 메인 창을 지정</td></tr>
+<tr><td>MainWindow.xaml.cs:60-67</td><td>MainWindow 생성자에서 Loaded 이벤트에 InitializeMember 연결</td></tr>
+<tr><td>MainWindow.xaml.cs:73-107</td><td>InitializeMember에서 타이머/DB/Process 객체 초기화 후 Load 호출</td></tr>
+</tbody></table></div>
+<h2 id="06_RUNTIME_FLOW--초기화-순서">초기화 순서</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>순서</th><th>단계</th><th>위치</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>App 생성</td><td>App.xaml.cs:20-29</td><td>TelegramSender 생성, Dispatcher/AppDomain 예외 이벤트 등록</td></tr>
+<tr><td>2</td><td>MainWindow 로드</td><td>MainWindow.xaml.cs:60-67</td><td>Loaded 이벤트에서 InitializeMember 실행</td></tr>
+<tr><td>3</td><td>멤버 초기화</td><td>MainWindow.xaml.cs:73-107</td><td>Process, Timer, SqlSender 생성 및 Dispatcher 예외 핸들러 설정</td></tr>
+<tr><td>4</td><td>설정/DB 로딩</td><td>MainWindow.xaml.cs:123-191</td><td>ListOperationTerm 조회, AlphaBotMember/OperationType 구성</td></tr>
+<tr><td>5</td><td>관찰 타이머 시작</td><td>MainWindow.xaml.cs:190</td><td>tObserveTimer 즉시 시작</td></tr>
+<tr><td>6</td><td>사용자 시작</td><td>MainWindow.xaml.cs:912-919</td><td>시작 버튼이 tMainTimer/tAlphaBotTimer 시작</td></tr>
+<tr><td>7</td><td>주기 확인</td><td>MainWindow.xaml.cs:293-335</td><td>DB 설정 업데이트 후 Loop/Once 조건 판단</td></tr>
+<tr><td>8</td><td>작업 실행</td><td>MainWindow.xaml.cs:678-730</td><td>새 Thread에서 START/END/ERROR 히스토리 기록, actionOperation 호출</td></tr>
+<tr><td>9</td><td>업무 처리</td><td>Operation/ProcessUnit.cs</td><td>DB 큐 처리, 외부 API/푸시/메일/결제 수행</td></tr>
+<tr><td>10</td><td>종료/중지</td><td>MainWindow.xaml.cs:928-934, App.xaml.cs:50-57</td><td>버튼은 타이머 중지, App 종료 시 Sleep 후 Shutdown</td></tr>
+</tbody></table></div>
+<h2 id="06_RUNTIME_FLOW--설정-로딩">설정 로딩</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>설정 소스</th><th>사용 위치</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>App.config appSettings</td><td>MainWindow.xaml.cs:29-31</td><td>DBStockPoint 복호화, Server, ObserveTime 상수</td></tr>
+<tr><td>App.config appSettings</td><td>Operation/ProcessBase.cs:74-95</td><td>DB/API/경로/키/토큰/푸시/YouTube 설정 로딩</td></tr>
+<tr><td>DB OperationTerm</td><td>MainWindow.xaml.cs:127-177, 356-395</td><td>활성 작업, 반복/1회성 주기, 개장일 조건 로딩</td></tr>
+<tr><td>PushCertify/firebase*.json</td><td>Operation/Process.cs:69, 83-86</td><td>FirebaseApp Credential 파일</td></tr>
+</tbody></table></div>
+<h2 id="06_RUNTIME_FLOW--반복-루프-진입점-스케줄-판단">반복 루프 진입점/스케줄 판단</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>항목</th><th>위치</th><th>확인된 동작</th></tr></thead>
+<tbody>
+<tr><td>Main Timer</td><td>MainWindow.xaml.cs:80-82, 914</td><td>5초마다 ProcessConfirm 실행</td></tr>
+<tr><td>Observe Timer</td><td>MainWindow.xaml.cs:84-86, 190</td><td>1초마다 UI 상태/다음 실행 시간 표시</td></tr>
+<tr><td>AlphaBot Alive Timer</td><td>MainWindow.xaml.cs:88-90, 915</td><td>1분마다 ALIVE 히스토리 기록</td></tr>
+<tr><td>Loop 조건</td><td>MainWindow.xaml.cs:742-757</td><td>LastExcute + LoopInterval &lt;= 현재시각이면 실행</td></tr>
+<tr><td>Once 조건</td><td>MainWindow.xaml.cs:787-827</td><td>설정 시각 ±5초, 당일 중복 실행 방지</td></tr>
+<tr><td>중복 방지</td><td>MainWindow.xaml.cs:302-303, 702, 720</td><td>member.actionState가 Running이면 skip, finally에서 Stop</td></tr>
+</tbody></table></div>
+<h2 id="06_RUNTIME_FLOW--db-조회-처리-흐름">DB 조회/처리 흐름</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>단계</th><th>위치</th><th>설명</th></tr></thead>
+<tbody>
+<tr><td>스케줄 조회</td><td>MainWindow.xaml.cs:127-128, 356-357</td><td>ListOperationTerm SQL을 DBUtil.GetDataTable로 실행</td></tr>
+<tr><td>작업 시작 기록</td><td>MainWindow.xaml.cs:693-703</td><td>OperationTermHistory START 기록 및 LastExecDT 업데이트</td></tr>
+<tr><td>작업별 큐 조회/처리</td><td>Operation/ProcessUnit.cs</td><td>결제/푸시/SMS/API 등 각 메소드에서 DB 큐 조회 후 처리</td></tr>
+<tr><td>작업 종료/오류 기록</td><td>MainWindow.xaml.cs:707-729</td><td>ERROR/END 히스토리 기록</td></tr>
+<tr><td>로그 기록</td><td>MainWindow.xaml.cs:840-870</td><td>화면/Telegram/LogWriter 기록</td></tr>
+</tbody></table></div>
+<h2 id="06_RUNTIME_FLOW--외부-호출-흐름">외부 호출 흐름</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>분류</th><th>주요 위치</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>결제</td><td>Operation/Payment/*.cs, Operation/ProcessUnit.cs:51-156</td><td>Danal 카드/휴대폰 자동결제</td></tr>
+<tr><td>푸시</td><td>Operation/Push.cs, Operation/ProcessUnit.cs:167-337</td><td>Android/iOS FCM/APNS/MQTT 발송</td></tr>
+<tr><td>SMS</td><td>Operation/ProcessUnit.cs:348-388</td><td>외부 메시지 DB로 SMS insert</td></tr>
+<tr><td>API 큐</td><td>Operation/ProcessUnit.cs:823 이후 다수</td><td>Kakao/Futurewiz/StockData/StockPoint/Chat API 연동</td></tr>
+<tr><td>AWS</td><td>Operation/Process.cs:80-88, ProcessUnit.cs:3488-4056</td><td>CloudWatch/EC2/RDS 모니터링</td></tr>
+<tr><td>외부 프로세스</td><td>Operation/ProcessUnit.cs:784-808, 1712-1723</td><td>StockRadar/XingData 실행</td></tr>
+<tr><td>YouTube/Bitly/Naver</td><td>Operation/Process.cs:233-302, Utils/NaverLogin.cs</td><td>단축 URL, 라이브 상태, 네이버 카페/로그인</td></tr>
+</tbody></table></div>
+<h2 id="06_RUNTIME_FLOW--예외-처리-종료-조건">예외 처리/종료 조건</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>항목</th><th>위치</th><th>확인된 동작/리스크</th></tr></thead>
+<tbody>
+<tr><td>전역 Dispatcher 예외</td><td>App.xaml.cs:43-48</td><td>Telegram 전송 후 e.Handled=true</td></tr>
+<tr><td>ProcessStart 예외</td><td>MainWindow.xaml.cs:707-717</td><td>ERROR 히스토리 기록 후 finally에서 END 기록</td></tr>
+<tr><td>작업 메소드 예외</td><td>Operation/ProcessUnit.cs 전반</td><td>SetLogProcess 후 throw ex 또는 continue 혼재</td></tr>
+<tr><td>로그 없는 catch</td><td>MainWindow.xaml.cs:266, 754, 777, 826, 872, 900</td><td>예외 삼킴 위험</td></tr>
+<tr><td>중지 버튼</td><td>MainWindow.xaml.cs:928-934</td><td>타이머만 중지, 이미 실행 중인 Thread 취소는 확인되지 않음</td></tr>
+<tr><td>앱 종료</td><td>App.xaml.cs:50-57</td><td>Thread.Sleep(1000) 후 Shutdown</td></tr>
+</tbody></table></div>
+<h2 id="06_RUNTIME_FLOW--확인-필요">확인 필요</h2>
+<ul>
+<li>작업 Thread가 장시간 실행 중일 때 앱 종료/중지 버튼이 실제 작업을 중단하는지 확인 필요.</li>
+<li>DB 스케줄 값이 비정상(null/음수/과도한 interval)일 때 안전 동작 확인 필요.</li>
+</ul>
+<h2 id="06_RUNTIME_FLOW--분석-한계">분석 한계</h2>
+<ul>
+<li>현재 폴더의 소스와 프로젝트 파일을 기준으로 정적 분석했다. 런타임 DB 데이터, 실제 스케줄 설정값, 외부 API 응답, 배포 서버 상태는 실행 검증하지 않았다.</li>
+<li><code>FinUp.Stock.App</code> 및 <code>FinUp.Core.Fundamentals</code>는 프로젝트 참조로 확인되지만 본 리포트의 세부 클래스/메소드 분석 범위는 현재 폴더의 <code>FinUp.Stock.App.AlphaBot</code> 소스에 한정했다.</li>
+<li><code>DBUtil</code>, <code>SqlSender</code>, <code>LogWriter</code>, <code>NetUtil</code> 등 핵심 구현 일부는 참조 프로젝트에 있어 커넥션 해제/SQL 생성/로그 경로의 최종 동작은 <code>확인 필요</code>로 표시했다.</li>
+<li>민감값은 원문 대신 <code>[REDACTED]</code>로 마스킹했다.</li>
+</ul>
+        <footer class="footer">본 HTML은 docs/code-analysis Markdown 산출물을 읽기 좋게 변환한 문서입니다. 민감값은 원본 Markdown 기준으로 마스킹된 상태를 유지합니다.</footer>
+      </article>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,2271 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>네임스페이스/클래스/메소드 분석 - Code Analysis</title>
+  <style>
+:root {
+  --bg: #f6f8fb;
+  --panel: #ffffff;
+  --ink: #1f2937;
+  --muted: #6b7280;
+  --line: #d9e0ea;
+  --accent: #2563eb;
+  --accent-soft: #e8f0ff;
+  --danger: #b91c1c;
+  --code-bg: #0f172a;
+  --code-ink: #e5e7eb;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", "Malgun Gothic", Arial, sans-serif;
+  line-height: 1.65;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); min-height: 100vh; }
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: auto;
+  padding: 24px 18px;
+  background: #111827;
+  color: #f9fafb;
+}
+.sidebar h1 { font-size: 18px; line-height: 1.3; margin: 0 0 14px; }
+.sidebar .meta { color: #cbd5e1; font-size: 12px; margin-bottom: 18px; }
+.nav-section { margin: 18px 0 8px; color: #93c5fd; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.sidebar ul { margin: 0; padding: 0; list-style: none; }
+.sidebar li { margin: 4px 0; }
+.sidebar a { display: block; padding: 7px 9px; border-radius: 8px; color: #e5e7eb; font-size: 13px; }
+.sidebar a:hover, .sidebar a.active { background: rgba(37, 99, 235, .35); text-decoration: none; }
+.content { padding: 36px; }
+.report {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 36px 42px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, .08);
+}
+.report-header {
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--line);
+}
+.report-header h1 { margin: 0 0 6px; font-size: 32px; letter-spacing: -0.04em; }
+.report-header .source { color: var(--muted); font-size: 13px; }
+.toc {
+  margin: 18px 0 28px;
+  padding: 16px 18px;
+  background: var(--accent-soft);
+  border: 1px solid #c7d7fe;
+  border-radius: 12px;
+}
+.toc-title { font-weight: 700; margin-bottom: 8px; }
+.toc ul { margin: 0; padding-left: 20px; }
+h1, h2, h3, h4 { line-height: 1.28; letter-spacing: -0.025em; }
+h1 { font-size: 30px; margin: 24px 0 18px; }
+h2 { font-size: 24px; margin: 34px 0 12px; padding-bottom: 7px; border-bottom: 1px solid var(--line); }
+h3 { font-size: 19px; margin: 26px 0 10px; }
+h4 { font-size: 16px; margin: 20px 0 8px; }
+p { margin: 10px 0; }
+ul, ol { padding-left: 24px; }
+li { margin: 3px 0; }
+.table-wrap { width: 100%; overflow-x: auto; margin: 16px 0 24px; border: 1px solid var(--line); border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; min-width: 680px; background: #fff; }
+th, td { padding: 9px 11px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
+th { position: sticky; top: 0; background: #f1f5f9; color: #0f172a; font-weight: 700; }
+tr:nth-child(even) td { background: #fbfdff; }
+code {
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: #eef2f7;
+  color: #0f172a;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--code-bg);
+  color: var(--code-ink);
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+blockquote { margin: 14px 0; padding: 10px 16px; border-left: 4px solid var(--accent); background: #f8fafc; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 28px 0; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #e5e7eb; color: #374151; font-size: 12px; }
+.redacted { color: var(--danger); font-weight: 700; }
+.report-section { page-break-before: always; margin-top: 42px; padding-top: 16px; border-top: 3px solid var(--line); }
+.report-section:first-of-type { page-break-before: auto; border-top: 0; margin-top: 0; padding-top: 0; }
+.footer { margin-top: 42px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: relative; height: auto; }
+  .content { padding: 18px; }
+  .report { padding: 24px 18px; border-radius: 12px; }
+}
+@media print {
+  .layout { display: block; }
+  .sidebar { display: none; }
+  body { background: #fff; }
+  .content { padding: 0; }
+  .report { max-width: none; border: 0; box-shadow: none; }
+  a { color: inherit; }
+}
+</style>
+</head>
+<body>
+  <div class="layout">
+    
+<aside class="sidebar">
+  <h1>Code Analysis HTML</h1>
+  <div class="meta">생성: 2026-05-15 16:55:17<br>경로: docs/code-analysis/html</div>
+  <div class="nav-section">개별 보고서</div>
+  <ul><li><a href="00_PROJECT_SUMMARY.html">프로젝트 요약</a></li><li><a href="01_FOLDER_STRUCTURE.html">폴더 구조 분석</a></li><li><a href="02_PROJECT_SETTINGS.html">프로젝트 설정 분석</a></li><li><a href="03_CODE_STRUCTURE.html">코드 구조 분석</a></li><li><a class="active" href="04_NAMESPACE_CLASS_METHOD_REPORT.html">네임스페이스/클래스/메소드 분석</a></li><li><a href="05_PROJECT_REFERENCES.html">프로젝트 참조 관계</a></li><li><a href="06_RUNTIME_FLOW.html">런타임 흐름 분석</a></li><li><a href="07_RISKS_AND_REFACTORING_POINTS.html">리스크 및 리팩터링 포인트</a></li></ul>
+  <div class="nav-section">통합 보고서</div>
+  <ul><li><a href="Total_Report.html">Total Report</a></li></ul>
+</aside>
+
+    <main class="content">
+      <article class="report">
+        <header class="report-header">
+          <h1>네임스페이스/클래스/메소드 분석</h1>
+          <div class="source">Source: docs/code-analysis/04_NAMESPACE_CLASS_METHOD_REPORT.md · HTML generated from Markdown report</div>
+        </header>
+        <nav class="toc"><div class="toc-title">목차</div><ul><li class="toc-l1"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--네임스페이스-클래스-메소드-분석-리포트">네임스페이스 / 클래스 / 메소드 분석 리포트</a></li><li class="toc-l2"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--namespace-finup.stock.app.alphabot">Namespace: FinUp.Stock.App.AlphaBot</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-app">Class: App</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-mainwindow">Class: MainWindow</a></li><li class="toc-l2"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--namespace-finup.stock.app.alphabot.operation">Namespace: FinUp.Stock.App.AlphaBot.Operation</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-process">Class: Process</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-processbase">Class: ProcessBase</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-process-2">Class: Process</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-push">Class: Push</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-pushhandsup">Class: PushHandsUp</a></li><li class="toc-l2"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--namespace-finup.stock.app.alphabot.operation.itemstockupload">Namespace: FinUp.Stock.App.AlphaBot.Operation.ItemStockUpload</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-itemstockuploadutil">Class: ItemStockUploadUtil</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-htmltoimageconvert">Class: HtmlToImageConvert</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-publisheditemstockuploadhtml">Class: PublishedItemStockUploadHtml</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-dailyuploadhtml">Class: DailyUploadHtml</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-jsonresult">Class: JsonResult</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-naveroauthbyid">Class: NaverOAuthById</a></li><li class="toc-l2"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--namespace-finup.stock.app.alphabot.operation.payment">Namespace: FinUp.Stock.App.AlphaBot.Operation.Payment</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-billcard">Class: BillCard</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-billcardwiseinvest">Class: BillCardWiseInvest</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-billphone">Class: BillPhone</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-billphonewiseinvest">Class: BillPhoneWiseInvest</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-functioncard">Class: FunctionCard</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-functioncardwiseinvest">Class: FunctionCardWiseInvest</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-functionphone">Class: FunctionPhone</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-functionphonewiseinvest">Class: FunctionPhoneWiseInvest</a></li><li class="toc-l2"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--namespace-finup.stock.app.alphabot.properties">Namespace: FinUp.Stock.App.AlphaBot.Properties</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-resources">Class: Resources</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-settings">Class: Settings</a></li><li class="toc-l2"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--namespace-finup.stock.app.alphabot.type">Namespace: FinUp.Stock.App.AlphaBot.Type</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--enum-awsservicetype">Enum: AWSServiceType</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--enum-awsservicestatus">Enum: AWSServiceStatus</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--enum-awssummarytype">Enum: AWSSummaryType</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-awsmetricmember">Class: AWSMetricMember</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-awsmonitoringmember">Class: AWSMonitoringMember</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-awsmonitoringvaluemember">Class: AWSMonitoringValueMember</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-awsthresholdmember">Class: AWSThresholdMember</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-awsthresholdvaluemember">Class: AWSThresholdValueMember</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-awsthresholdlogmember">Class: AWSThresholdLogMember</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--enum-alphabottype">Enum: AlphaBotType</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--enum-actionstate">Enum: ActionState</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-alphabotmember">Class: AlphaBotMember</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-appauthtokenmember">Class: AppAuthTokenMember</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-appauthparammember">Class: AppAuthParamMember</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-appauthrefreshparammember">Class: AppAuthRefreshParamMember</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-appauthdefaultmember">Class: AppAuthDefaultMember</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-chatmember">Class: ChatMember</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-chatsignalqueue">Class: ChatSignalQueue</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-highlowlistparam">Class: HighLowListParam</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-highlowparam">Class: HighLowParam</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-highlowprice">Class: HighLowPrice</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--enum-operationterm">Enum: OperationTerm</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--enum-threadstatusdispay">Enum: ThreadStatusDispay</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-operationtype">Class: OperationType</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--enum-orderautoresult">Enum: OrderAutoResult</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-orderautotype">Class: OrderAutoType</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--enum-operationtermhistorytype">Enum: OperationTermHistoryType</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--enum-ostype">Enum: OSType</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-pushtarget">Class: PushTarget</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-stringformat">Class: StringFormat</a></li><li class="toc-l2"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--namespace-finup.stock.app.alphabot.utils">Namespace: FinUp.Stock.App.AlphaBot.Utils</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-stock">Class: Stock</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-commonutil">Class: CommonUtil</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-emailhelper">Class: EmailHelper</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-account">Class: Account</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-loginresult">Class: LoginResult</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-naveroauth">Class: NaverOAuth</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-postreponse">Class: PostReponse</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-cafeboardresult">Class: CafeBoardResult</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-oauthmeobject">Class: OAuthMeObject</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-oauthmeinfoobject">Class: OAuthMeInfoObject</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-naverloginhelper">Class: NaverLoginHelper</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-lzstring">Class: LZString</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--struct-datastruct">Struct: dataStruct</a></li><li class="toc-l3"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--class-receiptiosverification">Class: ReceiptiOSVerification</a></li><li class="toc-l2"><a href="#04_NAMESPACE_CLASS_METHOD_REPORT--분석-한계">분석 한계</a></li></ul></nav>
+        <h1 id="04_NAMESPACE_CLASS_METHOD_REPORT--네임스페이스-클래스-메소드-분석-리포트">네임스페이스 / 클래스 / 메소드 분석 리포트</h1>
+<h2 id="04_NAMESPACE_CLASS_METHOD_REPORT--namespace-finup.stock.app.alphabot">Namespace: FinUp.Stock.App.AlphaBot</h2>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-app">Class: App</h3>
+<ul>
+<li>파일 경로: <code>App.xaml.cs</code></li>
+<li>선언 위치: line 17</li>
+<li>역할: App.xaml에 대한 상호 작용 논리</li>
+<li>주요 책임:</li>
+<ul>
+<li>App.xaml에 대한 상호 작용 논리</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) FinUp.Stock.App.Util.TelegramSender telegramSender (line 19)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>App()</code></td><td>(기본값/확인 필요)</td><td>public</td><td>App.xaml에 대한 상호 작용 논리 (<code>App.xaml.cs:20</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>CurrentDomain_UnhandledException()</code></td><td>private</td><td>void</td><td>App.xaml에 대한 상호 작용 논리 (<code>App.xaml.cs:30</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>Dispatcher_UnhandledExceptionFilter()</code></td><td>private</td><td>void</td><td>확인 필요 (<code>App.xaml.cs:37</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>Dispatcher_UnhandledException()</code></td><td>private</td><td>void</td><td>확인 필요 (<code>App.xaml.cs:42</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>OnExit()</code></td><td>protected</td><td>void</td><td>확인 필요 (<code>App.xaml.cs:49</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>SendTelegram()</code></td><td>public</td><td>void</td><td>메시지/메일/푸시를 발송한다 (<code>App.xaml.cs:58</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-mainwindow">Class: MainWindow</h3>
+<ul>
+<li>파일 경로: <code>MainWindow.xaml.cs</code></li>
+<li>선언 위치: line 25</li>
+<li>역할: MainWindow.xaml에 대한 상호 작용 논리</li>
+<li>주요 책임:</li>
+<ul>
+<li>MainWindow.xaml에 대한 상호 작용 논리</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-2">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) int iObserveTime (line 31)</td></tr>
+<tr><td>필드/속성</td><td>private SqlSender sqlMain (line 38)</td></tr>
+<tr><td>필드/속성</td><td>private System.Windows.Threading.DispatcherTimer tMainTimer (line 47)</td></tr>
+<tr><td>필드/속성</td><td>private System.Windows.Threading.DispatcherTimer tObserveTimer (line 48)</td></tr>
+<tr><td>필드/속성</td><td>private System.Windows.Threading.DispatcherTimer tAlphaBotTimer (line 49)</td></tr>
+<tr><td>필드/속성</td><td>private ObservableCollection&lt;AlphaBotMember&gt; _lstMember (line 50)</td></tr>
+<tr><td>필드/속성</td><td>public ObservableCollection&lt;AlphaBotMember&gt; lstMember (line 52)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-2">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>MainWindow()</code></td><td>(기본값/확인 필요)</td><td>public</td><td>확인 필요 (<code>MainWindow.xaml.cs:59</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>InitializeMember()</code></td><td>private</td><td>void</td><td>멤버 초기화 (<code>MainWindow.xaml.cs:73</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>GetDBUtil()</code></td><td>private</td><td>DBUtil</td><td>Get DBUtil (<code>MainWindow.xaml.cs:115</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>Load()</code></td><td>private</td><td>void</td><td>최초 수행 프로세스 값설정 (<code>MainWindow.xaml.cs:123</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>ProcessObserve()</code></td><td>private</td><td>void</td><td>프로세스 쓰레드 관찰 (<code>MainWindow.xaml.cs:200</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>ProcessAliveAlphaBot()</code></td><td>private</td><td>void</td><td>프로세스 실행 또는 타이머 처리를 수행한다 (<code>MainWindow.xaml.cs:268</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>ProcessConfirm()</code></td><td>private</td><td>void</td><td>멤버 초기화 후 시작 프로세스 (<code>MainWindow.xaml.cs:293</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>UpdateData()</code></td><td>private</td><td>void</td><td>데이터 업데이트 프로그램 실행시 추가된 리스트의 상태 변경 (<code>MainWindow.xaml.cs:352</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>GetActionOperation()</code></td><td>private</td><td>ActionOperation</td><td>Index To Action (해당 인덱스키 별로 수행할 프로세스 맵핑) (<code>MainWindow.xaml.cs:419</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>ProcessStart()</code></td><td>private</td><td>void</td><td>Action 수행 (<code>MainWindow.xaml.cs:678</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetLoopTimeToRun()</code></td><td>private</td><td>bool</td><td>Loop일때 실행여부 확인 (<code>MainWindow.xaml.cs:742</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetBetweenTime()</code></td><td>private</td><td>bool</td><td>Loop일때 현재 시간이 설정된 시간 사이에 있는 확인 (<code>MainWindow.xaml.cs:765</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetOnceTimeToRun()</code></td><td>private</td><td>bool</td><td>하루 한번 실행여부 (<code>MainWindow.xaml.cs:787</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>SetLog()</code></td><td>private</td><td>void</td><td>로그 설정 (<code>MainWindow.xaml.cs:840</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>SetOperationTermHistory()</code></td><td>private</td><td>void</td><td>상태 또는 로그/DB 값을 저장한다 (<code>MainWindow.xaml.cs:884</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>btnStart_Click()</code></td><td>private</td><td>void</td><td>프로세스 시작 (<code>MainWindow.xaml.cs:912</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>btnStop_Click()</code></td><td>private</td><td>void</td><td>프로세스 스톱 (<code>MainWindow.xaml.cs:928</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>btnManual_Click()</code></td><td>private</td><td>void</td><td>수동 실행 (<code>MainWindow.xaml.cs:941</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-2">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h2 id="04_NAMESPACE_CLASS_METHOD_REPORT--namespace-finup.stock.app.alphabot.operation">Namespace: FinUp.Stock.App.AlphaBot.Operation</h2>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-process">Class: Process</h3>
+<ul>
+<li>파일 경로: <code>Operation/Process.cs</code></li>
+<li>선언 위치: line 37</li>
+<li>역할: 배치/연동 업무 로직을 묶은 partial 클래스이다</li>
+<li>주요 책임:</li>
+<ul>
+<li>배치/연동 업무 로직을 묶은 partial 클래스이다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-3">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>private System.Diagnostics.Process ProcessStockRadar (line 46)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) AWSCredentials AWSCredential (line 57)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) AmazonCloudWatchClient CloudWatchClient (line 62)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) List&lt;AWSMetricMember&gt; MetricList (line 67)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string serviceAccountFile (line 68)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) FirebaseApp FirebaseApp (line 70)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-3">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>Process()</code></td><td>(기본값/확인 필요)</td><td>public</td><td>생성자 (<code>Operation/Process.cs:78</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>GetMetric()</code></td><td>private</td><td>void</td><td>지표 조회 (<code>Operation/Process.cs:94</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>GetStandardUnit()</code></td><td>private</td><td>StandardUnit</td><td>Get 측정 단위 (<code>Operation/Process.cs:121</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>SetOperationTermHistory()</code></td><td>private</td><td>void</td><td>히스토리 DB Insert (<code>Operation/Process.cs:149</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>SetLogProcess()</code></td><td>private</td><td>void</td><td>로그 기록 (<code>Operation/Process.cs:170</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>LogVirtualCurrency()</code></td><td>private</td><td>void</td><td>가상화폐 로그 저장 공통 (<code>Operation/Process.cs:186</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>WriteLogVirtualCurrency()</code></td><td>private</td><td>void</td><td>가상화폐 거래소 전용 로그기록 (<code>Operation/Process.cs:218</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>ShortenUrl()</code></td><td>public</td><td>Task&lt;string&gt;</td><td>Short URL Process (<code>Operation/Process.cs:233</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>GetYoutubeLiveStatus()</code></td><td>public</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/Process.cs:265</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-3">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-processbase">Class: ProcessBase</h3>
+<ul>
+<li>파일 경로: <code>Operation/ProcessBase.cs</code></li>
+<li>선언 위치: line 13</li>
+<li>역할: 공통 설정 로딩, DBUtil 생성, SQL 헬퍼 초기화를 담당한다</li>
+<li>주요 책임:</li>
+<ul>
+<li>공통 설정 로딩, DBUtil 생성, SQL 헬퍼 초기화를 담당한다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-4">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>protected WriteLog SetLog (line 18)</td></tr>
+<tr><td>필드/속성</td><td>protected bool bIsReal (line 23)</td></tr>
+<tr><td>필드/속성</td><td>protected string API_KAKAO_ACCESS_TOKEN (line 33)</td></tr>
+<tr><td>필드/속성</td><td>protected string API_KAKAO_URL_PRODUCT (line 34)</td></tr>
+<tr><td>필드/속성</td><td>protected string API_KAKAO_URL_PRODUCT_PURCHASED (line 35)</td></tr>
+<tr><td>필드/속성</td><td>protected string API_FUTUREWIZ_URL_CHAT (line 42)</td></tr>
+<tr><td>필드/속성</td><td>protected string API_NAVER_FINANCE (line 43)</td></tr>
+<tr><td>필드/속성</td><td>protected SqlSender sqlOrderAuto (line 49)</td></tr>
+<tr><td>필드/속성</td><td>protected SqlSender sqlSms (line 51)</td></tr>
+<tr><td>필드/속성</td><td>protected SqlMonitor sqlMonitor (line 52)</td></tr>
+<tr><td>필드/속성</td><td>protected SqlSender sqlMain (line 53)</td></tr>
+<tr><td>필드/속성</td><td>protected SqlSender sqlAlarm (line 54)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-4">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>ProcessBase()</code></td><td>(기본값/확인 필요)</td><td>public</td><td>프로세스 실행 또는 타이머 처리를 수행한다 (<code>Operation/ProcessBase.cs:97</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetDBUtil()</code></td><td>protected</td><td>DBUtil</td><td>Get DBUtil (<code>Operation/ProcessBase.cs:140</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetDBUtilMySQL()</code></td><td>protected</td><td>DBUtilMySQL</td><td>Get DBUtilMySQL (<code>Operation/ProcessBase.cs:152</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-4">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-process-2">Class: Process</h3>
+<ul>
+<li>파일 경로: <code>Operation/ProcessUnit.cs</code></li>
+<li>선언 위치: line 42</li>
+<li>역할: 배치/연동 업무 로직을 묶은 partial 클래스이다</li>
+<li>주요 책임:</li>
+<ul>
+<li>배치/연동 업무 로직을 묶은 partial 클래스이다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-5">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-5">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>OrderAuto()</code></td><td>public</td><td>void</td><td>자동 결제 (<code>Operation/ProcessUnit.cs:51</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>AppPush()</code></td><td>public</td><td>void</td><td>앱 푸시 발송 (<code>Operation/ProcessUnit.cs:167</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>SMS()</code></td><td>public</td><td>void</td><td>SMS발송 (<code>Operation/ProcessUnit.cs:348</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>StockCollector()</code></td><td>public</td><td>void</td><td>종목 수집 알림 (<code>Operation/ProcessUnit.cs:399</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>SmsMonitor()</code></td><td>public</td><td>void</td><td>개발팀 SMS발송 (<code>Operation/ProcessUnit.cs:431</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>SalesStockPoint()</code></td><td>public</td><td>void</td><td>매출현황 (<code>Operation/ProcessUnit.cs:457</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>ItemStockSearchingManual()</code></td><td>public</td><td>void</td><td>종목 네이버 현재가와 비교 (이전 버전) (<code>Operation/ProcessUnit.cs:504</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>NaverStockPriceCompare()</code></td><td>public</td><td>void</td><td>종목 네이버 현재가와 비교 (<code>Operation/ProcessUnit.cs:574</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>Alarm()</code></td><td>public</td><td>void</td><td>메신져 알림 발송 (<code>Operation/ProcessUnit.cs:745</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>OpenStockRadar()</code></td><td>public</td><td>void</td><td>StockRadar 실행 (<code>Operation/ProcessUnit.cs:784</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>ApiService()</code></td><td>public</td><td>void</td><td>API Service 연동 (<code>Operation/ProcessUnit.cs:823</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>ApiServiceKakao()</code></td><td>public</td><td>void</td><td>API Service 연동 (Kakao) (<code>Operation/ProcessUnit.cs:913</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>ApiServiceKakaoContentsReg()</code></td><td>private</td><td>void</td><td>ApiService 카카오스탁 컨텐츠 등록 ComIdx: 100 (<code>Operation/ProcessUnit.cs:931</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>ApiServiceKakaoContentsApproveCheck()</code></td><td>private</td><td>void</td><td>ApiService 카카오스탁 컨텐츠 승인 확인 ComIdx: 120 (<code>Operation/ProcessUnit.cs:1085</code>)</td><td>Y</td><td>Y</td><td>N</td></tr>
+<tr><td><code>ApiServiceKakaoSalesGet()</code></td><td>private</td><td>void</td><td>ApiService 카카오스탁 판매건수 조회 ComIdx: 110 (<code>Operation/ProcessUnit.cs:1182</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>ApiServiceFuturewizChatInsert()</code></td><td>public</td><td>void</td><td>VideoChat 정보를 주기적으로 T_ApiServiceQueue에 저장 (<code>Operation/ProcessUnit.cs:1275</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>ApiServiceFuturewizChatGet()</code></td><td>private</td><td>void</td><td>ApiService 퓨처위즈 채팅내역 저장 ComIdx: 200 (<code>Operation/ProcessUnit.cs:1301</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>KrxData()</code></td><td>public</td><td>void</td><td>KRX Data 증권거래소의 특이종목을 업데이트 (<code>Operation/ProcessUnit.cs:1411</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>OpenXingDataRealTime()</code></td><td>public</td><td>void</td><td>실시간 종목 수집 프로그램을 실행한다. (<code>Operation/ProcessUnit.cs:1712</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>ApiVirtualCurrency()</code></td><td>public</td><td>void</td><td>가상화폐 정보 수집 (<code>Operation/ProcessUnit.cs:1739</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>GetApiExchangeRateUSD()</code></td><td>private</td><td>double</td><td>환율 정보를 가져 온다. (<code>Operation/ProcessUnit.cs:1899</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>GetApiVirtualCurrencyBithumb()</code></td><td>private</td><td>void</td><td>빗썸 Api 호출 하여 데이터를 저장 (<code>Operation/ProcessUnit.cs:1954</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>GetApiVirtualCurrencyCoinone()</code></td><td>private</td><td>void</td><td>코인원 Api 호출 하여 데이터를 저장 (<code>Operation/ProcessUnit.cs:2048</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>GetApiVirtualCurrencyKorbit()</code></td><td>private</td><td>void</td><td>코빗 Api 호출 하여 데이터를 저장 (<code>Operation/ProcessUnit.cs:2140</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>GetApiVirtualCurrencyCpdax()</code></td><td>private</td><td>void</td><td>코인플러그 Api 호출 하여 데이터를 저장 (<code>Operation/ProcessUnit.cs:2228</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>GetApiVirtualCurrencyCoinnest()</code></td><td>private</td><td>void</td><td>코인네스트 Api 호출 하여 데이터를 저장 (<code>Operation/ProcessUnit.cs:2316</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>GetApiVirtualCurrencyPoloniex()</code></td><td>private</td><td>void</td><td>폴로닉스 Api 호출 하여 데이터를 저장 (<code>Operation/ProcessUnit.cs:2404</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>GetApiVirtualCurrencyBittrex()</code></td><td>private</td><td>void</td><td>비트렉스 Api 호출 하여 데이터를 저장 (<code>Operation/ProcessUnit.cs:2498</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>GetApiVirtualCurrencyUpbit()</code></td><td>private</td><td>void</td><td>업비트 Api 호출 하여 데이터를 저장 (<code>Operation/ProcessUnit.cs:2626</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>GetApiVirtualCurrencyBitfinex()</code></td><td>private</td><td>void</td><td>파인넥스 Api 호출 하여 데이터를 저장 (<code>Operation/ProcessUnit.cs:2726</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>SetApiVirtualCurrencyData()</code></td><td>private</td><td>void</td><td>가상화폐 정보 저장 (<code>Operation/ProcessUnit.cs:2830</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>SiteCheckStockPoint()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:2878</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>PriceMornitoring()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:2912</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>HandsUpPush()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:2987</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>HandsUpCoupon()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:3019</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>ServerChatLoadCacheCheck()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:3043</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>ServerMainWebLoadCache()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:3091</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>BatContentsSatisfactionNotify()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:3121</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>BatReviewNotify()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:3150</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>BatCouponUnUsedNotify()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:3174</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>CheckSignalQueue()</code></td><td>public</td><td>void</td><td>상태를 검사한다 (<code>Operation/ProcessUnit.cs:3199</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>checkSignalPrice()</code></td><td>private</td><td>bool</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:3262</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>ClearSignalQueue()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:3292</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>SetCheckChatSignal()</code></td><td>private</td><td>void</td><td>상태 또는 로그/DB 값을 저장한다 (<code>Operation/ProcessUnit.cs:3332</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>ApiSiteHealthCheck()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:3348</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>AuthAppHealthCheck()</code></td><td>public</td><td>AppAuthTokenMember</td><td>로그인 체크 (<code>Operation/ProcessUnit.cs:3398</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>AuthRefreshHealthCheck()</code></td><td>public</td><td>void</td><td>토큰 체크 (<code>Operation/ProcessUnit.cs:3441</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>AWSMonitoring()</code></td><td>public</td><td>void</td><td>AWS 모니터링 Operation (<code>Operation/ProcessUnit.cs:3488</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>GetMonitoringList()</code></td><td>private</td><td>List&lt;AWSMonitoringMember&gt;</td><td>모니터링 데이터 수집 및 DB 저장 (<code>Operation/ProcessUnit.cs:3520</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>GetMonitoringMemberList()</code></td><td>private</td><td>List&lt;AWSMonitoringMember&gt;</td><td>모니터링 서비스 멤버 조회 (<code>Operation/ProcessUnit.cs:3567</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>IsMonitoringEnable()</code></td><td>private</td><td>bool</td><td>서비스의 모니터링 가능 여부 return (<code>Operation/ProcessUnit.cs:3631</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>GetStatistics()</code></td><td>private</td><td>void</td><td>모니터링 데이터 수집 (<code>Operation/ProcessUnit.cs:3715</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>InsertMonitoringValue()</code></td><td>private</td><td>void</td><td>모니터링 데이터 DB 저장 (<code>Operation/ProcessUnit.cs:3857</code>)</td><td>Y</td><td>Y</td><td>N</td></tr>
+<tr><td><code>ThresholdCheck()</code></td><td>private</td><td>void</td><td>임계치 체크 (<code>Operation/ProcessUnit.cs:3903</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>GetThresholdList()</code></td><td>private</td><td>List&lt;AWSThresholdMember&gt;</td><td>Get 현 시간 임계치 리스트 (<code>Operation/ProcessUnit.cs:4006</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>InsertThresholdLog()</code></td><td>private</td><td>void</td><td>임계치 로그 DB 저장 (<code>Operation/ProcessUnit.cs:4056</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>AWSMonitoringSummaryOneHour()</code></td><td>public</td><td>void</td><td>AWS 서비스 상태/지표를 수집한다 (<code>Operation/ProcessUnit.cs:4110</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>AWSMonitoringSummaryOneDay()</code></td><td>public</td><td>void</td><td>AWS 서비스 상태/지표를 수집한다 (<code>Operation/ProcessUnit.cs:4122</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>AWSMonitoringSummaryInsert()</code></td><td>public</td><td>void</td><td>모니터링 데이터 집계 (<code>Operation/ProcessUnit.cs:4139</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>ApiServicePublishedItemStockQueueInsert()</code></td><td>public</td><td>void</td><td>게시된 추천종목 ApiServiceQueue에 등록 (<code>Operation/ProcessUnit.cs:4177</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>ApiServicePublishedItemStockToExternalSiteUpload()</code></td><td>public</td><td>void</td><td>게시된 추천종목 외부 사이트 업로드 (<code>Operation/ProcessUnit.cs:4210</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>ApiServiceItemStockToExternalSiteUploadDaily()</code></td><td>public</td><td>void</td><td>추천종목 외부 사이트 정기 업로드 (<code>Operation/ProcessUnit.cs:4331</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>MyMentorActivityExpired()</code></td><td>public</td><td>void</td><td>My 멘토 알리미의 멘토 활동 기간 종료예정 알람 (3일전 발송) (<code>Operation/ProcessUnit.cs:4404</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>PackageISMentorItemStockUnderCnt()</code></td><td>public</td><td>void</td><td>프리미엄 추천종목 멘토의 추천종목 등록 미달 알람 (매주 수요일 16:00) (<code>Operation/ProcessUnit.cs:4428</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>MyMentorUserSelectCheck()</code></td><td>public</td><td>void</td><td>CS에 My 멘토 알리미 사용자 중 멘토 미선택된 사용자 1:1등록 (<code>Operation/ProcessUnit.cs:4446</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>SiteAttackCheck()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:4474</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>CheckOrderAutoReceipt()</code></td><td>public</td><td>void</td><td>자동 결제 (<code>Operation/ProcessUnit.cs:4514</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>CheckReceipt()</code></td><td>public</td><td>string[]</td><td>상태를 검사한다 (<code>Operation/ProcessUnit.cs:4711</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>CheckReceiptiOS()</code></td><td>public</td><td>JObject</td><td>상태를 검사한다 (<code>Operation/ProcessUnit.cs:4797</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>ApiServicePublishedMentorMarketQueueInsert()</code></td><td>public</td><td>void</td><td>게시된 멘토시황 ApiServiceQueue에 등록 (<code>Operation/ProcessUnit.cs:4820</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>ApiServicePublishedMentorMarketToExternalSiteUpload()</code></td><td>public</td><td>void</td><td>게시된 멘토시황 외부 사이트 업로드 (<code>Operation/ProcessUnit.cs:4853</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>InactiveUserEmailSend()</code></td><td>public</td><td>void</td><td>휴면계정 사용자 Email 전송 (<code>Operation/ProcessUnit.cs:4957</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>BatInactiveUserQueue()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:5044</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>EmailSend()</code></td><td>public</td><td>void</td><td>Email 전송 (<code>Operation/ProcessUnit.cs:5073</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>EmailSendCompleted()</code></td><td>private</td><td>void</td><td>메일 발송 정보 업데이트 (<code>Operation/ProcessUnit.cs:5138</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>LGUItemStockSearch()</code></td><td>public</td><td>void</td><td>슬기로운 투자생활 추천종목 조회 (<code>Operation/ProcessUnit.cs:5172</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>LGUDailySendMessage()</code></td><td>public</td><td>void</td><td>슬기로운 투자생활 알람 (<code>Operation/ProcessUnit.cs:5215</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>SMSExternalLGUPlus()</code></td><td>public</td><td>void</td><td>외부 알림 SMS - LG U+ (<code>Operation/ProcessUnit.cs:5251</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>ExternalExtensionSubscribe()</code></td><td>public</td><td>void</td><td>슬기로운 투자생활 연장 구독 처리 (<code>Operation/ProcessUnit.cs:5309</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>ChangeServieceGuideTomorrow()</code></td><td>public</td><td>void</td><td>슬기로운 투자생활 - 슬기로운 투자생활 유료전환 1일전 안내 (<code>Operation/ProcessUnit.cs:5351</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>ChangeServieceGuideToDay()</code></td><td>public</td><td>void</td><td>슬기로운 투자생활 - 슬기로운 투자생활 유료전환 안내(전환 당일) (<code>Operation/ProcessUnit.cs:5387</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>MonitoringAWSServiceSiteCheck()</code></td><td>public</td><td>void</td><td>사이트 동작 체크 (<code>Operation/ProcessUnit.cs:5423</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>UserNotifyAgreeMarketing()</code></td><td>public</td><td>void</td><td>마케팅 수신동의 안내 (<code>Operation/ProcessUnit.cs:5522</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>ExternalSubscribeCancel()</code></td><td>public</td><td>void</td><td>슬기로운 투자생활 해지 처리 (LG U+) (<code>Operation/ProcessUnit.cs:5592</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>LDInsightMentorDailyReportAlarm()</code></td><td>public</td><td>void</td><td>투자 인사이트 멘토 데일리 리포트 미등록 알람 (<code>Operation/ProcessUnit.cs:5644</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>ContentsOrderAutoEndUserNotify()</code></td><td>public</td><td>void</td><td>자동결제 만료예정 알람 (<code>Operation/ProcessUnit.cs:5695</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>ContentsUserCancelFreeChatMentor()</code></td><td>public</td><td>void</td><td>멘토 무료 채팅방 -  멘토 무료 채팅장 장기간 미입장 유저 구독 해지 (<code>Operation/ProcessUnit.cs:5728</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>TssaChallengerLeagueUpdate()</code></td><td>public</td><td>void</td><td>TSSA 챌린저 강등 처리 (<code>Operation/ProcessUnit.cs:5762</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>TssaLeagueUserLog()</code></td><td>public</td><td>void</td><td>TSSA 통계 업데이트 (<code>Operation/ProcessUnit.cs:5796</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>TssaMissionUserMVP()</code></td><td>public</td><td>void</td><td>리그 MVP 익일 5일 처리 (<code>Operation/ProcessUnit.cs:5830</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>TssaLeagueItemStockStatusUpdate()</code></td><td>public</td><td>void</td><td>TSSA 당일 종료 종목 처리 (<code>Operation/ProcessUnit.cs:5863</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>SMSExternalDanal()</code></td><td>public</td><td>void</td><td>외부 알림 SMS - 다날 (<code>Operation/ProcessUnit.cs:5896</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>WiseInvestStockEndBriefing()</code></td><td>public</td><td>void</td><td>슬기로운 투자생활 - 장마감 브리핑 (<code>Operation/ProcessUnit.cs:6106</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>FinUpEventItemStockStatusUpdate()</code></td><td>public</td><td>void</td><td>FinUp 신규가입자 증대 이벤트 종목 종료 처리 (<code>Operation/ProcessUnit.cs:6136</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>NaverCafeAttendBoardAutoUpload()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:6168</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>OrderAutoWiseInvest()</code></td><td>public</td><td>void</td><td>자동 결제 - 슬기로운 투자생활 (<code>Operation/ProcessUnit.cs:6246</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>TssaItemStockTelegramAlarm()</code></td><td>public</td><td>void</td><td>TSSA 추천종목 텔레그램 마케팅 알림 수집 (<code>Operation/ProcessUnit.cs:6342</code>)</td><td>Y</td><td>Y</td><td>N</td></tr>
+<tr><td><code>ApiServiceTssaItemStockTelegramAlarm()</code></td><td>private</td><td>void</td><td>TSSA 추천종목 텔레그램 마케팅 알림 등록 (<code>Operation/ProcessUnit.cs:6367</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>ItemStockTelegramAlarm()</code></td><td>public</td><td>void</td><td>추천종목 텔레그램 마케팅 알림 수집 (<code>Operation/ProcessUnit.cs:6472</code>)</td><td>Y</td><td>Y</td><td>N</td></tr>
+<tr><td><code>ApiServiceItemStockTelegramAlarm()</code></td><td>private</td><td>void</td><td>추천종목 텔레그램 마케팅 알림 수집 (<code>Operation/ProcessUnit.cs:6492</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>GetThemeDiff()</code></td><td>private</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ProcessUnit.cs:6618</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>ChangeServieceGuide7DaysAgo()</code></td><td>public</td><td>void</td><td>슬기로운 투자생활 - 슬기로운 투자생활 유료전환 7일전 안내 (<code>Operation/ProcessUnit.cs:6656</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>SuperStockKLeagueItemStockStatusUpdate()</code></td><td>public</td><td>void</td><td>당일 종료 종목 처리 (<code>Operation/ProcessUnit.cs:6694</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>SuperStockKLeagueUserLog()</code></td><td>public</td><td>void</td><td>슈퍼스탁K 통계 업데이트 (<code>Operation/ProcessUnit.cs:6724</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>PointDisappearanceUserQueue()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:6755</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>PointDisappearanceUserQueueEmailSend()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:6781</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>PointDisappearanceUserProcess()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:6857</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>ContentsViewLogUpdateProcess()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:6883</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>ApiServiceChatUserUpsert()</code></td><td>public</td><td>void</td><td>Api 통신 - 채팅 유저 생성 (<code>Operation/ProcessUnit.cs:6912</code>)</td><td>Y</td><td>Y</td><td>N</td></tr>
+<tr><td><code>ApiServiceChatUserCancel()</code></td><td>public</td><td>void</td><td>Api 통신 - 채팅 유저 취소 (<code>Operation/ProcessUnit.cs:6982</code>)</td><td>Y</td><td>Y</td><td>N</td></tr>
+<tr><td><code>ApiServiceChatInsert()</code></td><td>public</td><td>void</td><td>Api 통신 - 채팅방 생성 (<code>Operation/ProcessUnit.cs:7023</code>)</td><td>Y</td><td>Y</td><td>N</td></tr>
+<tr><td><code>ApiServiceChatUpdate()</code></td><td>public</td><td>void</td><td>Api 통신 - 채팅방 수정 (<code>Operation/ProcessUnit.cs:7096</code>)</td><td>Y</td><td>Y</td><td>N</td></tr>
+<tr><td><code>ApiServiceChatUserDelete()</code></td><td>public</td><td>void</td><td>Api 통신 - 채팅방 참여자 방출 (<code>Operation/ProcessUnit.cs:7185</code>)</td><td>Y</td><td>Y</td><td>N</td></tr>
+<tr><td><code>ApiServiceChatUserInsert()</code></td><td>public</td><td>void</td><td>Api 통신 - Chat.T_User INSERT (<code>Operation/ProcessUnit.cs:7251</code>)</td><td>Y</td><td>Y</td><td>N</td></tr>
+<tr><td><code>ApiServiceChatUserUpdate()</code></td><td>public</td><td>void</td><td>Api 통신 - Chat.T_User ProfileImage UPDATE (<code>Operation/ProcessUnit.cs:7300</code>)</td><td>Y</td><td>Y</td><td>N</td></tr>
+<tr><td><code>ApiServiceUserNicknameUpdate()</code></td><td>public</td><td>void</td><td>Api 통신 - Chat.T_User Nickname UPDATE (<code>Operation/ProcessUnit.cs:7348</code>)</td><td>Y</td><td>Y</td><td>N</td></tr>
+<tr><td><code>SuperStockKTopRankerItemStockAlram()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:7394</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>YoutubeChannelLiveStatusUpdate()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:7468</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>BatEventBoxUserDecompose()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:7541</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>BatEventBoxUserDivisionCoinAlarm()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:7567</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>BatCoinDisappearanceUserProcess()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:7593</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>USPPointLogInactiveDuplicate()</code></td><td>public</td><td>void</td><td>확인 필요 (<code>Operation/ProcessUnit.cs:7620</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-5">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-push">Class: Push</h3>
+<ul>
+<li>파일 경로: <code>Operation/Push.cs</code></li>
+<li>선언 위치: line 22</li>
+<li>역할: Android/iOS/FCM/MQTT 푸시 발송을 담당한다</li>
+<li>주요 책임:</li>
+<ul>
+<li>Android/iOS/FCM/MQTT 푸시 발송을 담당한다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-6">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string ANDROID_API_KEY (line 25)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string ANDROID_JSON_MAPP (line 26)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string SMS (line 28)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string MQTT_MSG_FORMAT (line 29)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string STOCKPOINT_IOS (line 30)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-6">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>Push()</code></td><td>(기본값/확인 필요)</td><td>public</td><td>확인 필요 (<code>Operation/Push.cs:47</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>SendAndroid()</code></td><td>public</td><td>void</td><td>Sends push message for android. (<code>Operation/Push.cs:59</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>SendAndroidV1()</code></td><td>public</td><td>void</td><td>신규 안드로이드 푸시 (<code>Operation/Push.cs:99</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>SendIOSFcm()</code></td><td>public</td><td>void</td><td>Sends push message for android. (<code>Operation/Push.cs:144</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>SendIOSFcmV1()</code></td><td>public</td><td>void</td><td>메시지/메일/푸시를 발송한다 (<code>Operation/Push.cs:175</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>SendIOS()</code></td><td>public</td><td>string</td><td>메시지/메일/푸시를 발송한다 (<code>Operation/Push.cs:215</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>ValidateServerCertificate()</code></td><td>private</td><td>bool</td><td>확인 필요 (<code>Operation/Push.cs:261</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>HexStringToByteArray()</code></td><td>private</td><td>byte[]</td><td>확인 필요 (<code>Operation/Push.cs:266</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>StringToByteArray()</code></td><td>public</td><td>byte[]</td><td>확인 필요 (<code>Operation/Push.cs:277</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>SendMqtt()</code></td><td>public</td><td>string</td><td>메시지/메일/푸시를 발송한다 (<code>Operation/Push.cs:289</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>SendFCM()</code></td><td>public</td><td>string</td><td>메시지/메일/푸시를 발송한다 (<code>Operation/Push.cs:306</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-6">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-pushhandsup">Class: PushHandsUp</h3>
+<ul>
+<li>파일 경로: <code>Operation/Push.cs</code></li>
+<li>선언 위치: line 351</li>
+<li>역할: 확인 필요</li>
+<li>주요 책임:</li>
+<ul>
+<li>확인 필요</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-7">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string SERVER_PUSH_KEY (line 355)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string PUSH_IOS (line 356)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string PUSH_ANDROID (line 368)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-7">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>SendPushMessage()</code></td><td>public</td><td>void</td><td>메시지/메일/푸시를 발송한다 (<code>Operation/Push.cs:378</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>SetDevicesReplace()</code></td><td>private</td><td>string</td><td>상태 또는 로그/DB 값을 저장한다 (<code>Operation/Push.cs:408</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>SendPush()</code></td><td>private</td><td>bool</td><td>메시지/메일/푸시를 발송한다 (<code>Operation/Push.cs:416</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-7">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h2 id="04_NAMESPACE_CLASS_METHOD_REPORT--namespace-finup.stock.app.alphabot.operation.itemstockupload">Namespace: FinUp.Stock.App.AlphaBot.Operation.ItemStockUpload</h2>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-itemstockuploadutil">Class: ItemStockUploadUtil</h3>
+<ul>
+<li>파일 경로: <code>Operation/ItemStockUpload/ItemStockUploadUtil.cs</code></li>
+<li>선언 위치: line 17</li>
+<li>역할: 외부 연동 또는 공통 유틸리티 기능을 제공한다</li>
+<li>주요 책임:</li>
+<ul>
+<li>외부 연동 또는 공통 유틸리티 기능을 제공한다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-8">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-8">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>GetNaverLogin()</code></td><td>public</td><td>NaverLoginHelper</td><td>네이버 로그인 함수 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:22</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>ImagePostSend()</code></td><td>public</td><td>JsonResult</td><td>이미지 업로드 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:93</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>ReadFileToBoundary()</code></td><td>public</td><td>byte[]</td><td>확인 필요 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:148</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-8">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-htmltoimageconvert">Class: HtmlToImageConvert</h3>
+<ul>
+<li>파일 경로: <code>Operation/ItemStockUpload/ItemStockUploadUtil.cs</code></li>
+<li>선언 위치: line 169</li>
+<li>역할: 확인 필요</li>
+<li>주요 책임:</li>
+<ul>
+<li>확인 필요</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-9">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>private System.Threading.ManualResetEvent manualReset (line 172)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-9">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>Convert()</code></td><td>public</td><td>JsonResult</td><td>확인 필요 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:173</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-9">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-publisheditemstockuploadhtml">Class: PublishedItemStockUploadHtml</h3>
+<ul>
+<li>파일 경로: <code>Operation/ItemStockUpload/ItemStockUploadUtil.cs</code></li>
+<li>선언 위치: line 247</li>
+<li>역할: 확인 필요</li>
+<li>주요 책임:</li>
+<ul>
+<li>확인 필요</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-10">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string filePath (line 250)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string ResultHtml (line 251)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string WrapperHtml (line 252)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string ContentsHtml (line 253)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string ProfitRowHtml (line 254)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string SubscribeButtonHtml (line 255)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string ReviewHtml (line 256)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string FinUpImgUrl (line 257)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string FinUpStockUrl (line 259)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string imagePath (line 260)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string filePath (line 460)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string wrapperHtml (line 461)</td></tr>
+<tr><td>필드/속성</td><td>public string ResultCode (line 613)</td></tr>
+<tr><td>필드/속성</td><td>public string ResultImage (line 614)</td></tr>
+<tr><td>필드/속성</td><td>public string NaverId (line 621)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-10">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>GetResultUploadHtml()</code></td><td>public</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:262</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>GetContentsImage()</code></td><td>private</td><td>JsonResult</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:332</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetProfitImage()</code></td><td>private</td><td>JsonResult</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:345</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetSubscribeButtonImage()</code></td><td>private</td><td>JsonResult</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:358</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetReviewImage()</code></td><td>private</td><td>JsonResult</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:371</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetResultHtml()</code></td><td>private</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:384</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetWrapperHtml()</code></td><td>private</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:392</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetContentsHtml()</code></td><td>private</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:400</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetProfitRowHtml()</code></td><td>private</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:427</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetSubscribeButtonHtml()</code></td><td>private</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:438</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetReviewHtml()</code></td><td>private</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:446</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetWrapperHtml()</code></td><td>public</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:476</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>GetResultHtml()</code></td><td>public</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:517</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetDailyHtml()</code></td><td>private</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:549</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetButtonHtml()</code></td><td>private</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:584</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetButtonImage()</code></td><td>private</td><td>JsonResult</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:594</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>NaverOAuthById()</code></td><td>(기본값/확인 필요)</td><td>public</td><td>Response Result Code (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:622</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>NaverOAuthById()</code></td><td>(기본값/확인 필요)</td><td>public</td><td>Response Result Code (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:627</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-10">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-dailyuploadhtml">Class: DailyUploadHtml</h3>
+<ul>
+<li>파일 경로: <code>Operation/ItemStockUpload/ItemStockUploadUtil.cs</code></li>
+<li>선언 위치: line 457</li>
+<li>역할: 확인 필요</li>
+<li>주요 책임:</li>
+<ul>
+<li>확인 필요</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-11">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string filePath (line 460)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string wrapperHtml (line 461)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string rankHtml (line 462)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string resultHtml (line 463)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string buttonHtml (line 464)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string FinUpImgUrl (line 465)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string FinUpStockUrl (line 466)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string Rank1Color (line 467)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string Rank2Color (line 469)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string Rank3Color (line 470)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string RankColor (line 471)</td></tr>
+<tr><td>필드/속성</td><td>public string firstMentorIdx (line 472)</td></tr>
+<tr><td>필드/속성</td><td>public string ResultCode (line 613)</td></tr>
+<tr><td>필드/속성</td><td>public string ResultImage (line 614)</td></tr>
+<tr><td>필드/속성</td><td>public string NaverId (line 621)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-11">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>GetWrapperHtml()</code></td><td>public</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:476</code>)</td><td>Y</td><td>N</td><td>Y</td></tr>
+<tr><td><code>GetResultHtml()</code></td><td>public</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:517</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetDailyHtml()</code></td><td>private</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:549</code>)</td><td>Y</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetButtonHtml()</code></td><td>private</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:584</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>GetButtonImage()</code></td><td>private</td><td>JsonResult</td><td>데이터를 조회하거나 계산한다 (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:594</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>NaverOAuthById()</code></td><td>(기본값/확인 필요)</td><td>public</td><td>Response Result Code (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:622</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>NaverOAuthById()</code></td><td>(기본값/확인 필요)</td><td>public</td><td>Response Result Code (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:627</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-11">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-jsonresult">Class: JsonResult</h3>
+<ul>
+<li>파일 경로: <code>Operation/ItemStockUpload/ItemStockUploadUtil.cs</code></li>
+<li>선언 위치: line 607</li>
+<li>역할: 확인 필요</li>
+<li>주요 책임:</li>
+<ul>
+<li>확인 필요</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-12">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public string ResultCode (line 613)</td></tr>
+<tr><td>필드/속성</td><td>public string ResultImage (line 614)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-12">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-12">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-naveroauthbyid">Class: NaverOAuthById</h3>
+<ul>
+<li>파일 경로: <code>Operation/ItemStockUpload/ItemStockUploadUtil.cs</code></li>
+<li>선언 위치: line 618</li>
+<li>역할: Response Result Code</li>
+<li>주요 책임:</li>
+<ul>
+<li>Response Result Code</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-13">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public string NaverId (line 621)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-13">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>NaverOAuthById()</code></td><td>(기본값/확인 필요)</td><td>public</td><td>Response Result Code (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:622</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>NaverOAuthById()</code></td><td>(기본값/확인 필요)</td><td>public</td><td>Response Result Code (<code>Operation/ItemStockUpload/ItemStockUploadUtil.cs:627</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-13">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h2 id="04_NAMESPACE_CLASS_METHOD_REPORT--namespace-finup.stock.app.alphabot.operation.payment">Namespace: FinUp.Stock.App.AlphaBot.Operation.Payment</h2>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-billcard">Class: BillCard</h3>
+<ul>
+<li>파일 경로: <code>Operation/Payment/BillCard.cs</code></li>
+<li>선언 위치: line 19</li>
+<li>역할: Danal 결제 요청/암복호화/파라미터 변환을 담당한다</li>
+<li>주요 책임:</li>
+<ul>
+<li>Danal 결제 요청/암복호화/파라미터 변환을 담당한다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-14">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>protected string ChatApiEnable (line 28)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-14">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>RequestPaymentDanalCard()</code></td><td>public</td><td>OrderAutoType</td><td>확인 필요 (<code>Operation/Payment/BillCard.cs:29</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>GetReturmMessage()</code></td><td>private</td><td>string</td><td>자동결제 리턴 메시지 (<code>Operation/Payment/BillCard.cs:290</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-14">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-billcardwiseinvest">Class: BillCardWiseInvest</h3>
+<ul>
+<li>파일 경로: <code>Operation/Payment/BillCardWiseInvest.cs</code></li>
+<li>선언 위치: line 18</li>
+<li>역할: Danal 결제 요청/암복호화/파라미터 변환을 담당한다</li>
+<li>주요 책임:</li>
+<ul>
+<li>Danal 결제 요청/암복호화/파라미터 변환을 담당한다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-15">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-15">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>RequestPaymentDanalCardWiseInvest()</code></td><td>public</td><td>OrderAutoType</td><td>확인 필요 (<code>Operation/Payment/BillCardWiseInvest.cs:27</code>)</td><td>Y</td><td>Y</td><td>N</td></tr>
+<tr><td><code>GetReturmMessage()</code></td><td>private</td><td>string</td><td>자동결제 리턴 메시지 (<code>Operation/Payment/BillCardWiseInvest.cs:254</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-15">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-billphone">Class: BillPhone</h3>
+<ul>
+<li>파일 경로: <code>Operation/Payment/BillPhone.cs</code></li>
+<li>선언 위치: line 17</li>
+<li>역할: Danal 결제 요청/암복호화/파라미터 변환을 담당한다</li>
+<li>주요 책임:</li>
+<ul>
+<li>Danal 결제 요청/암복호화/파라미터 변환을 담당한다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-16">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>protected string ChatApiEnable (line 31)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-16">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>RequestPaymentDanalPhone()</code></td><td>public</td><td>OrderAutoType</td><td>확인 필요 (<code>Operation/Payment/BillPhone.cs:32</code>)</td><td>Y</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>GetReturmMessage()</code></td><td>private</td><td>string</td><td>자동결제 리턴 메시지 (<code>Operation/Payment/BillPhone.cs:315</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-16">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-billphonewiseinvest">Class: BillPhoneWiseInvest</h3>
+<ul>
+<li>파일 경로: <code>Operation/Payment/BillPhoneWiseInvest.cs</code></li>
+<li>선언 위치: line 16</li>
+<li>역할: Danal 결제 요청/암복호화/파라미터 변환을 담당한다</li>
+<li>주요 책임:</li>
+<ul>
+<li>Danal 결제 요청/암복호화/파라미터 변환을 담당한다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-17">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-17">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>RequestPaymentDanalPhoneWiseInvest()</code></td><td>public</td><td>OrderAutoType</td><td>확인 필요 (<code>Operation/Payment/BillPhoneWiseInvest.cs:30</code>)</td><td>Y</td><td>Y</td><td>N</td></tr>
+<tr><td><code>GetReturmMessage()</code></td><td>private</td><td>string</td><td>자동결제 리턴 메시지 (<code>Operation/Payment/BillPhoneWiseInvest.cs:280</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-17">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-functioncard">Class: FunctionCard</h3>
+<ul>
+<li>파일 경로: <code>Operation/Payment/FunctionCard.cs</code></li>
+<li>선언 위치: line 27</li>
+<li>역할: Danal 결제 요청/암복호화/파라미터 변환을 담당한다</li>
+<li>주요 책임:</li>
+<ul>
+<li>Danal 결제 요청/암복호화/파라미터 변환을 담당한다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-18">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public string ERC_NETWORK_ERROR (line 40)</td></tr>
+<tr><td>필드/속성</td><td>public string ERM_NETWORK (line 42)</td></tr>
+<tr><td>필드/속성</td><td>public string CPID (line 49)</td></tr>
+<tr><td>필드/속성</td><td>public string CRYPTOKEY (line 50)</td></tr>
+<tr><td>필드/속성</td><td>public string IVKEY (line 55)</td></tr>
+<tr><td>필드/속성</td><td>public string TEST_AMOUNT (line 56)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-18">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>CallCredit()</code></td><td>public</td><td>Hashtable</td><td>확인 필요 (<code>Operation/Payment/FunctionCard.cs:65</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>toEncrypt()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionCard.cs:134</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>toDecrypt()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionCard.cs:163</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>hexToByteArray()</code></td><td>public</td><td>byte[]</td><td>확인 필요 (<code>Operation/Payment/FunctionCard.cs:190</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>str2data()</code></td><td>public</td><td>Hashtable</td><td>확인 필요 (<code>Operation/Payment/FunctionCard.cs:201</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>data2str()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionCard.cs:231</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>Parsor()</code></td><td>public</td><td>Hashtable</td><td>확인 필요 (<code>Operation/Payment/FunctionCard.cs:259</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>UrlEncoder()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionCard.cs:279</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>UrlDecoder()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionCard.cs:284</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>ArrayToString()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionCard.cs:293</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>GetLocalhost()</code></td><td>public</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/Payment/FunctionCard.cs:308</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-18">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-functioncardwiseinvest">Class: FunctionCardWiseInvest</h3>
+<ul>
+<li>파일 경로: <code>Operation/Payment/FunctionCardWiseInvest.cs</code></li>
+<li>선언 위치: line 27</li>
+<li>역할: Danal 결제 요청/암복호화/파라미터 변환을 담당한다</li>
+<li>주요 책임:</li>
+<ul>
+<li>Danal 결제 요청/암복호화/파라미터 변환을 담당한다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-19">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public string ERC_NETWORK_ERROR (line 40)</td></tr>
+<tr><td>필드/속성</td><td>public string ERM_NETWORK (line 42)</td></tr>
+<tr><td>필드/속성</td><td>public string CPID_WiseInvest (line 53)</td></tr>
+<tr><td>필드/속성</td><td>public string CRYPTOKEY_WiseInvest (line 54)</td></tr>
+<tr><td>필드/속성</td><td>public string IVKEY (line 57)</td></tr>
+<tr><td>필드/속성</td><td>public string TEST_AMOUNT (line 58)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-19">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>CallCreditWiseInvest()</code></td><td>public</td><td>Hashtable</td><td>확인 필요 (<code>Operation/Payment/FunctionCardWiseInvest.cs:195</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>toEncryptWiseInvest()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionCardWiseInvest.cs:264</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>toDecryptWiseInvest()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionCardWiseInvest.cs:293</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>hexToByteArray()</code></td><td>public</td><td>byte[]</td><td>확인 필요 (<code>Operation/Payment/FunctionCardWiseInvest.cs:320</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>str2data()</code></td><td>public</td><td>Hashtable</td><td>확인 필요 (<code>Operation/Payment/FunctionCardWiseInvest.cs:331</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>data2str()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionCardWiseInvest.cs:361</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>Parsor()</code></td><td>public</td><td>Hashtable</td><td>확인 필요 (<code>Operation/Payment/FunctionCardWiseInvest.cs:389</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>UrlEncoder()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionCardWiseInvest.cs:409</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>UrlDecoder()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionCardWiseInvest.cs:414</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>ArrayToString()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionCardWiseInvest.cs:423</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>GetLocalhost()</code></td><td>public</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Operation/Payment/FunctionCardWiseInvest.cs:438</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-19">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-functionphone">Class: FunctionPhone</h3>
+<ul>
+<li>파일 경로: <code>Operation/Payment/FunctionPhone.cs</code></li>
+<li>선언 위치: line 23</li>
+<li>역할: Danal 결제 요청/암복호화/파라미터 변환을 담당한다</li>
+<li>주요 책임:</li>
+<ul>
+<li>Danal 결제 요청/암복호화/파라미터 변환을 담당한다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-20">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public string ID (line 30)</td></tr>
+<tr><td>필드/속성</td><td>public string PWD (line 31)</td></tr>
+<tr><td>필드/속성</td><td>public string AMOUNT (line 32)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-20">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>CallTeledit()</code></td><td>public</td><td>Hashtable</td><td>확인 필요 (<code>Operation/Payment/FunctionPhone.cs:43</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>Parsor()</code></td><td>public</td><td>Hashtable</td><td>확인 필요 (<code>Operation/Payment/FunctionPhone.cs:64</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>MakeItemInfo()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionPhone.cs:85</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>MakeParam()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionPhone.cs:100</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>Map2Str()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionPhone.cs:119</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>toEuckr()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionPhone.cs:138</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-20">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-functionphonewiseinvest">Class: FunctionPhoneWiseInvest</h3>
+<ul>
+<li>파일 경로: <code>Operation/Payment/FunctionPhoneWiseInvest.cs</code></li>
+<li>선언 위치: line 23</li>
+<li>역할: Danal 결제 요청/암복호화/파라미터 변환을 담당한다</li>
+<li>주요 책임:</li>
+<ul>
+<li>Danal 결제 요청/암복호화/파라미터 변환을 담당한다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-21">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public string ID_WiseInvest (line 31)</td></tr>
+<tr><td>필드/속성</td><td>public string PWD_WiseInvest (line 33)</td></tr>
+<tr><td>필드/속성</td><td>public string AMOUNT_WiseInvest (line 34)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-21">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>CallTeledit()</code></td><td>public</td><td>Hashtable</td><td>확인 필요 (<code>Operation/Payment/FunctionPhoneWiseInvest.cs:45</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>Parsor()</code></td><td>public</td><td>Hashtable</td><td>확인 필요 (<code>Operation/Payment/FunctionPhoneWiseInvest.cs:66</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>MakeItemInfo()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionPhoneWiseInvest.cs:87</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>MakeParam()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionPhoneWiseInvest.cs:102</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>Map2Str()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionPhoneWiseInvest.cs:121</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>toEuckr()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Operation/Payment/FunctionPhoneWiseInvest.cs:140</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-21">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h2 id="04_NAMESPACE_CLASS_METHOD_REPORT--namespace-finup.stock.app.alphabot.properties">Namespace: FinUp.Stock.App.AlphaBot.Properties</h2>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-resources">Class: Resources</h3>
+<ul>
+<li>파일 경로: <code>Properties/Resources.Designer.cs</code></li>
+<li>선언 위치: line 25</li>
+<li>역할: 지역화된 문자열 등을 찾기 위한 강력한 형식의 리소스 클래스입니다.</li>
+<li>주요 책임:</li>
+<ul>
+<li>지역화된 문자열 등을 찾기 위한 강력한 형식의 리소스 클래스입니다.</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-22">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-22">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>Resources()</code></td><td>(기본값/확인 필요)</td><td>internal</td><td>확인 필요 (<code>Properties/Resources.Designer.cs:33</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-22">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-settings">Class: Settings</h3>
+<ul>
+<li>파일 경로: <code>Properties/Settings.Designer.cs</code></li>
+<li>선언 위치: line 17</li>
+<li>역할: 확인 필요</li>
+<li>주요 책임:</li>
+<ul>
+<li>확인 필요</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-23">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) Settings defaultInstance (line 19)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) Settings Default (line 21)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-23">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-23">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h2 id="04_NAMESPACE_CLASS_METHOD_REPORT--namespace-finup.stock.app.alphabot.type">Namespace: FinUp.Stock.App.AlphaBot.Type</h2>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--enum-awsservicetype">Enum: AWSServiceType</h3>
+<ul>
+<li>파일 경로: <code>Type/AWSMonitoringMember.cs</code></li>
+<li>선언 위치: line 10</li>
+<li>역할: 데이터 전달/상태 표현용 타입이다</li>
+<li>주요 책임:</li>
+<ul>
+<li>데이터 전달/상태 표현용 타입이다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-24">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-24">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-24">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--enum-awsservicestatus">Enum: AWSServiceStatus</h3>
+<ul>
+<li>파일 경로: <code>Type/AWSMonitoringMember.cs</code></li>
+<li>선언 위치: line 15</li>
+<li>역할: 확인 필요</li>
+<li>주요 책임:</li>
+<ul>
+<li>확인 필요</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-25">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-25">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-25">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--enum-awssummarytype">Enum: AWSSummaryType</h3>
+<ul>
+<li>파일 경로: <code>Type/AWSMonitoringMember.cs</code></li>
+<li>선언 위치: line 22</li>
+<li>역할: 데이터 전달/상태 표현용 타입이다</li>
+<li>주요 책임:</li>
+<ul>
+<li>데이터 전달/상태 표현용 타입이다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-26">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-26">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-26">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-awsmetricmember">Class: AWSMetricMember</h3>
+<ul>
+<li>파일 경로: <code>Type/AWSMonitoringMember.cs</code></li>
+<li>선언 위치: line 34</li>
+<li>역할: 지표 멤버</li>
+<li>주요 책임:</li>
+<ul>
+<li>지표 멤버</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-27">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public int MonitoringAWSMetricIdx (line 39)</td></tr>
+<tr><td>필드/속성</td><td>public AWSServiceType Type (line 44)</td></tr>
+<tr><td>필드/속성</td><td>public string Metric (line 49)</td></tr>
+<tr><td>필드/속성</td><td>public StandardUnit Unit (line 54)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-27">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-27">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-awsmonitoringmember">Class: AWSMonitoringMember</h3>
+<ul>
+<li>파일 경로: <code>Type/AWSMonitoringMember.cs</code></li>
+<li>선언 위치: line 60</li>
+<li>역할: 모니터링 서비스 멤버</li>
+<li>주요 책임:</li>
+<ul>
+<li>모니터링 서비스 멤버</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-28">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public List&lt;AWSMonitoringValueMember&gt; monitoringValueList (line 90)</td></tr>
+<tr><td>필드/속성</td><td>public int MonitoringAWSServiceIdx (line 65)</td></tr>
+<tr><td>필드/속성</td><td>public AWSServiceStatus ServiceStatus (line 70)</td></tr>
+<tr><td>필드/속성</td><td>public AWSServiceType Type (line 75)</td></tr>
+<tr><td>필드/속성</td><td>public string ID (line 80)</td></tr>
+<tr><td>필드/속성</td><td>public string Name (line 85)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-28">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-28">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-awsmonitoringvaluemember">Class: AWSMonitoringValueMember</h3>
+<ul>
+<li>파일 경로: <code>Type/AWSMonitoringMember.cs</code></li>
+<li>선언 위치: line 96</li>
+<li>역할: 지표당 모니터링 측정값 멤버</li>
+<li>주요 책임:</li>
+<ul>
+<li>지표당 모니터링 측정값 멤버</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-29">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public int MonitoringAWSMetricIdx (line 101)</td></tr>
+<tr><td>필드/속성</td><td>public AWSServiceType MetricType (line 106)</td></tr>
+<tr><td>필드/속성</td><td>public string Metric (line 111)</td></tr>
+<tr><td>필드/속성</td><td>public double? Value (line 116)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-29">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-29">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-awsthresholdmember">Class: AWSThresholdMember</h3>
+<ul>
+<li>파일 경로: <code>Type/AWSMonitoringMember.cs</code></li>
+<li>선언 위치: line 122</li>
+<li>역할: 모니터링 임계치 멤버</li>
+<li>주요 책임:</li>
+<ul>
+<li>모니터링 임계치 멤버</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-30">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public List&lt;AWSThresholdValueMember&gt; thresholdValueList (line 132)</td></tr>
+<tr><td>필드/속성</td><td>public int MonitoringAWSServiceIdx (line 127)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-30">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-30">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-awsthresholdvaluemember">Class: AWSThresholdValueMember</h3>
+<ul>
+<li>파일 경로: <code>Type/AWSMonitoringMember.cs</code></li>
+<li>선언 위치: line 138</li>
+<li>역할: 지표당 임계치 값 멤버</li>
+<li>주요 책임:</li>
+<ul>
+<li>지표당 임계치 값 멤버</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-31">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public int MonitoringAWSMetricIdx (line 143)</td></tr>
+<tr><td>필드/속성</td><td>public AWSServiceType ServiceType (line 148)</td></tr>
+<tr><td>필드/속성</td><td>public double ThresholdValue (line 153)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-31">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-31">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-awsthresholdlogmember">Class: AWSThresholdLogMember</h3>
+<ul>
+<li>파일 경로: <code>Type/AWSMonitoringMember.cs</code></li>
+<li>선언 위치: line 159</li>
+<li>역할: 임계치 로그 멤버</li>
+<li>주요 책임:</li>
+<ul>
+<li>임계치 로그 멤버</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-32">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public int MonitoringAWSServiceIdx (line 164)</td></tr>
+<tr><td>필드/속성</td><td>public int MonitoringAWSMetricIdx (line 169)</td></tr>
+<tr><td>필드/속성</td><td>public double MonitoringValue (line 174)</td></tr>
+<tr><td>필드/속성</td><td>public double ThresholdValue (line 179)</td></tr>
+<tr><td>필드/속성</td><td>public double ExcessValue (line 184)</td></tr>
+<tr><td>필드/속성</td><td>public string ID (line 189)</td></tr>
+<tr><td>필드/속성</td><td>public string Name (line 194)</td></tr>
+<tr><td>필드/속성</td><td>public string Metric (line 199)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-32">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-32">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--enum-alphabottype">Enum: AlphaBotType</h3>
+<ul>
+<li>파일 경로: <code>Type/AlphaBotMember.cs</code></li>
+<li>선언 위치: line 12</li>
+<li>역할: 데이터 전달/상태 표현용 타입이다</li>
+<li>주요 책임:</li>
+<ul>
+<li>데이터 전달/상태 표현용 타입이다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-33">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-33">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-33">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--enum-actionstate">Enum: ActionState</h3>
+<ul>
+<li>파일 경로: <code>Type/AlphaBotMember.cs</code></li>
+<li>선언 위치: line 94</li>
+<li>역할: 확인 필요</li>
+<li>주요 책임:</li>
+<ul>
+<li>확인 필요</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-34">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-34">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-34">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-alphabotmember">Class: AlphaBotMember</h3>
+<ul>
+<li>파일 경로: <code>Type/AlphaBotMember.cs</code></li>
+<li>선언 위치: line 100</li>
+<li>역할: 데이터 전달/상태 표현용 타입이다</li>
+<li>주요 책임:</li>
+<ul>
+<li>데이터 전달/상태 표현용 타입이다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-35">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public List&lt;OperationType&gt; lstOperationType (line 108)</td></tr>
+<tr><td>필드/속성</td><td>public DateTime? _lastExcute (line 168)</td></tr>
+<tr><td>필드/속성</td><td>public ActionState _actionState (line 185)</td></tr>
+<tr><td>필드/속성</td><td>public int ManualExec (line 113)</td></tr>
+<tr><td>필드/속성</td><td>public string DisplayName (line 118)</td></tr>
+<tr><td>필드/속성</td><td>public int OIdx (line 123)</td></tr>
+<tr><td>필드/속성</td><td>public string _nextTime (line 128)</td></tr>
+<tr><td>필드/속성</td><td>public string NextTime (line 133)</td></tr>
+<tr><td>필드/속성</td><td>public int Active (line 145)</td></tr>
+<tr><td>필드/속성</td><td>public string _activeName (line 151)</td></tr>
+<tr><td>필드/속성</td><td>public string ActiveName (line 156)</td></tr>
+<tr><td>필드/속성</td><td>public DateTime? LastExcute (line 173)</td></tr>
+<tr><td>필드/속성</td><td>public ActionState actionState (line 191)</td></tr>
+<tr><td>필드/속성</td><td>public ActionOperation actionOperation (line 207)</td></tr>
+<tr><td>필드/속성</td><td>public string LastOnceExecDay (line 212)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-35">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>AlphaBotMember()</code></td><td>(기본값/확인 필요)</td><td>public</td><td>생성자 (<code>Type/AlphaBotMember.cs:217</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>RaisePropertyChanged()</code></td><td>private</td><td>void</td><td>Notification UI (<code>Type/AlphaBotMember.cs:227</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-35">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-appauthtokenmember">Class: AppAuthTokenMember</h3>
+<ul>
+<li>파일 경로: <code>Type/ApiSiteHealthCheckMember.cs</code></li>
+<li>선언 위치: line 10</li>
+<li>역할: 데이터 전달/상태 표현용 타입이다</li>
+<li>주요 책임:</li>
+<ul>
+<li>데이터 전달/상태 표현용 타입이다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-36">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public string Jwt (line 12)</td></tr>
+<tr><td>필드/속성</td><td>public string RefreshToken (line 13)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-36">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-36">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-appauthparammember">Class: AppAuthParamMember</h3>
+<ul>
+<li>파일 경로: <code>Type/ApiSiteHealthCheckMember.cs</code></li>
+<li>선언 위치: line 19</li>
+<li>역할: ID, PWD 로그인</li>
+<li>주요 책임:</li>
+<ul>
+<li>ID, PWD 로그인</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-37">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public string ID (line 21)</td></tr>
+<tr><td>필드/속성</td><td>public string Pwd (line 22)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-37">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-37">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-appauthrefreshparammember">Class: AppAuthRefreshParamMember</h3>
+<ul>
+<li>파일 경로: <code>Type/ApiSiteHealthCheckMember.cs</code></li>
+<li>선언 위치: line 25</li>
+<li>역할: ID, PWD 로그인</li>
+<li>주요 책임:</li>
+<ul>
+<li>ID, PWD 로그인</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-38">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public string Jwt (line 28)</td></tr>
+<tr><td>필드/속성</td><td>public string RefreshToken (line 29)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-38">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-38">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-appauthdefaultmember">Class: AppAuthDefaultMember</h3>
+<ul>
+<li>파일 경로: <code>Type/ApiSiteHealthCheckMember.cs</code></li>
+<li>선언 위치: line 32</li>
+<li>역할: ID, PWD 로그인</li>
+<li>주요 책임:</li>
+<ul>
+<li>ID, PWD 로그인</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-39">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public string AccessType (line 34)</td></tr>
+<tr><td>필드/속성</td><td>public string OSVersion (line 35)</td></tr>
+<tr><td>필드/속성</td><td>public string OSType (line 41)</td></tr>
+<tr><td>필드/속성</td><td>public string UserIP (line 42)</td></tr>
+<tr><td>필드/속성</td><td>public string Browser (line 44)</td></tr>
+<tr><td>필드/속성</td><td>public string PushKey (line 46)</td></tr>
+<tr><td>필드/속성</td><td>public string DeviceID (line 52)</td></tr>
+<tr><td>필드/속성</td><td>public string DeviceModel (line 53)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-39">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-39">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-chatmember">Class: ChatMember</h3>
+<ul>
+<li>파일 경로: <code>Type/ChatMember.cs</code></li>
+<li>선언 위치: line 9</li>
+<li>역할: 데이터 전달/상태 표현용 타입이다</li>
+<li>주요 책임:</li>
+<ul>
+<li>데이터 전달/상태 표현용 타입이다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-40">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-40">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-40">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-chatsignalqueue">Class: ChatSignalQueue</h3>
+<ul>
+<li>파일 경로: <code>Type/ChatMember.cs</code></li>
+<li>선언 위치: line 12</li>
+<li>역할: 확인 필요</li>
+<li>주요 책임:</li>
+<ul>
+<li>확인 필요</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-41">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public DateTime? RegDT (line 18)</td></tr>
+<tr><td>필드/속성</td><td>public int SignalQueueIdx (line 22)</td></tr>
+<tr><td>필드/속성</td><td>public int PortfolioSignalIdx (line 26)</td></tr>
+<tr><td>필드/속성</td><td>public int Status (line 30)</td></tr>
+<tr><td>필드/속성</td><td>public int TypeItem (line 34)</td></tr>
+<tr><td>필드/속성</td><td>public string ItemCode (line 38)</td></tr>
+<tr><td>필드/속성</td><td>public int Price (line 42)</td></tr>
+<tr><td>필드/속성</td><td>public int SellBuyType (line 46)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-41">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-41">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-highlowlistparam">Class: HighLowListParam</h3>
+<ul>
+<li>파일 경로: <code>Type/ChatMember.cs</code></li>
+<li>선언 위치: line 52</li>
+<li>역할: 분봉 복수 종목 조회용</li>
+<li>주요 책임:</li>
+<ul>
+<li>분봉 복수 종목 조회용</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-42">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>private List&lt;HighLowParam&gt; _params (line 54)</td></tr>
+<tr><td>필드/속성</td><td>public List&lt;HighLowParam&gt; Params (line 59)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-42">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-42">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-highlowparam">Class: HighLowParam</h3>
+<ul>
+<li>파일 경로: <code>Type/ChatMember.cs</code></li>
+<li>선언 위치: line 71</li>
+<li>역할: 조회 파라메터</li>
+<li>주요 책임:</li>
+<ul>
+<li>조회 파라메터</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-43">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public string StockCode (line 77)</td></tr>
+<tr><td>필드/속성</td><td>public DateTime? From (line 82)</td></tr>
+<tr><td>필드/속성</td><td>public int Ref (line 87)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-43">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-43">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-highlowprice">Class: HighLowPrice</h3>
+<ul>
+<li>파일 경로: <code>Type/ChatMember.cs</code></li>
+<li>선언 위치: line 93</li>
+<li>역할: 고가 저가 반환</li>
+<li>주요 책임:</li>
+<ul>
+<li>고가 저가 반환</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-44">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public string StockCode (line 98)</td></tr>
+<tr><td>필드/속성</td><td>public int High (line 103)</td></tr>
+<tr><td>필드/속성</td><td>public int Low (line 108)</td></tr>
+<tr><td>필드/속성</td><td>public int Price (line 113)</td></tr>
+<tr><td>필드/속성</td><td>public int Ref (line 118)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-44">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-44">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--enum-operationterm">Enum: OperationTerm</h3>
+<ul>
+<li>파일 경로: <code>Type/OperationType.cs</code></li>
+<li>선언 위치: line 16</li>
+<li>역할: Operation 수행 Action</li>
+<li>주요 책임:</li>
+<ul>
+<li>Operation 수행 Action</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-45">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-45">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-45">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--enum-threadstatusdispay">Enum: ThreadStatusDispay</h3>
+<ul>
+<li>파일 경로: <code>Type/OperationType.cs</code></li>
+<li>선언 위치: line 22</li>
+<li>역할: Operation 수행 Action</li>
+<li>주요 책임:</li>
+<ul>
+<li>Operation 수행 Action</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-46">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-46">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-46">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-operationtype">Class: OperationType</h3>
+<ul>
+<li>파일 경로: <code>Type/OperationType.cs</code></li>
+<li>선언 위치: line 30</li>
+<li>역할: Operation 수행 Action</li>
+<li>주요 책임:</li>
+<ul>
+<li>Operation 수행 Action</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-47">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public OperationTerm OperationTerm (line 35)</td></tr>
+<tr><td>필드/속성</td><td>public int? iLoopInterval (line 49)</td></tr>
+<tr><td>필드/속성</td><td>public TimeSpan? tsOnceTime (line 54)</td></tr>
+<tr><td>필드/속성</td><td>public TimeSpan? tsLoopStartTime (line 59)</td></tr>
+<tr><td>필드/속성</td><td>public TimeSpan? tsLoopEndTime (line 64)</td></tr>
+<tr><td>필드/속성</td><td>public int Active (line 69)</td></tr>
+<tr><td>필드/속성</td><td>public int StockOpen (line 74)</td></tr>
+<tr><td>필드/속성</td><td>public int OffDay (line 79)</td></tr>
+<tr><td>필드/속성</td><td>public int OIdx (line 40)</td></tr>
+<tr><td>필드/속성</td><td>public int OTIdx (line 44)</td></tr>
+<tr><td>필드/속성</td><td>public string LastOnceExecDay (line 84)</td></tr>
+<tr><td>필드/속성</td><td>public bool EnableAlarm (line 89)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-47">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>OperationType()</code></td><td>(기본값/확인 필요)</td><td>public</td><td>알림 설정 (<code>Type/OperationType.cs:90</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>UpdateOperationType()</code></td><td>public</td><td>void</td><td>알림 설정 (<code>Type/OperationType.cs:105</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-47">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--enum-orderautoresult">Enum: OrderAutoResult</h3>
+<ul>
+<li>파일 경로: <code>Type/OperationType.cs</code></li>
+<li>선언 위치: line 123</li>
+<li>역할: 확인 필요</li>
+<li>주요 책임:</li>
+<ul>
+<li>확인 필요</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-48">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-48">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-48">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-orderautotype">Class: OrderAutoType</h3>
+<ul>
+<li>파일 경로: <code>Type/OperationType.cs</code></li>
+<li>선언 위치: line 132</li>
+<li>역할: 데이터 전달/상태 표현용 타입이다</li>
+<li>주요 책임:</li>
+<ul>
+<li>데이터 전달/상태 표현용 타입이다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-49">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public OrderAutoResult Result (line 135)</td></tr>
+<tr><td>필드/속성</td><td>public OrderAutoResult OrderResult (line 136)</td></tr>
+<tr><td>필드/속성</td><td>public OrderAutoResult SubscribeResult (line 138)</td></tr>
+<tr><td>필드/속성</td><td>public string ResultMsg (line 140)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-49">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-49">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--enum-operationtermhistorytype">Enum: OperationTermHistoryType</h3>
+<ul>
+<li>파일 경로: <code>Type/OperationType.cs</code></li>
+<li>선언 위치: line 148</li>
+<li>역할: 실행중 상태 체크 [1-시작 | 2-종료 | 3-에러 | 4-Alive]</li>
+<li>주요 책임:</li>
+<ul>
+<li>실행중 상태 체크 [1-시작 | 2-종료 | 3-에러 | 4-Alive]</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-50">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-50">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-50">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--enum-ostype">Enum: OSType</h3>
+<ul>
+<li>파일 경로: <code>Type/PushTarget.cs</code></li>
+<li>선언 위치: line 9</li>
+<li>역할: 데이터 전달/상태 표현용 타입이다</li>
+<li>주요 책임:</li>
+<ul>
+<li>데이터 전달/상태 표현용 타입이다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-51">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-51">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-51">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-pushtarget">Class: PushTarget</h3>
+<ul>
+<li>파일 경로: <code>Type/PushTarget.cs</code></li>
+<li>선언 위치: line 15</li>
+<li>역할: 확인 필요</li>
+<li>주요 책임:</li>
+<ul>
+<li>확인 필요</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-52">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public string Target (line 18)</td></tr>
+<tr><td>필드/속성</td><td>public string Msg (line 19)</td></tr>
+<tr><td>필드/속성</td><td>public string Url (line 20)</td></tr>
+<tr><td>필드/속성</td><td>public string sGroupIdx (line 21)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-52">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>PushTarget()</code></td><td>(기본값/확인 필요)</td><td>public</td><td>확인 필요 (<code>Type/PushTarget.cs:22</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-52">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-stringformat">Class: StringFormat</h3>
+<ul>
+<li>파일 경로: <code>Type/StringFormat.cs</code></li>
+<li>선언 위치: line 9</li>
+<li>역할: 확인 필요</li>
+<li>주요 책임:</li>
+<ul>
+<li>확인 필요</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-53">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string SALES_STOCKPOINT (line 11)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string IS_SUCCESSFAILURE (line 17)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string STOCKDATA_CHECK (line 25)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string IS_ML_SUCCESSFAILURE (line 30)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string AWS_COMMON_ERROR (line 48)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string AWS_SERVICE_ERROR (line 52)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string AWS_THRESHOLD_EXCESS (line 57)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string ITEMSTOCK_ADDITIONAL_SERVICE (line 62)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-53">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-53">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h2 id="04_NAMESPACE_CLASS_METHOD_REPORT--namespace-finup.stock.app.alphabot.utils">Namespace: FinUp.Stock.App.AlphaBot.Utils</h2>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-stock">Class: Stock</h3>
+<ul>
+<li>파일 경로: <code>Operation/Stock.cs</code></li>
+<li>선언 위치: line 11</li>
+<li>역할: 확인 필요</li>
+<li>주요 책임:</li>
+<ul>
+<li>확인 필요</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-54">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-54">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>GetStockPrice()</code></td><td>public</td><td>StockPrice</td><td>네이버에서 현재가 검색. (<code>Operation/Stock.cs:16</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-54">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-commonutil">Class: CommonUtil</h3>
+<ul>
+<li>파일 경로: <code>Utils/CommonUtil.cs</code></li>
+<li>선언 위치: line 15</li>
+<li>역할: 외부 연동 또는 공통 유틸리티 기능을 제공한다</li>
+<li>주요 책임:</li>
+<ul>
+<li>외부 연동 또는 공통 유틸리티 기능을 제공한다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-55">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-55">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>ClientIP()</code></td><td>public</td><td>string</td><td>클라이언트 IP 주소 (<code>Utils/CommonUtil.cs:20</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>getHttpStatus()</code></td><td>public</td><td>HttpStatusCode</td><td>Call page by get. (<code>Utils/CommonUtil.cs:39</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>getHttpSiteCheck()</code></td><td>public</td><td>HttpWebResponse</td><td>Call page by get. (<code>Utils/CommonUtil.cs:54</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>getHttpPostResponse()</code></td><td>public</td><td>string</td><td>Call page by post (<code>Utils/CommonUtil.cs:74</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>ExecID()</code></td><td>public</td><td>string</td><td>실행 고유 아이디 생성 (<code>Utils/CommonUtil.cs:121</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>StopWatchStart()</code></td><td>public</td><td>Stopwatch</td><td>실행 고유 아이디 생성 (<code>Utils/CommonUtil.cs:125</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>StopWatchStop()</code></td><td>public</td><td>string</td><td>실행 고유 아이디 생성 (<code>Utils/CommonUtil.cs:135</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>IsValidEmail()</code></td><td>public</td><td>bool</td><td>실행 고유 아이디 생성 (<code>Utils/CommonUtil.cs:148</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>ExtractYoutubeChannelID()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Utils/CommonUtil.cs:154</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>IsLiveAsync()</code></td><td>public</td><td>Task&lt;bool&gt;</td><td>확인 필요 (<code>Utils/CommonUtil.cs:168</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-55">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-emailhelper">Class: EmailHelper</h3>
+<ul>
+<li>파일 경로: <code>Utils/EmailHelper.cs</code></li>
+<li>선언 위치: line 10</li>
+<li>역할: 외부 연동 또는 공통 유틸리티 기능을 제공한다</li>
+<li>주요 책임:</li>
+<ul>
+<li>외부 연동 또는 공통 유틸리티 기능을 제공한다</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-56">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string SMTP_HOST (line 13)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) int SMTP_PORT (line 14)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string SMTP_ID (line 15)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string SMTP_PW (line 16)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string DISPLAY_NAME (line 17)</td></tr>
+<tr><td>필드/속성</td><td>public string host (line 127)</td></tr>
+<tr><td>필드/속성</td><td>public int port (line 128)</td></tr>
+<tr><td>필드/속성</td><td>public string id (line 129)</td></tr>
+<tr><td>필드/속성</td><td>public string pw (line 130)</td></tr>
+<tr><td>필드/속성</td><td>public string name (line 131)</td></tr>
+<tr><td>필드/속성</td><td>public string from (line 132)</td></tr>
+<tr><td>필드/속성</td><td>public bool enableSsl (line 133)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-56">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>SendMail()</code></td><td>public</td><td>void</td><td>Gmail (<code>Utils/EmailHelper.cs:22</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>SendMail()</code></td><td>public</td><td>System.Threading.Tasks.Task</td><td>Gmail (<code>Utils/EmailHelper.cs:40</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>SendMail()</code></td><td>public</td><td>void</td><td>메시지/메일/푸시를 발송한다 (<code>Utils/EmailHelper.cs:61</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>SendMail()</code></td><td>public</td><td>void</td><td>메시지/메일/푸시를 발송한다 (<code>Utils/EmailHelper.cs:82</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>SendMail()</code></td><td>public</td><td>void</td><td>메시지/메일/푸시를 발송한다 (<code>Utils/EmailHelper.cs:103</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-56">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-account">Class: Account</h3>
+<ul>
+<li>파일 경로: <code>Utils/EmailHelper.cs</code></li>
+<li>선언 위치: line 124</li>
+<li>역할: 확인 필요</li>
+<li>주요 책임:</li>
+<ul>
+<li>확인 필요</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-57">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public string host (line 127)</td></tr>
+<tr><td>필드/속성</td><td>public int port (line 128)</td></tr>
+<tr><td>필드/속성</td><td>public string id (line 129)</td></tr>
+<tr><td>필드/속성</td><td>public string pw (line 130)</td></tr>
+<tr><td>필드/속성</td><td>public string name (line 131)</td></tr>
+<tr><td>필드/속성</td><td>public string from (line 132)</td></tr>
+<tr><td>필드/속성</td><td>public bool enableSsl (line 133)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-57">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-57">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-loginresult">Class: LoginResult</h3>
+<ul>
+<li>파일 경로: <code>Utils/NaverLogin.cs</code></li>
+<li>선언 위치: line 20</li>
+<li>역할: 로그인 결과값</li>
+<li>주요 책임:</li>
+<ul>
+<li>로그인 결과값</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-58">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public bool IsLogin (line 22)</td></tr>
+<tr><td>필드/속성</td><td>public CookieContainer LoginCookie (line 23)</td></tr>
+<tr><td>필드/속성</td><td>public NaverOAuth NaverOAuthResult (line 24)</td></tr>
+<tr><td>필드/속성</td><td>public string FailReason (line 25)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-58">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>LoginResult()</code></td><td>(기본값/확인 필요)</td><td>public</td><td>로그인 결과값 (<code>Utils/NaverLogin.cs:26</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-58">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-naveroauth">Class: NaverOAuth</h3>
+<ul>
+<li>파일 경로: <code>Utils/NaverLogin.cs</code></li>
+<li>선언 위치: line 38</li>
+<li>역할: 네이버 OAuth token값</li>
+<li>주요 책임:</li>
+<ul>
+<li>네이버 OAuth token값</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-59">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public string AccessToken (line 41)</td></tr>
+<tr><td>필드/속성</td><td>public string RefreshToken (line 43)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-59">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-59">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-postreponse">Class: PostReponse</h3>
+<ul>
+<li>파일 경로: <code>Utils/NaverLogin.cs</code></li>
+<li>선언 위치: line 49</li>
+<li>역할: Post Request 응답 값</li>
+<li>주요 책임:</li>
+<ul>
+<li>Post Request 응답 값</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-60">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public Uri ResponseUri (line 51)</td></tr>
+<tr><td>필드/속성</td><td>public string Data (line 52)</td></tr>
+<tr><td>필드/속성</td><td>public HttpWebResponse Response (line 53)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-60">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-60">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-cafeboardresult">Class: CafeBoardResult</h3>
+<ul>
+<li>파일 경로: <code>Utils/NaverLogin.cs</code></li>
+<li>선언 위치: line 59</li>
+<li>역할: 카페 글 등록 응답 값</li>
+<li>주요 책임:</li>
+<ul>
+<li>카페 글 등록 응답 값</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-61">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public string FailReason (line 61)</td></tr>
+<tr><td>필드/속성</td><td>public bool IsSuccess (line 62)</td></tr>
+<tr><td>필드/속성</td><td>public string Contents (line 63)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-61">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-61">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-oauthmeobject">Class: OAuthMeObject</h3>
+<ul>
+<li>파일 경로: <code>Utils/NaverLogin.cs</code></li>
+<li>선언 위치: line 69</li>
+<li>역할: OAuth 본인 정보 응답 값</li>
+<li>주요 책임:</li>
+<ul>
+<li>OAuth 본인 정보 응답 값</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-62">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public string ResultCode (line 72)</td></tr>
+<tr><td>필드/속성</td><td>public string Message (line 74)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-62">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-62">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-oauthmeinfoobject">Class: OAuthMeInfoObject</h3>
+<ul>
+<li>파일 경로: <code>Utils/NaverLogin.cs</code></li>
+<li>선언 위치: line 82</li>
+<li>역할: OAuth 본인 정보 상세 값</li>
+<li>주요 책임:</li>
+<ul>
+<li>OAuth 본인 정보 상세 값</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-63">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>public long Id (line 85)</td></tr>
+<tr><td>필드/속성</td><td>public string EncyptId (line 87)</td></tr>
+<tr><td>필드/속성</td><td>public string ProfileImage (line 89)</td></tr>
+<tr><td>필드/속성</td><td>public string Age (line 91)</td></tr>
+<tr><td>필드/속성</td><td>public string Gender (line 93)</td></tr>
+<tr><td>필드/속성</td><td>public string Nickname (line 95)</td></tr>
+<tr><td>필드/속성</td><td>public string Email (line 97)</td></tr>
+<tr><td>필드/속성</td><td>public string Name (line 99)</td></tr>
+<tr><td>필드/속성</td><td>public string Birthday (line 101)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-63">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-63">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-naverloginhelper">Class: NaverLoginHelper</h3>
+<ul>
+<li>파일 경로: <code>Utils/NaverLogin.cs</code></li>
+<li>선언 위치: line 107</li>
+<li>역할: 네이버 로그인</li>
+<li>주요 책임:</li>
+<ul>
+<li>네이버 로그인</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-64">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string UPLOAD_LIMIT_EXCESS (line 110)</td></tr>
+<tr><td>필드/속성</td><td>private string OAuthBaseUrl (line 115)</td></tr>
+<tr><td>필드/속성</td><td>private string OAuthAuthorizeUrl (line 116)</td></tr>
+<tr><td>필드/속성</td><td>private string OAuthTokenUrl (line 117)</td></tr>
+<tr><td>필드/속성</td><td>private string ClientId (line 111)</td></tr>
+<tr><td>필드/속성</td><td>private string ClientSecretId (line 113)</td></tr>
+<tr><td>필드/속성</td><td>private string RedirectUrl (line 114)</td></tr>
+<tr><td>필드/속성</td><td>public string OAuthCustomAuthorizeUrl (line 118)</td></tr>
+<tr><td>필드/속성</td><td>public NaverOAuth AuthToken (line 131)</td></tr>
+<tr><td>필드/속성</td><td>public bool IsLogin (line 132)</td></tr>
+<tr><td>필드/속성</td><td>public bool IsBaseInfoExists (line 133)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-64">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>NaverLoginHelper()</code></td><td>(기본값/확인 필요)</td><td>public</td><td>확인 필요 (<code>Utils/NaverLogin.cs:140</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>SetBaseInfo()</code></td><td>public</td><td>void</td><td>상태 또는 로그/DB 값을 저장한다 (<code>Utils/NaverLogin.cs:145</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>Login()</code></td><td>public</td><td>Task&lt;LoginResult&gt;</td><td>로그인 시도 (<code>Utils/NaverLogin.cs:156</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>NaverAgreeForm()</code></td><td>private</td><td>Task&lt;Uri&gt;</td><td>확인 필요 (<code>Utils/NaverLogin.cs:293</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>AuthorizeUrlToLoginUrl()</code></td><td>private</td><td>Task&lt;PostReponse&gt;</td><td>확인 필요 (<code>Utils/NaverLogin.cs:330</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>GetAccessToken()</code></td><td>public</td><td>Task&lt;NaverOAuth&gt;</td><td>데이터를 조회하거나 계산한다 (<code>Utils/NaverLogin.cs:337</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>GetRefreshToken()</code></td><td>public</td><td>Task&lt;NaverOAuth&gt;</td><td>데이터를 조회하거나 계산한다 (<code>Utils/NaverLogin.cs:354</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>AsyncPostRequest()</code></td><td>public</td><td>Task&lt;PostReponse&gt;</td><td>확인 필요 (<code>Utils/NaverLogin.cs:375</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>AsyncPostRequest()</code></td><td>public</td><td>Task&lt;PostReponse&gt;</td><td>확인 필요 (<code>Utils/NaverLogin.cs:424</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>WriteCafeBoard()</code></td><td>public</td><td>Task&lt;CafeBoardResult&gt;</td><td>확인 필요 (<code>Utils/NaverLogin.cs:476</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>AccessTokenCheck()</code></td><td>public</td><td>Task&lt;OAuthMeObject&gt;</td><td>access token 만료 확인하기 (<code>Utils/NaverLogin.cs:561</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>GetNaverDynamicKey()</code></td><td>private</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Utils/NaverLogin.cs:622</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>GetNaverSessionInfo()</code></td><td>private</td><td>string</td><td>데이터를 조회하거나 계산한다 (<code>Utils/NaverLogin.cs:665</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>ConvertPassword()</code></td><td>private</td><td>string</td><td>확인 필요 (<code>Utils/NaverLogin.cs:693</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>EncryptRSA()</code></td><td>private</td><td>string</td><td>확인 필요 (<code>Utils/NaverLogin.cs:705</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-64">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-lzstring">Class: LZString</h3>
+<ul>
+<li>파일 경로: <code>Utils/NaverLogin.cs</code></li>
+<li>선언 위치: line 740</li>
+<li>역할: 확인 필요</li>
+<li>주요 책임:</li>
+<ul>
+<li>확인 필요</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-65">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string keyStrBase64 (line 743)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string keyStrUriSafe (line 744)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) GetCharFromInt f (line 747)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-65">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>getBaseValue()</code></td><td>private</td><td>int</td><td>확인 필요 (<code>Utils/NaverLogin.cs:749</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>compressToBase64()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Utils/NaverLogin.cs:762</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>decompressFromBase64()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Utils/NaverLogin.cs:776</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>compressToUTF16()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Utils/NaverLogin.cs:783</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>decompressFromUTF16()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Utils/NaverLogin.cs:789</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>compressToUint8Array()</code></td><td>public</td><td>byte[]</td><td>확인 필요 (<code>Utils/NaverLogin.cs:796</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>decompressFromUint8Array()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Utils/NaverLogin.cs:810</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>compressToEncodedURIComponent()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Utils/NaverLogin.cs:829</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>decompressFromEncodedURIComponent()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Utils/NaverLogin.cs:835</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>compress()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Utils/NaverLogin.cs:843</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>_compress()</code></td><td>private</td><td>string</td><td>확인 필요 (<code>Utils/NaverLogin.cs:848</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+<tr><td><code>decompress()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Utils/NaverLogin.cs:1120</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>_decompress()</code></td><td>private</td><td>string</td><td>확인 필요 (<code>Utils/NaverLogin.cs:1133</code>)</td><td>N</td><td>N</td><td>Y</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-65">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--struct-datastruct">Struct: dataStruct</h3>
+<ul>
+<li>파일 경로: <code>Utils/NaverLogin.cs</code></li>
+<li>선언 위치: line 1127</li>
+<li>역할: 확인 필요</li>
+<li>주요 책임:</li>
+<ul>
+<li>확인 필요</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-66">주요 필드/속성</h4>
+<ul>
+<li>확인된 주요 필드/속성 없음 또는 확인 필요</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-66">Methods</h4>
+<ul>
+<li>메소드 없음 또는 자동 생성/DTO 타입</li>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-66">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h3 id="04_NAMESPACE_CLASS_METHOD_REPORT--class-receiptiosverification">Class: ReceiptiOSVerification</h3>
+<ul>
+<li>파일 경로: <code>Utils/ReceiptiOSVerification.cs</code></li>
+<li>선언 위치: line 12</li>
+<li>역할: 확인 필요</li>
+<li>주요 책임:</li>
+<ul>
+<li>확인 필요</li>
+</ul>
+</ul>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--주요-필드-속성-67">주요 필드/속성</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>구분</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string IOS_PRODUCT_URL (line 14)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string IOS_SENDBOX_URL (line 15)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) string PACKAGE_NAME (line 16)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) int IOS_RV_SUCCESS (line 17)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) int IOS_RV_FAIL_RETRY (line 19)</td></tr>
+<tr><td>필드/속성</td><td>(기본값/확인 필요) int IOS_RV_FAIL (line 20)</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--methods-67">Methods</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>접근 제한자</th><th>반환 타입</th><th>설명/위치</th><th>DB 접근</th><th>외부 호출</th><th>루프 관련</th></tr></thead>
+<tbody>
+<tr><td><code>PurchaseItem()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Utils/ReceiptiOSVerification.cs:21</code>)</td><td>N</td><td>Y</td><td>N</td></tr>
+<tr><td><code>VerifyIOSReceipt()</code></td><td>public</td><td>int</td><td>확인 필요 (<code>Utils/ReceiptiOSVerification.cs:77</code>)</td><td>N</td><td>Y</td><td>Y</td></tr>
+<tr><td><code>CheckReceipt()</code></td><td>public</td><td>bool</td><td>상태를 검사한다 (<code>Utils/ReceiptiOSVerification.cs:179</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+<tr><td><code>Base64Encode()</code></td><td>public</td><td>string</td><td>확인 필요 (<code>Utils/ReceiptiOSVerification.cs:198</code>)</td><td>N</td><td>N</td><td>N</td></tr>
+</tbody></table></div>
+<h4 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-메모-67">분석 메모</h4>
+<ul>
+<li>파일 경로와 정적 검색 근거 기준으로 작성했다. 역할이 명확하지 않은 DTO/Enum은 <code>확인 필요</code> 또는 데이터 표현용으로 표시했다.</li>
+</ul>
+<h2 id="04_NAMESPACE_CLASS_METHOD_REPORT--분석-한계">분석 한계</h2>
+<ul>
+<li>현재 폴더의 소스와 프로젝트 파일을 기준으로 정적 분석했다. 런타임 DB 데이터, 실제 스케줄 설정값, 외부 API 응답, 배포 서버 상태는 실행 검증하지 않았다.</li>
+<li><code>FinUp.Stock.App</code> 및 <code>FinUp.Core.Fundamentals</code>는 프로젝트 참조로 확인되지만 본 리포트의 세부 클래스/메소드 분석 범위는 현재 폴더의 <code>FinUp.Stock.App.AlphaBot</code> 소스에 한정했다.</li>
+<li><code>DBUtil</code>, <code>SqlSender</code>, <code>LogWriter</code>, <code>NetUtil</code> 등 핵심 구현 일부는 참조 프로젝트에 있어 커넥션 해제/SQL 생성/로그 경로의 최종 동작은 <code>확인 필요</code>로 표시했다.</li>
+<li>민감값은 원문 대신 <code>[REDACTED]</code>로 마스킹했다.</li>
+</ul>
+        <footer class="footer">본 HTML은 docs/code-analysis Markdown 산출물을 읽기 좋게 변환한 문서입니다. 민감값은 원본 Markdown 기준으로 마스킹된 상태를 유지합니다.</footer>
+      </article>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,4235 @@
+{
+  "projects": [
+    "FinUp.Auth.Api",
+    "FinUp.Chat.Api",
+    "FinUp.Chat.Api.Badge",
+    "FinUp.Chat.Api.Channel",
+    "FinUp.Chat.NET.Api",
+    "FinUp.Chat.NET.Api.Badge",
+    "FinUp.Chat.NET.Api.Channel",
+    "FinUp.Chat.NET.Api.ChannerView",
+    "FinUp.Chat.NET.Api.Push",
+    "FinUp.General.Api",
+    "FinUp.LogData.Api",
+    "FinUp.Mars.Api",
+    "FinUp.Radar.Api",
+    "FinUp.Stock.Api",
+    "FinUp.Stock.Scraper.Api",
+    "FinUp.StockData.Price.Api",
+    "FinUp.StockData.Price.Api.Channel",
+    "FinUp.StockData.Price.Api.RealTime"
+  ],
+  "endpoint_count": 421,
+  "endpoints": [
+    {
+      "project": "FinUp.Auth.Api",
+      "url": "api/auth/active",
+      "class": "AuthController",
+      "method": "IsActive",
+      "http": "GET",
+      "file": "FinUp.Auth.Api/Controllers/AuthController.cs",
+      "line": 289,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Auth.Api",
+      "url": "api/auth/app",
+      "class": "AuthController",
+      "method": "GetAuthApp",
+      "http": "POST",
+      "file": "FinUp.Auth.Api/Controllers/AuthController.cs",
+      "line": 122,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Auth.Api",
+      "url": "api/auth/app/apptoken",
+      "class": "AuthController",
+      "method": "GetAuthAppToken",
+      "http": "POST",
+      "file": "FinUp.Auth.Api/Controllers/AuthController.cs",
+      "line": 31,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Auth.Api",
+      "url": "api/auth/app/jwt",
+      "class": "AuthController",
+      "method": "GetAuthSimpleJwt",
+      "http": "POST",
+      "file": "FinUp.Auth.Api/Controllers/AuthController.cs",
+      "line": 76,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Auth.Api",
+      "url": "api/auth/autologin",
+      "class": "AuthController",
+      "method": "GetAuthAutoLogin",
+      "http": "POST",
+      "file": "FinUp.Auth.Api/Controllers/AuthController.cs",
+      "line": 243,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Auth.Api",
+      "url": "api/auth/logout",
+      "class": "AuthController",
+      "method": "Logout",
+      "http": "GET",
+      "file": "FinUp.Auth.Api/Controllers/AuthController.cs",
+      "line": 264,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Auth.Api",
+      "url": "api/auth/refresh",
+      "class": "AuthController",
+      "method": "GetAuthRefresh",
+      "http": "POST",
+      "file": "FinUp.Auth.Api/Controllers/AuthController.cs",
+      "line": 192,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Auth.Api",
+      "url": "api/auth/test",
+      "class": "AuthController",
+      "method": "TestToken",
+      "http": "GET",
+      "file": "FinUp.Auth.Api/Controllers/AuthController.cs",
+      "line": 252,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Auth.Api",
+      "url": "api/check/health",
+      "class": "CheckController",
+      "method": "Check",
+      "http": "GET",
+      "file": "FinUp.Auth.Api/Controllers/CheckController.cs",
+      "line": 12,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Auth.Api",
+      "url": "api/Home",
+      "class": "HomeController",
+      "method": "Index",
+      "http": "GET",
+      "file": "FinUp.Auth.Api/Controllers/HomeController.cs",
+      "line": 9,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat",
+      "class": "AppController",
+      "method": "ChatNoneAuth",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 41,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/alarmlist",
+      "class": "AppController",
+      "method": "Alarm",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 1057,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/auth",
+      "class": "AppController",
+      "method": "ChatAuth",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 109,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/auth/last/signal",
+      "class": "AppController",
+      "method": "ChatAuthLastSignalProcess",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 404,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/auth/signal/edit",
+      "class": "AppController",
+      "method": "ChatAuthSignalEditProcess",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 421,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/auth/signal/edit/preprocess",
+      "class": "AppController",
+      "method": "ChatAuthSignalEditPreprocess",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 437,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/bannedword/refresh",
+      "class": "AppController",
+      "method": "RefreshChatBannedWord",
+      "http": "GET",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 755,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/banner",
+      "class": "AppController",
+      "method": "ChatBannerList",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 972,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/cacheload",
+      "class": "AppController",
+      "method": "ChatCacheReload",
+      "http": "GET",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 710,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/cacheload",
+      "class": "AppController",
+      "method": "ChatCacheReloadChat",
+      "http": "GET",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 733,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/device",
+      "class": "AppController",
+      "method": "ChatDevice",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 914,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/emoticon",
+      "class": "AppController",
+      "method": "Emoticon",
+      "http": "GET",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 1048,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/favorite",
+      "class": "AppController",
+      "method": "ChatFavorite",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 938,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/filedownload",
+      "class": "AppController",
+      "method": "FileDownload",
+      "http": "GET",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 666,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/files",
+      "class": "AppController",
+      "method": "ChatAuthFiles",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 373,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/filespaging",
+      "class": "AppController",
+      "method": "ChatAuthFilesPaging",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 456,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/fileupload",
+      "class": "AppController",
+      "method": "FileUpload",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 484,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/fileuploaddoc",
+      "class": "AppController",
+      "method": "FileUploadDoc",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 592,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/homelogin",
+      "class": "AppController",
+      "method": "ChatMentorWebLogin",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 894,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/hostroute",
+      "class": "AppController",
+      "method": "HostRoute",
+      "http": "POST",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 778,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/log",
+      "class": "AppController",
+      "method": "ChatLog",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 1005,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/logout",
+      "class": "AppController",
+      "method": "Logout",
+      "http": "GET",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 84,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/mentor",
+      "class": "AppController",
+      "method": "ChatMentor",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 957,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/profile",
+      "class": "AppController",
+      "method": "ChstUserProfile",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 810,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/subscribe/{userIdx}/{cIdx}",
+      "class": "AppController",
+      "method": "AddSubscribe",
+      "http": "GET",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 987,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/subscribecancel/{userIdx}/{chatIdx}",
+      "class": "AppController",
+      "method": "CacnelSubscribe",
+      "http": "GET",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 997,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/update",
+      "class": "AppController",
+      "method": "Update",
+      "http": "GET",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 858,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/version",
+      "class": "AppController",
+      "method": "Version",
+      "http": "GET",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 831,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/app/chat/weblogin",
+      "class": "AppController",
+      "method": "ChatUserWebLogin",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api/Controllers/AppController.Chat.cs",
+      "line": 872,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/check/health",
+      "class": "CheckController",
+      "method": "HealthCheck",
+      "http": "GET",
+      "file": "FinUp.Chat.Api/Controllers/CheckController.cs",
+      "line": 11,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/contents/freechatout",
+      "class": "ContentsController",
+      "method": "FreeChatOut",
+      "http": "POST",
+      "file": "FinUp.Chat.Api/Controllers/ContentsController.cs",
+      "line": 73,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/contents/freechatsubscribe",
+      "class": "ContentsController",
+      "method": "FreeChatSubscribe",
+      "http": "POST",
+      "file": "FinUp.Chat.Api/Controllers/ContentsController.cs",
+      "line": 32,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/popup/list",
+      "class": "PopupController",
+      "method": "GetPopupListAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.Api/Controllers/PopupController.cs",
+      "line": 24,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/report",
+      "class": "ReportController",
+      "method": "PostReport",
+      "http": "POST",
+      "file": "FinUp.Chat.Api/Controllers/ReportController.cs",
+      "line": 25,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api",
+      "url": "api/room/refresh/{chatIdx}",
+      "class": "RoomController",
+      "method": "RefreshChatRoomAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.Api/Controllers/RoomController.cs",
+      "line": 15,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api.Badge",
+      "url": "api/badge/count",
+      "class": "BadgeController",
+      "method": "Count",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api.Badge/Controllers/BadgeController.cs",
+      "line": 43,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api.Badge",
+      "url": "api/badge/init",
+      "class": "BadgeController",
+      "method": "Init",
+      "http": "(unspecified)",
+      "file": "FinUp.Chat.Api.Badge/Controllers/BadgeController.cs",
+      "line": 21,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api.Badge",
+      "url": "api/check/health",
+      "class": "CheckController",
+      "method": "Check",
+      "http": "GET",
+      "file": "FinUp.Chat.Api.Badge/Controllers/CheckController.cs",
+      "line": 15,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.Api.Badge",
+      "url": "api/Home",
+      "class": "HomeController",
+      "method": "Index",
+      "http": "GET",
+      "file": "FinUp.Chat.Api.Badge/Controllers/HomeController.cs",
+      "line": 12,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.Api.Channel",
+      "url": "api/Chat/Connect",
+      "class": "ChatController",
+      "method": "Connect",
+      "http": "GET",
+      "file": "FinUp.Chat.Api.Channel/Controllers/ChatController.cs",
+      "line": 61,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.Api.Channel",
+      "url": "api/Chat/ConnectByGet",
+      "class": "ChatController",
+      "method": "ConnectByGet",
+      "http": "GET",
+      "file": "FinUp.Chat.Api.Channel/Controllers/ChatController.cs",
+      "line": 31,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.Api.Channel",
+      "url": "api/Chat/Count",
+      "class": "ChatController",
+      "method": "Count",
+      "http": "GET",
+      "file": "FinUp.Chat.Api.Channel/Controllers/ChatController.cs",
+      "line": 78,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.Api.Channel",
+      "url": "WeatherForecast",
+      "class": "WeatherForecastController",
+      "method": "Get",
+      "http": "GET",
+      "file": "FinUp.Chat.Api.Channel/Controllers/WeatherForecastController.cs",
+      "line": 27,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/Check",
+      "class": "CheckController",
+      "method": "CheckDB",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/CheckController.cs",
+      "line": 21,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Auth",
+      "class": "AuthController",
+      "method": "GetAuth",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/AuthController.cs",
+      "line": 34,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Auth/refresh",
+      "class": "AuthController",
+      "method": "GetAuthRefresh",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/AuthController.cs",
+      "line": 68,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Auth/refresh:noneactive",
+      "class": "AuthController",
+      "method": "GetAuthRefreshNoneActive",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/AuthController.cs",
+      "line": 85,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Auth/token",
+      "class": "AuthController",
+      "method": "GetAuthToken",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/AuthController.cs",
+      "line": 51,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Banner",
+      "class": "BannerController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/BannerController.cs",
+      "line": 28,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/banword:refresh",
+      "class": "BanwordController",
+      "method": "RefreshAsync",
+      "http": "PATCH",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/BanwordController.cs",
+      "line": 24,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Cache",
+      "class": "CacheController",
+      "method": "Load",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/CacheController.cs",
+      "line": 29,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Cache/chat/{chatidx}/messages",
+      "class": "CacheController",
+      "method": "LoadChatMessage",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/CacheController.cs",
+      "line": 47,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Cache/publish",
+      "class": "CacheController",
+      "method": "PublishAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/CacheController.cs",
+      "line": 56,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Cache/state",
+      "class": "CacheController",
+      "method": "State",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/CacheController.cs",
+      "line": 41,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Chat",
+      "class": "ChatController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatController.cs",
+      "line": 60,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Chat",
+      "class": "ChatController",
+      "method": "Insert",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatController.cs",
+      "line": 41,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Chat/update",
+      "class": "ChatController",
+      "method": "Update",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatController.cs",
+      "line": 127,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Chat/{chatidx}",
+      "class": "ChatController",
+      "method": "DeleteAsync",
+      "http": "DELETE",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatController.cs",
+      "line": 109,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Chat/{chatidx}",
+      "class": "ChatController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatController.cs",
+      "line": 74,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Chat/{chatidx}",
+      "class": "ChatController",
+      "method": "PatchAsync",
+      "http": "PATCH",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatController.cs",
+      "line": 91,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/files",
+      "class": "ChatFilesController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatFilesController.cs",
+      "line": 108,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/files/{chatfileidx}",
+      "class": "ChatFilesController",
+      "method": "DeleteAsync",
+      "http": "DELETE",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatFilesController.cs",
+      "line": 89,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/files/{chatfileidx}:download",
+      "class": "ChatFilesController",
+      "method": "DownloadFileAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatFilesController.cs",
+      "line": 120,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/files/{chatfileidx}:download-app",
+      "class": "ChatFilesController",
+      "method": "DownloadAppFileAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatFilesController.cs",
+      "line": 141,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/files:upload",
+      "class": "ChatFilesController",
+      "method": "UploadAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatFilesController.cs",
+      "line": 166,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/files:upload-robo",
+      "class": "ChatFilesController",
+      "method": "UploadRoboAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatFilesController.cs",
+      "line": 274,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/messages",
+      "class": "ChatMessageController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatMessageController.cs",
+      "line": 166,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/messages",
+      "class": "ChatMessageController",
+      "method": "PostAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatMessageController.cs",
+      "line": 72,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/messages-system",
+      "class": "ChatMessageController",
+      "method": "PostAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatMessageController.cs",
+      "line": 48,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/messages-url",
+      "class": "ChatMessageController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatMessageController.cs",
+      "line": 240,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/messages/{chatmessageidx}",
+      "class": "ChatMessageController",
+      "method": "DeleteAsync",
+      "http": "DELETE",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatMessageController.cs",
+      "line": 289,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/messages/{chatmessageidx}",
+      "class": "ChatMessageController",
+      "method": "Get",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatMessageController.cs",
+      "line": 150,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/messages/{chatmessageidx}",
+      "class": "ChatMessageController",
+      "method": "PatchAsync",
+      "http": "PATCH",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatMessageController.cs",
+      "line": 270,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/messages:free",
+      "class": "ChatMessageController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatMessageController.cs",
+      "line": 226,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/messages:history",
+      "class": "ChatMessageController",
+      "method": "Get",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatMessageController.cs",
+      "line": 195,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/messages:history-date",
+      "class": "ChatMessageController",
+      "method": "Get",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatMessageController.cs",
+      "line": 210,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/messages:robo",
+      "class": "ChatMessageController",
+      "method": "PostRoboAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatMessageController.cs",
+      "line": 101,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/messages:search",
+      "class": "ChatMessageController",
+      "method": "Get",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatMessageController.cs",
+      "line": 254,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/messages:signal",
+      "class": "ChatMessageController",
+      "method": "PostApiKeyAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatMessageController.cs",
+      "line": 124,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/notice",
+      "class": "NoticeController",
+      "method": "GetNotice",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/NoticeController.cs",
+      "line": 33,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/notice",
+      "class": "NoticeController",
+      "method": "PostNoticeAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/NoticeController.cs",
+      "line": 63,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/notice/{boardidx}",
+      "class": "NoticeController",
+      "method": "DeleteNotice",
+      "http": "DELETE",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/NoticeController.cs",
+      "line": 83,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/notice/{boardidx}",
+      "class": "NoticeController",
+      "method": "GetNoticeDetailAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/NoticeController.cs",
+      "line": 48,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/notice/{boardidx}:admin",
+      "class": "NoticeController",
+      "method": "DeleteNoticeAdmin",
+      "http": "DELETE",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/NoticeController.cs",
+      "line": 123,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/notice/{boardidx}:admin",
+      "class": "NoticeController",
+      "method": "PatchAsync",
+      "http": "PATCH",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/NoticeController.cs",
+      "line": 105,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/users",
+      "class": "ChatUsersController",
+      "method": "GetListAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatUsersController.cs",
+      "line": 47,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/users",
+      "class": "ChatUsersController",
+      "method": "PostAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatUsersController.cs",
+      "line": 184,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/users/{chatuseridx}",
+      "class": "ChatUsersController",
+      "method": "DeleteAsync",
+      "http": "DELETE",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatUsersController.cs",
+      "line": 315,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/users/{chatuseridx}",
+      "class": "ChatUsersController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatUsersController.cs",
+      "line": 63,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/users/{chatuseridx}",
+      "class": "ChatUsersController",
+      "method": "PatchAsync",
+      "http": "PATCH",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatUsersController.cs",
+      "line": 233,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/users/{chatuseridx}/favorites",
+      "class": "ChatUsersController",
+      "method": "DeleteFavoriteAsync",
+      "http": "DELETE",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatUsersController.cs",
+      "line": 422,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/users/{chatuseridx}/favorites",
+      "class": "ChatUsersController",
+      "method": "InsertFavoriteAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatUsersController.cs",
+      "line": 403,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/users/{chatuseridx}:ban",
+      "class": "ChatUsersController",
+      "method": "BanAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatUsersController.cs",
+      "line": 253,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/users/{chatuseridx}:enter",
+      "class": "ChatUsersController",
+      "method": "EnterAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatUsersController.cs",
+      "line": 353,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/users/{chatuseridx}:enter-Admin",
+      "class": "ChatUsersController",
+      "method": "EnterAsAdminAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatUsersController.cs",
+      "line": 368,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/users/{chatuseridx}:out",
+      "class": "ChatUsersController",
+      "method": "OutAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatUsersController.cs",
+      "line": 385,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/users/{chatuseridx}:push",
+      "class": "ChatUsersController",
+      "method": "UpdatePushAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatUsersController.cs",
+      "line": 208,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/users/{chatuseridx}:writable",
+      "class": "ChatUsersController",
+      "method": "UpdateWritableAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatUsersController.cs",
+      "line": 270,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/users:cancel",
+      "class": "ChatUsersController",
+      "method": "CancelAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatUsersController.cs",
+      "line": 332,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/users:upsert",
+      "class": "ChatUsersController",
+      "method": "UpsertAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatUsersController.cs",
+      "line": 79,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/chat/{chatidx}/users:writable",
+      "class": "ChatUsersController",
+      "method": "UpdateWritableAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ChatUsersController.cs",
+      "line": 289,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Emoticon",
+      "class": "EmoticonController",
+      "method": "GetEmoticon",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/EmoticonController.cs",
+      "line": 27,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Reports",
+      "class": "ReportsController",
+      "method": "PostReport",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/ReportsController.cs",
+      "line": 25,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Routing",
+      "class": "RoutingController",
+      "method": "Get",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/RoutingController.cs",
+      "line": 26,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Session/api/app/chat/log",
+      "class": "SessionController",
+      "method": "LegacyLog",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/SessionController.cs",
+      "line": 92,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Session/close",
+      "class": "SessionController",
+      "method": "Close",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/SessionController.cs",
+      "line": 39,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Session/enter",
+      "class": "SessionController",
+      "method": "Enter",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/SessionController.cs",
+      "line": 50,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Session/log",
+      "class": "SessionController",
+      "method": "Log",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/SessionController.cs",
+      "line": 61,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Users",
+      "class": "UsersController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/UsersController.cs",
+      "line": 55,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Users",
+      "class": "UsersController",
+      "method": "PostAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/UsersController.cs",
+      "line": 37,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Users/{appuserkey}/profile:sys",
+      "class": "UsersController",
+      "method": "PostProfileAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/UsersController.cs",
+      "line": 133,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Users/{appuserkey}:sys",
+      "class": "UsersController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/UsersController.cs",
+      "line": 115,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Users/{useridx}",
+      "class": "UsersController",
+      "method": "DeleteAsync",
+      "http": "DELETE",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/UsersController.cs",
+      "line": 168,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Users/{useridx}",
+      "class": "UsersController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/UsersController.cs",
+      "line": 74,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.0/Users/{useridx}",
+      "class": "UsersController",
+      "method": "PatchAsync",
+      "http": "PATCH",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_0/UsersController.cs",
+      "line": 93,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.1/chat/{chatidx}/files",
+      "class": "ChatFilesController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_1/ChatFilesController.cs",
+      "line": 39,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.1/chat/{chatidx}/files-debug",
+      "class": "ChatFilesController",
+      "method": "GetDebugAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_1/ChatFilesController.cs",
+      "line": 68,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.1/chat/{chatidx}/files-debug:direction",
+      "class": "ChatFilesController",
+      "method": "GetDebugDirectionAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_1/ChatFilesController.cs",
+      "line": 82,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.1/chat/{chatidx}/files:direction",
+      "class": "ChatFilesController",
+      "method": "GetDirectionAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_1/ChatFilesController.cs",
+      "line": 54,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.1/Reports",
+      "class": "ReportsController",
+      "method": "Get",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_1/ReportsController.cs",
+      "line": 18,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.2/chat/{chatidx}/files",
+      "class": "ChatFilesController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_2/ChatFilesController.cs",
+      "line": 50,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.2/chat/{chatidx}/files:direction",
+      "class": "ChatFilesController",
+      "method": "GetDirectionAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_2/ChatFilesController.cs",
+      "line": 65,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.2/chat/{chatidx}/files:upload",
+      "class": "ChatFilesController",
+      "method": "UploadAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_2/ChatFilesController.cs",
+      "line": 81,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.2/chat/{chatidx}/messages",
+      "class": "ChatMessageController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_2/ChatMessageController.cs",
+      "line": 81,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.2/chat/{chatidx}/messages",
+      "class": "ChatMessageController",
+      "method": "PostAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_2/ChatMessageController.cs",
+      "line": 51,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.2/Common",
+      "class": "CommonController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_2/CommonController.cs",
+      "line": 39,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.2/users/{targetuseridx}/report/count:target",
+      "class": "UserReportController",
+      "method": "GetTargetUserReportCountAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_2/UserReportController.cs",
+      "line": 79,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.2/users/{targetuseridx}/report:target",
+      "class": "UserReportController",
+      "method": "GetPageAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_2/UserReportController.cs",
+      "line": 52,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.2/users/{useridx}/ban",
+      "class": "UserBanController",
+      "method": "GetUserBanListAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_2/UserBanController.cs",
+      "line": 64,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.2/users/{useridx}/ban",
+      "class": "UserBanController",
+      "method": "InsertAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_2/UserBanController.cs",
+      "line": 37,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.2/users/{useridx}/ban/{userbanidx}",
+      "class": "UserBanController",
+      "method": "DeleteAsync",
+      "http": "DELETE",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_2/UserBanController.cs",
+      "line": 83,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.2/users/{useridx}/report",
+      "class": "UserReportController",
+      "method": "InsertAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_2/UserReportController.cs",
+      "line": 32,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/Auth/token:apikey",
+      "class": "AuthController",
+      "method": "GetAuthFromApikey",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/AuthController.cs",
+      "line": 57,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/Auth/token:cookie",
+      "class": "AuthController",
+      "method": "GetAuthFromCookie",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/AuthController.cs",
+      "line": 37,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/Banner",
+      "class": "BannerController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/BannerController.cs",
+      "line": 28,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/banword:refresh",
+      "class": "BanwordController",
+      "method": "RefreshAsync",
+      "http": "PATCH",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/BanwordController.cs",
+      "line": 23,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/Chat",
+      "class": "ChatController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatController.cs",
+      "line": 135,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/Chat",
+      "class": "ChatController",
+      "method": "Insert",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatController.cs",
+      "line": 40,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/Chat/openchat/display/{display}",
+      "class": "ChatController",
+      "method": "GetChatMessageCount",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatController.cs",
+      "line": 151,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/Chat/{appcode}/list",
+      "class": "ChatController",
+      "method": "GetAppcodeChatList",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatController.cs",
+      "line": 173,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/Chat/{appcode}/message-count",
+      "class": "ChatController",
+      "method": "GetChatMessageCount",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatController.cs",
+      "line": 207,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/Chat/{appcode}/openchat:theme",
+      "class": "ChatController",
+      "method": "InsertOpenChatTheme",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatController.cs",
+      "line": 55,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/Chat/{appcode}/{keywordidx}/info",
+      "class": "ChatController",
+      "method": "GetChatbyKeyword",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatController.cs",
+      "line": 186,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/files",
+      "class": "ChatFilesController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatFilesController.cs",
+      "line": 52,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/files/{chatfileidx}:download",
+      "class": "ChatFilesController",
+      "method": "DownloadFileAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatFilesController.cs",
+      "line": 81,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/files:direction",
+      "class": "ChatFilesController",
+      "method": "GetDirectionAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatFilesController.cs",
+      "line": 68,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/files:upload",
+      "class": "ChatFilesController",
+      "method": "UploadAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatFilesController.cs",
+      "line": 107,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/messages",
+      "class": "ChatMessageController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatMessageController.cs",
+      "line": 122,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/messages",
+      "class": "ChatMessageController",
+      "method": "PostAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatMessageController.cs",
+      "line": 57,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/messages/{appcode}:unauth",
+      "class": "ChatMessageController",
+      "method": "GetUnAuthAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatMessageController.cs",
+      "line": 151,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/messages/{chatmessageidx}/openchat:admin",
+      "class": "ChatMessageController",
+      "method": "DeleteOpenChatAsync",
+      "http": "DELETE",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatMessageController.cs",
+      "line": 173,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/messages:system",
+      "class": "ChatMessageController",
+      "method": "PostApiKeyAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatMessageController.cs",
+      "line": 93,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/Chat/{chatidx}/openchat",
+      "class": "ChatController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatController.cs",
+      "line": 115,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/users",
+      "class": "ChatUsersController",
+      "method": "GetListAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatUsersController.cs",
+      "line": 46,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/users",
+      "class": "ChatUsersController",
+      "method": "PostAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatUsersController.cs",
+      "line": 186,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/users/openchat:enter",
+      "class": "ChatUsersController",
+      "method": "EnterOpenChatAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatUsersController.cs",
+      "line": 390,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/users/{chatuseridx}",
+      "class": "ChatUsersController",
+      "method": "DeleteAsync",
+      "http": "DELETE",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatUsersController.cs",
+      "line": 318,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/users/{chatuseridx}",
+      "class": "ChatUsersController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatUsersController.cs",
+      "line": 63,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/users/{chatuseridx}",
+      "class": "ChatUsersController",
+      "method": "PatchAsync",
+      "http": "PATCH",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatUsersController.cs",
+      "line": 236,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/users/{chatuseridx}/favorites",
+      "class": "ChatUsersController",
+      "method": "DeleteFavoriteAsync",
+      "http": "DELETE",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatUsersController.cs",
+      "line": 498,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/users/{chatuseridx}/favorites",
+      "class": "ChatUsersController",
+      "method": "InsertFavoriteAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatUsersController.cs",
+      "line": 479,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/users/{chatuseridx}:ban",
+      "class": "ChatUsersController",
+      "method": "BanAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatUsersController.cs",
+      "line": 256,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/users/{chatuseridx}:enter",
+      "class": "ChatUsersController",
+      "method": "EnterAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatUsersController.cs",
+      "line": 357,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/users/{chatuseridx}:enter-Admin",
+      "class": "ChatUsersController",
+      "method": "EnterAsAdminAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatUsersController.cs",
+      "line": 372,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/users/{chatuseridx}:out",
+      "class": "ChatUsersController",
+      "method": "OutAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatUsersController.cs",
+      "line": 461,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/users/{chatuseridx}:push",
+      "class": "ChatUsersController",
+      "method": "UpdatePushAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatUsersController.cs",
+      "line": 210,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/users/{chatuseridx}:writable",
+      "class": "ChatUsersController",
+      "method": "UpdateWritableAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatUsersController.cs",
+      "line": 273,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/users:cancel",
+      "class": "ChatUsersController",
+      "method": "CancelAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatUsersController.cs",
+      "line": 335,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/users:upsert",
+      "class": "ChatUsersController",
+      "method": "UpsertAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatUsersController.cs",
+      "line": 79,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{chatidx}/users:writable",
+      "class": "ChatUsersController",
+      "method": "UpdateWritableAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatUsersController.cs",
+      "line": 292,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/chat/{useridx}/{appcode}/messages/delete-all-message",
+      "class": "ChatMessageController",
+      "method": "DeleteServiceBlockUserMessageAsync",
+      "http": "DELETE",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/ChatMessageController.cs",
+      "line": 197,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/Users",
+      "class": "UsersController",
+      "method": "GetAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/UsersController.cs",
+      "line": 61,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/Users",
+      "class": "UsersController",
+      "method": "PostAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/UsersController.cs",
+      "line": 43,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/Users/service-block",
+      "class": "UsersController",
+      "method": "GetUserServiceBlockAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/UsersController.cs",
+      "line": 107,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/Users/service-block",
+      "class": "UsersController",
+      "method": "PostUserServiceBlockAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/UsersController.cs",
+      "line": 82,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/Users/service-block/{blockidx}",
+      "class": "UsersController",
+      "method": "DeleteUserServiceBlockAsync",
+      "http": "DELETE",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/UsersController.cs",
+      "line": 124,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/Users/user-alarm",
+      "class": "UsersController",
+      "method": "GetUserAlarmList",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/UsersController.cs",
+      "line": 138,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/users/{useridx}/ban",
+      "class": "UserBanController",
+      "method": "GetUserBanListAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/UserBanController.cs",
+      "line": 55,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api",
+      "url": "api/v1.9/users/{useridx}/ban",
+      "class": "UserBanController",
+      "method": "InsertAsync",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api/Controllers/v1_9/UserBanController.cs",
+      "line": 33,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api.Badge",
+      "url": "api/Check",
+      "class": "CheckController",
+      "method": "CheckDB",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api.Badge/Controllers/CheckController.cs",
+      "line": 18,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api.Badge",
+      "url": "api/v1.0/chat/{chatIdx}/users/{chatuseridx}/badge:init",
+      "class": "BadgeController",
+      "method": "Init",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api.Badge/Controllers/v1_0/BadgeController.cs",
+      "line": 28,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api.Channel",
+      "url": "api/v{version:apiVersion}/Chat",
+      "class": "ChatController",
+      "method": "Connect",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api.Channel/Controllers/ChatController.cs",
+      "line": 42,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api.Channel",
+      "url": "api/v{version:apiVersion}/Chat/client/count",
+      "class": "ChatController",
+      "method": "Count",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api.Channel/Controllers/ChatController.cs",
+      "line": 97,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api.Channel",
+      "url": "api/v{version:apiVersion}/Chat/connect",
+      "class": "ChatController",
+      "method": "ConnectByGet",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api.Channel/Controllers/ChatController.cs",
+      "line": 61,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api.Channel",
+      "url": "api/v{version:apiVersion}/Chat/sse/connect/{chatIdx}",
+      "class": "ChatController",
+      "method": "SeeConnectAsync",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api.Channel/Controllers/ChatController.cs",
+      "line": 110,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api.ChannerView",
+      "url": "api/v{version:apiVersion}/Auth/VerifyJwtToken",
+      "class": "AuthController",
+      "method": "VerifyJwtToken",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api.ChannerView/Controllers/v1_0/AuthController.cs",
+      "line": 45,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api.ChannerView",
+      "url": "api/v{version:apiVersion}/Auth/VerifyRecaptcha",
+      "class": "AuthController",
+      "method": "VerifyRecaptcha",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api.ChannerView/Controllers/v1_0/AuthController.cs",
+      "line": 30,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api.ChannerView",
+      "url": "api/v{version:apiVersion}/Url/GetUrlDelay",
+      "class": "UrlController",
+      "method": "GetUrlDelay",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api.ChannerView/Controllers/v1_0/UrlController.cs",
+      "line": 43,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api.ChannerView",
+      "url": "api/v{version:apiVersion}/Url/GetUrlParsingResult",
+      "class": "UrlController",
+      "method": "GetUrlParsingResult",
+      "http": "POST",
+      "file": "FinUp.Chat.NET.Api.ChannerView/Controllers/v1_0/UrlController.cs",
+      "line": 32,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api.ChannerView",
+      "url": "chat/v{version:apiVersion}/ProcessChatWebsocket",
+      "class": "WebSocketController",
+      "method": "ProcessChatWebsocket",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api.ChannerView/Controllers/v1_0/WebSocketController.cs",
+      "line": 34,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Chat.NET.Api.Push",
+      "url": "api/Check",
+      "class": "CheckController",
+      "method": "CheckDB",
+      "http": "GET",
+      "file": "FinUp.Chat.NET.Api.Push/Controllers/CheckController.cs",
+      "line": 19,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.General.Api",
+      "url": "api/App",
+      "class": "AppController",
+      "method": "Post",
+      "http": "POST",
+      "file": "FinUp.General.Api/Controllers/AppController.cs",
+      "line": 22,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.General.Api",
+      "url": "api/check/health",
+      "class": "CheckController",
+      "method": "HealthCheck",
+      "http": "GET",
+      "file": "FinUp.General.Api/Controllers/CheckController.cs",
+      "line": 15,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.General.Api",
+      "url": "api/oorione/checkreward",
+      "class": "OorioneController",
+      "method": "CheckReward",
+      "http": "POST",
+      "file": "FinUp.General.Api/Controllers/OorioneController.cs",
+      "line": 209,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.General.Api",
+      "url": "api/oorione/checkuser",
+      "class": "OorioneController",
+      "method": "CheckUser",
+      "http": "POST",
+      "file": "FinUp.General.Api/Controllers/OorioneController.cs",
+      "line": 30,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.General.Api",
+      "url": "api/oorione/orderuser",
+      "class": "OorioneController",
+      "method": "OrderUser",
+      "http": "POST",
+      "file": "FinUp.General.Api/Controllers/OorioneController.cs",
+      "line": 97,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.LogData.Api",
+      "url": "Log",
+      "class": "LogController",
+      "method": "Get",
+      "http": "GET",
+      "file": "FinUp.LogData.Api/Controllers/LogController.cs",
+      "line": 24,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.LogData.Api",
+      "url": "Log/Logging",
+      "class": "LogController",
+      "method": "Logging",
+      "http": "POST",
+      "file": "FinUp.LogData.Api/Controllers/LogController.cs",
+      "line": 35,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.LogData.Api",
+      "url": "Log/Ping",
+      "class": "LogController",
+      "method": "Ping",
+      "http": "POST",
+      "file": "FinUp.LogData.Api/Controllers/LogController.cs",
+      "line": 51,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.LogData.Api",
+      "url": "Log/PushResponse",
+      "class": "LogController",
+      "method": "PushResponse",
+      "http": "POST",
+      "file": "FinUp.LogData.Api/Controllers/LogController.cs",
+      "line": 102,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.LogData.Api",
+      "url": "Log/System",
+      "class": "LogController",
+      "method": "System",
+      "http": "POST",
+      "file": "FinUp.LogData.Api/Controllers/LogController.cs",
+      "line": 67,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.LogData.Api",
+      "url": "Log/SystemList",
+      "class": "LogController",
+      "method": "SystemList",
+      "http": "POST",
+      "file": "FinUp.LogData.Api/Controllers/LogController.cs",
+      "line": 85,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Mars.Api",
+      "url": "api/v1.0/Expression",
+      "class": "ExpressionController",
+      "method": "Get",
+      "http": "GET",
+      "file": "FinUp.Mars.Api/Controllers/v1_0/ExpressionController.cs",
+      "line": 25,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Mars.Api",
+      "url": "api/v1.0/Home",
+      "class": "HomeController",
+      "method": "Index",
+      "http": "GET",
+      "file": "FinUp.Mars.Api/Controllers/v1_0/HomeController.cs",
+      "line": 25,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Mars.Api",
+      "url": "api/v1.0/Images/themeus",
+      "class": "ImagesController",
+      "method": "Index",
+      "http": "GET",
+      "file": "FinUp.Mars.Api/Controllers/v1_0/ImagesController.cs",
+      "line": 16,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Mars.Api",
+      "url": "api/v1.0/Search/history",
+      "class": "SearchController",
+      "method": "GetUserSearchHistory",
+      "http": "GET",
+      "file": "FinUp.Mars.Api/Controllers/v1_0/SearchController.cs",
+      "line": 105,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Mars.Api",
+      "url": "api/v1.0/Search/history/exp/{expressionIdx}",
+      "class": "SearchController",
+      "method": "GetUserSearchHistory",
+      "http": "GET",
+      "file": "FinUp.Mars.Api/Controllers/v1_0/SearchController.cs",
+      "line": 116,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Mars.Api",
+      "url": "api/v1.0/Search/history/{userStockSearchIdx}",
+      "class": "SearchController",
+      "method": "DeleteUserSearchHistory",
+      "http": "DELETE",
+      "file": "FinUp.Mars.Api/Controllers/v1_0/SearchController.cs",
+      "line": 93,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Mars.Api",
+      "url": "api/v1.0/Search/stock/{code}",
+      "class": "SearchController",
+      "method": "GetStock",
+      "http": "GET",
+      "file": "FinUp.Mars.Api/Controllers/v1_0/SearchController.cs",
+      "line": 35,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Mars.Api",
+      "url": "api/v1.0/Search/stock/{code}/exp/{expressoinIdx}",
+      "class": "SearchController",
+      "method": "GetExpressionResultStock",
+      "http": "GET",
+      "file": "FinUp.Mars.Api/Controllers/v1_0/SearchController.cs",
+      "line": 63,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Mars.Api",
+      "url": "api/v1.0/Search/ticker/{code}",
+      "class": "SearchController",
+      "method": "GetTicker",
+      "http": "GET",
+      "file": "FinUp.Mars.Api/Controllers/v1_0/SearchController.cs",
+      "line": 49,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Mars.Api",
+      "url": "api/v1.0/Search/ticker/{code}/exp/{expressoinIdx}",
+      "class": "SearchController",
+      "method": "GetExpressionResultTicker",
+      "http": "GET",
+      "file": "FinUp.Mars.Api/Controllers/v1_0/SearchController.cs",
+      "line": 78,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Mars.Api",
+      "url": "api/v1.0/Search/{name}",
+      "class": "SearchController",
+      "method": "Search",
+      "http": "GET",
+      "file": "FinUp.Mars.Api/Controllers/v1_0/SearchController.cs",
+      "line": 29,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Mars.Api",
+      "url": "api/v1.0/Video",
+      "class": "VideoController",
+      "method": "Get",
+      "http": "POST",
+      "file": "FinUp.Mars.Api/Controllers/v1_0/VideoController.cs",
+      "line": 16,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Mars.Api",
+      "url": "api/v1.0/WeatherForecast",
+      "class": "WeatherForecastController",
+      "method": "Get",
+      "http": "GET",
+      "file": "FinUp.Mars.Api/Controllers/v1_0/WeatherForecastController.cs",
+      "line": 28,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Mars.Api",
+      "url": "api/v1.0/WeatherForecast",
+      "class": "WeatherForecastController",
+      "method": "Post",
+      "http": "POST",
+      "file": "FinUp.Mars.Api/Controllers/v1_0/WeatherForecastController.cs",
+      "line": 40,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "api/App",
+      "class": "AppController",
+      "method": "Option",
+      "http": "OPTIONS",
+      "file": "FinUp.Radar.Api/Controllers/AppController.cs",
+      "line": 238,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "api/App",
+      "class": "AppController",
+      "method": "Post",
+      "http": "POST",
+      "file": "FinUp.Radar.Api/Controllers/AppController.cs",
+      "line": 36,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "api/App",
+      "class": "AppController",
+      "method": "setCache",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/AppController.cs",
+      "line": 274,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "api/App",
+      "class": "AppController",
+      "method": "setCacheData",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/AppController.cs",
+      "line": 248,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "api/Web",
+      "class": "WebController",
+      "method": "getIssueKeyword",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/WebController.cs",
+      "line": 23,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "api/Web",
+      "class": "WebController",
+      "method": "getKeywordPriceDetail",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/WebController.cs",
+      "line": 104,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "Cache/CacheCheck",
+      "class": "CacheController",
+      "method": "SetCache",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/CacheController.cs",
+      "line": 53,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "Cache/Keyword",
+      "class": "CacheController",
+      "method": "SetCacheKeyword",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/CacheController.cs",
+      "line": 41,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "cache/setcache",
+      "class": "CacheController",
+      "method": "setCache",
+      "http": "POST",
+      "file": "FinUp.Radar.Api/Controllers/CacheController.cs",
+      "line": 69,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "Cache/setCacheGet",
+      "class": "CacheController",
+      "method": "setCacheGet",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/CacheController.cs",
+      "line": 116,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "cache/setcacheindustry",
+      "class": "CacheController",
+      "method": "SetCacheIndustry",
+      "http": "POST",
+      "file": "FinUp.Radar.Api/Controllers/CacheController.cs",
+      "line": 95,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "Cache/Update",
+      "class": "CacheController",
+      "method": "Update",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/CacheController.cs",
+      "line": 158,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "Cache/WordFilter",
+      "class": "CacheController",
+      "method": "SetCacheWordFilter",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/CacheController.cs",
+      "line": 25,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "Data/IndustryDiff",
+      "class": "DataController",
+      "method": "GetDiff",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/DataController.cs",
+      "line": 17,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "Engine/KeywordData",
+      "class": "EngineController",
+      "method": "GetKeywordData",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/EngineController.cs",
+      "line": 18,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "getHealthCheck",
+      "class": "AppController",
+      "method": "getHealthCheck",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/AppController.cs",
+      "line": 301,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "getThemeLogTopTheme",
+      "class": "AppController",
+      "method": "getThemeLogTopTheme",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/AppController.cs",
+      "line": 455,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "getUserIp",
+      "class": "AppController",
+      "method": "getUserIp",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/AppController.cs",
+      "line": 338,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "sendThemeLogToTelegram",
+      "class": "AppController",
+      "method": "sendThemeLogToTelegram",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/AppController.cs",
+      "line": 400,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "sendThemeLogToTelegramTest",
+      "class": "AppController",
+      "method": "sendThemeLogToTelegramTest",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/AppController.cs",
+      "line": 480,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "setAttentionNews",
+      "class": "AppController",
+      "method": "setAttentionNews",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/AppController.cs",
+      "line": 308,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "setScheduleNewsBriefing",
+      "class": "AppController",
+      "method": "setScheduleNewsBriefing",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/AppController.cs",
+      "line": 375,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Radar.Api",
+      "url": "setThemeLogCache",
+      "class": "AppController",
+      "method": "setThemeLogCache",
+      "http": "GET",
+      "file": "FinUp.Radar.Api/Controllers/AppController.cs",
+      "line": 429,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/App",
+      "class": "AppController",
+      "method": "RemoveChatUser",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/AppController.cs",
+      "line": 236,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/App",
+      "class": "AppController",
+      "method": "SetPushLog",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/AppController.cs",
+      "line": 58,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/App",
+      "class": "AppController",
+      "method": "SetPushLogUserIdx",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/AppController.cs",
+      "line": 76,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/ban/banuser",
+      "class": "ReportController",
+      "method": "BanUser",
+      "http": "POST",
+      "file": "FinUp.Stock.Api/Controllers/ReportController.cs",
+      "line": 46,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/ban/cancelbanuser",
+      "class": "ReportController",
+      "method": "CancelBanUser",
+      "http": "POST",
+      "file": "FinUp.Stock.Api/Controllers/ReportController.cs",
+      "line": 64,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/homelogin",
+      "class": "ChatController",
+      "method": "GetHomeLogin",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 168,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/mentors",
+      "class": "ChatController",
+      "method": "GetChatMentorList",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 286,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/portfolio",
+      "class": "ChatController",
+      "method": "GetPortfolio",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 1270,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/portfolio/signals",
+      "class": "ChatController",
+      "method": "GetPortfolioSignals",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 1326,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/portfolioas",
+      "class": "ChatController",
+      "method": "DeletePortfolioAs",
+      "http": "DELETE",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 1641,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/portfolioas",
+      "class": "ChatController",
+      "method": "GetAsDetail",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 1439,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/portfolioas",
+      "class": "ChatController",
+      "method": "InsertAsAsync",
+      "http": "POST",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 1555,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/portfolioas",
+      "class": "ChatController",
+      "method": "UpdateAsAsync",
+      "http": "PATCH",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 1479,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/portfolioas/list",
+      "class": "ChatController",
+      "method": "GetAsListPaging",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 1411,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/robo-popup",
+      "class": "ChatController",
+      "method": "GetRoboPopupAsync",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 2452,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/robo/favorite",
+      "class": "ChatController",
+      "method": "GetRoboFavoriteList",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 2377,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/robo/favorite",
+      "class": "ChatController",
+      "method": "ProcessRoboRecommandFavorite",
+      "http": "POST",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 2325,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/robo/search",
+      "class": "ChatController",
+      "method": "SearchRoboRecommandList",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 2350,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/signal",
+      "class": "ChatController",
+      "method": "PostSignalAsync",
+      "http": "POST",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 843,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/signal/edit",
+      "class": "ChatController",
+      "method": "UpdateLastSignal",
+      "http": "PATCH",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 1990,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/signal/edit/preprocess",
+      "class": "ChatController",
+      "method": "CheckLastSignal",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 2402,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/signal/last",
+      "class": "ChatController",
+      "method": "PostLastSignalAsync",
+      "http": "POST",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 590,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/signal/list",
+      "class": "ChatController",
+      "method": "GetSignalList",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 1357,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/signal/process",
+      "class": "ChatController",
+      "method": "ProcessSignal",
+      "http": "PATCH",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 1893,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/signal/process/nonauth",
+      "class": "ChatController",
+      "method": "ProcessSignalNoneAuth",
+      "http": "PATCH",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 1724,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/signal/robo",
+      "class": "ChatController",
+      "method": "InsertRoboSignalAsync",
+      "http": "POST",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 1127,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/signal/robo/list",
+      "class": "ChatController",
+      "method": "GetRoboSignalsAsync",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 1091,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/signalcodes",
+      "class": "ChatController",
+      "method": "GetStockSignalCodes",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 266,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/update",
+      "class": "ChatController",
+      "method": "UpdateChat",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 569,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/user",
+      "class": "ChatController",
+      "method": "GetChatUserAsync",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 2468,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/user/coupon",
+      "class": "ChatController",
+      "method": "GetUserChatCouponStatus",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 246,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/version",
+      "class": "ChatController",
+      "method": "GetVersion",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 547,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/chat/weblogin",
+      "class": "ChatController",
+      "method": "GetUserWebLogin",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 120,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/check/health",
+      "class": "CheckController",
+      "method": "HealthCheck",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/CheckController.cs",
+      "line": 16,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/contents/freechat",
+      "class": "ChatController",
+      "method": "JoinFreeChat",
+      "http": "POST",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 315,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/contents/freechat",
+      "class": "ChatController",
+      "method": "OutFreeChat",
+      "http": "DELETE",
+      "file": "FinUp.Stock.Api/Controllers/ChatController.cs",
+      "line": 504,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/Home",
+      "class": "HomeController",
+      "method": "Index",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/HomeController.cs",
+      "line": 15,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/Join",
+      "class": "JoinController",
+      "method": "GetCertify",
+      "http": "POST",
+      "file": "FinUp.Stock.Api/Controllers/JoinController.cs",
+      "line": 45,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/Join",
+      "class": "JoinController",
+      "method": "GetPhoneCount",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/JoinController.cs",
+      "line": 18,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/Join",
+      "class": "JoinController",
+      "method": "SendCertifyEmail",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/JoinController.cs",
+      "line": 29,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/Join",
+      "class": "JoinController",
+      "method": "SendCertifyEmailUser",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/JoinController.cs",
+      "line": 37,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/Pay",
+      "class": "PayController",
+      "method": "PointPay",
+      "http": "POST",
+      "file": "FinUp.Stock.Api/Controllers/PayController.cs",
+      "line": 24,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/report/user",
+      "class": "ReportController",
+      "method": "ReportUser",
+      "http": "POST",
+      "file": "FinUp.Stock.Api/Controllers/ReportController.cs",
+      "line": 19,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/Tag",
+      "class": "TagController",
+      "method": "AutoComplete",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/TagController.cs",
+      "line": 19,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/User",
+      "class": "UserController",
+      "method": "SetUserAppKeyUpdate",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/UserController.cs",
+      "line": 25,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/user/alarmlist",
+      "class": "UserController",
+      "method": "GetUserAlarmList",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/UserController.cs",
+      "line": 43,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/vms/schedules/{id}/vods",
+      "class": "VMSController",
+      "method": "schedulesVod",
+      "http": "POST",
+      "file": "FinUp.Stock.Api/Controllers/VMSController.cs",
+      "line": 23,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/Vod",
+      "class": "VodController",
+      "method": "SetVodPlay",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/VodController.cs",
+      "line": 309,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/Vod",
+      "class": "VodController",
+      "method": "SetVodPlay",
+      "http": "POST",
+      "file": "FinUp.Stock.Api/Controllers/VodController.cs",
+      "line": 369,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/Vod",
+      "class": "VodController",
+      "method": "SetVodRec",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/VodController.cs",
+      "line": 338,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/Vod",
+      "class": "VodController",
+      "method": "SetVodRec",
+      "http": "POST",
+      "file": "FinUp.Stock.Api/Controllers/VodController.cs",
+      "line": 382,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/Vod",
+      "class": "VodController",
+      "method": "VideoAuth",
+      "http": "GET",
+      "file": "FinUp.Stock.Api/Controllers/VodController.cs",
+      "line": 400,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/Vod",
+      "class": "VodController",
+      "method": "accounts",
+      "http": "POST",
+      "file": "FinUp.Stock.Api/Controllers/VodController.cs",
+      "line": 182,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/Vod",
+      "class": "VodController",
+      "method": "schedules",
+      "http": "POST",
+      "file": "FinUp.Stock.Api/Controllers/VodController.cs",
+      "line": 27,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/vod/accounts/{id}/checking_paid",
+      "class": "VodController",
+      "method": "accountsCheckingPaid",
+      "http": "POST",
+      "file": "FinUp.Stock.Api/Controllers/VodController.cs",
+      "line": 251,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Api",
+      "url": "api/vod/schedules/{id}/vods",
+      "class": "VodController",
+      "method": "schedulesVod",
+      "http": "POST",
+      "file": "FinUp.Stock.Api/Controllers/VodController.cs",
+      "line": 95,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Scraper.Api",
+      "url": "Url/Delay",
+      "class": "UrlController",
+      "method": "Delay",
+      "http": "POST",
+      "file": "FinUp.Stock.Scraper/FinUp.Stock.Scraper.Api/Controllers/UrlController.cs",
+      "line": 46,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Scraper.Api",
+      "url": "Url/List/Parse",
+      "class": "UrlController",
+      "method": "ParseList",
+      "http": "POST",
+      "file": "FinUp.Stock.Scraper/FinUp.Stock.Scraper.Api/Controllers/UrlController.cs",
+      "line": 38,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.Stock.Scraper.Api",
+      "url": "Url/Parse",
+      "class": "UrlController",
+      "method": "Parse",
+      "http": "POST",
+      "file": "FinUp.Stock.Scraper/FinUp.Stock.Scraper.Api/Controllers/UrlController.cs",
+      "line": 30,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/alarm/alarm-history-issue-theme",
+      "class": "RadarAlarmController",
+      "method": "GetIssueThemeList",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/RadarAlarmController.cs",
+      "line": 77,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/alarm/alarm-history-stock-signal/{type}",
+      "class": "RadarAlarmController",
+      "method": "GetStockSignalList",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/RadarAlarmController.cs",
+      "line": 99,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/alarm/alarm-list",
+      "class": "RadarAlarmController",
+      "method": "GetServiceList",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/RadarAlarmController.cs",
+      "line": 29,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/chart/capture",
+      "class": "ChartController",
+      "method": "Capture",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/ChartController.cs",
+      "line": 34,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/chart/capture",
+      "class": "ChartController",
+      "method": "Capture",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/ChartController.cs",
+      "line": 71,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/chart/capture/theme",
+      "class": "ChartController",
+      "method": "CaptureTheme",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/ChartController.cs",
+      "line": 108,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/chart/lw/theme",
+      "class": "ChartController",
+      "method": "GetThemeChartAsync",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/ChartController.cs",
+      "line": 165,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/chart/nvd3/minutes/{code}/{minutes}",
+      "class": "PriceController",
+      "method": "GetCandleAllChart",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 163,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/chart/nvd3/{code}",
+      "class": "PriceController",
+      "method": "GetNvd3Chart",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 147,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/chart/stockDeposit",
+      "class": "ChartController",
+      "method": "StockDepositTrend",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/ChartController.cs",
+      "line": 145,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/chart/themeday",
+      "class": "ChartController",
+      "method": "ThemeDay",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/ChartController.cs",
+      "line": 155,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/check/health",
+      "class": "CheckController",
+      "method": "HealthCheck",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/CheckController.cs",
+      "line": 19,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/data/currenthoga/{code}",
+      "class": "DataController",
+      "method": "GetCurrentHoga",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/DataController.cs",
+      "line": 101,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/data/currenttrader/{code}",
+      "class": "DataController",
+      "method": "GetCurrentTrader",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/DataController.cs",
+      "line": 157,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/data/financial/{code}/{pageNo?}/{pageSize?}/{isQuarter?}",
+      "class": "DataController",
+      "method": "GetFinancialDetail",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/DataController.cs",
+      "line": 204,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/data/hoga/last/{code}/{day}/{time}/{count}",
+      "class": "DataController",
+      "method": "GetLastHoga",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/DataController.cs",
+      "line": 31,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/data/hoga/{code}/{day}/{start}/{end}",
+      "class": "DataController",
+      "method": "GetHoga",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/DataController.cs",
+      "line": 87,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/data/marketopen/{isRealTime}",
+      "class": "DataController",
+      "method": "IsTodayMarketOpen",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/DataController.cs",
+      "line": 244,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/data/price/last/{code}/{day}/{time}/{count}",
+      "class": "DataController",
+      "method": "GetLastPrice",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/DataController.cs",
+      "line": 74,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/data/price/{code}/{day}/{start}/{end}",
+      "class": "DataController",
+      "method": "GetPrice",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/DataController.cs",
+      "line": 115,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/data/stock/{code}",
+      "class": "DataController",
+      "method": "GetStockDetailAsync",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/DataController.cs",
+      "line": 185,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/data/trader/last/{code}/{day}/{time}/{count}",
+      "class": "DataController",
+      "method": "GetLastTrader",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/DataController.cs",
+      "line": 52,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/data/trader/{code}/{day}/{start}/{end}",
+      "class": "DataController",
+      "method": "GetTrader",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/DataController.cs",
+      "line": 129,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/data/traderday/{code}/{startday}/{endday}",
+      "class": "DataController",
+      "method": "GetTraderDay",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/DataController.cs",
+      "line": 171,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/data/traderlast/{code}/{day}/{end}",
+      "class": "DataController",
+      "method": "GetTraderLast",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/DataController.cs",
+      "line": 143,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/data/vi/{code}/{date}",
+      "class": "DataController",
+      "method": "GetStockVIs",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/DataController.cs",
+      "line": 217,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/dayprice/paging/{code}/{pageNo?}/{pageSize?}",
+      "class": "PriceController",
+      "method": "GetDayPrice",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 446,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/dayprice/{code}/{from}/{to}",
+      "class": "PriceController",
+      "method": "GetDayPrice",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 426,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/index/last",
+      "class": "IndexController",
+      "method": "GetIndexLast",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/IndexController.cs",
+      "line": 19,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/keyword/news",
+      "class": "KeywordController",
+      "method": "GetKeywordNewsAsync",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/KeywordController.cs",
+      "line": 35,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/keyword/news/summary-search",
+      "class": "KeywordController",
+      "method": "GetThemeNewsSummarySearch",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/KeywordController.cs",
+      "line": 371,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/keyword/stock/golden-signal-form/{stockCode}",
+      "class": "KeywordController",
+      "method": "GetGoldenSignalStockData",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/KeywordController.cs",
+      "line": 163,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/keyword/stock/holder/{stockCode}",
+      "class": "KeywordController",
+      "method": "GetStockHolder",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/KeywordController.cs",
+      "line": 189,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/keyword/stock/industry/stock/{stockCode}",
+      "class": "KeywordController",
+      "method": "GetStockRelationIndustry",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/KeywordController.cs",
+      "line": 262,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/keyword/stock/industry/{industryidx}/{stockcode}",
+      "class": "KeywordController",
+      "method": "GetIndustryRelationStockAsync",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/KeywordController.cs",
+      "line": 85,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/keyword/stock/ranking/{type}",
+      "class": "KeywordController",
+      "method": "GetStockRanking",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/KeywordController.cs",
+      "line": 214,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/keyword/stock/theme/{stockCode}",
+      "class": "KeywordController",
+      "method": "GetStockRelationTheme",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/KeywordController.cs",
+      "line": 238,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/keyword/theme/diff/{keywordidx}",
+      "class": "KeywordController",
+      "method": "GetThemeDiff",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/KeywordController.cs",
+      "line": 287,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/keyword/theme/similarity/{keywordidx}",
+      "class": "KeywordController",
+      "method": "GetKeywordSimilarityTheme",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/KeywordController.cs",
+      "line": 137,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/keyword/theme/stock/{keywordidx}",
+      "class": "KeywordController",
+      "method": "GetThemeRelationStock",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/KeywordController.cs",
+      "line": 342,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/keyword/{keywordidx}",
+      "class": "KeywordController",
+      "method": "GetKeywordDetailPrice",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/KeywordController.cs",
+      "line": 111,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/market/{from}/{to}/{offday?}",
+      "class": "PriceController",
+      "method": "GetMarket",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 331,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/news-contents/board",
+      "class": "NewsContentsController",
+      "method": "UploadNewsContentsBoard",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/NewsContentsController.cs",
+      "line": 36,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/news/news_market_issue/{type}",
+      "class": "RadarAlarmController",
+      "method": "GetServiceList",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/RadarAlarmController.cs",
+      "line": 55,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/news/NewsListPage",
+      "class": "NewsController",
+      "method": "NewsListPage",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/NewsController.cs",
+      "line": 26,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/news/stock",
+      "class": "NewsController",
+      "method": "NewsListPageStock",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/NewsController.cs",
+      "line": 44,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/news/theme",
+      "class": "NewsController",
+      "method": "NewsListPageTheme",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/NewsController.cs",
+      "line": 35,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/prevday/{date}/{code}",
+      "class": "PriceController",
+      "method": "GetPrevDay",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 358,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/price/diff",
+      "class": "PriceController",
+      "method": "GetPriceDiffList",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 85,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/price/highlow/{code}/{from}",
+      "class": "PriceController",
+      "method": "GetHighLow",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 180,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/price/highlowlist",
+      "class": "PriceController",
+      "method": "GetHighLowList",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 259,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/price/highlowvalue/{code}/{from}",
+      "class": "PriceController",
+      "method": "GetHighLowValue",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 218,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/price/limitprice/{code}",
+      "class": "PriceController",
+      "method": "GetLimitPrice",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 553,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/price/minutes/{code}/{from}/{to}",
+      "class": "PriceController",
+      "method": "GetMinutes",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 510,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/price/quote/{code}",
+      "class": "PriceController",
+      "method": "GetQuoteAsync",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 561,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/price/search-history",
+      "class": "PriceController",
+      "method": "GetSearchHistoryPrice",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 590,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/price/tradesummary/{code}/{from}/{to}",
+      "class": "PriceController",
+      "method": "GetPriceSummary",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 500,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/price/{code}",
+      "class": "PriceController",
+      "method": "GetPrice",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 44,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/pricelist",
+      "class": "PriceController",
+      "method": "GetPriceList",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 64,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/priceliststock/{code}",
+      "class": "PriceController",
+      "method": "GetPriceListStock",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 388,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/pricemonitor/chart/count",
+      "class": "PriceMonitorController",
+      "method": "GetStockCountChart",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceMonitorController.cs",
+      "line": 254,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/pricemonitor/chart/price",
+      "class": "PriceMonitorController",
+      "method": "GetStockPriceChart",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceMonitorController.cs",
+      "line": 191,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/pricemonitor/list/paging",
+      "class": "PriceMonitorController",
+      "method": "GetPriceMonitorListPaging",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceMonitorController.cs",
+      "line": 167,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/pricemonitor/paging",
+      "class": "PriceMonitorController",
+      "method": "GetPriceMonitorPaging",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceMonitorController.cs",
+      "line": 139,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/pricemonitor/preopen",
+      "class": "PriceMonitorController",
+      "method": "IsPreMarketOpen",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceMonitorController.cs",
+      "line": 282,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/pricemonitor/rank",
+      "class": "PriceMonitorController",
+      "method": "GetPriceMonitorRank",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceMonitorController.cs",
+      "line": 55,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/pricemonitor/stock",
+      "class": "PriceMonitorController",
+      "method": "GetPriceMonitorStockPaging",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceMonitorController.cs",
+      "line": 111,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/pricemonitor/stock",
+      "class": "PriceMonitorController",
+      "method": "GetStock",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceMonitorController.cs",
+      "line": 37,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/pricemonitor/stock/set",
+      "class": "PriceMonitorController",
+      "method": "SetStock",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceMonitorController.cs",
+      "line": 23,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/profit",
+      "class": "PriceController",
+      "method": "GetItemStockProfit",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/PriceController.cs",
+      "line": 129,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/stock/calendar",
+      "class": "KeywordController",
+      "method": "GetStockOpenDateAsync",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/KeywordController.cs",
+      "line": 60,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/ThemeCaptureChart",
+      "class": "ThemeLogController",
+      "method": "GetThemeCaptureChart",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/ThemeLogController.cs",
+      "line": 29,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/themelog",
+      "class": "ThemeLogController",
+      "method": "GetThemeLog",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/ThemeLogController.cs",
+      "line": 109,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/ThemeLog/Diff",
+      "class": "ThemeLogController",
+      "method": "GetThemeDiffList",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/ThemeLogController.cs",
+      "line": 70,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/themelog/keyword/Diff",
+      "class": "ThemeLogController",
+      "method": "GetThemelogKeywordDiffList",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/ThemeLogController.cs",
+      "line": 157,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/themelog/keyword/rank",
+      "class": "ThemeLogController",
+      "method": "GetThemelogKeywordRank",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/ThemeLogController.cs",
+      "line": 125,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/themelog/keyword/relation-stocks",
+      "class": "ThemeLogController",
+      "method": "GetThemeLogRelationStocks",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/ThemeLogController.cs",
+      "line": 141,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/ThemeLog/play",
+      "class": "ThemeLogController",
+      "method": "GetThemePlay",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/ThemeLogController.cs",
+      "line": 91,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/ThemeLog/play/info",
+      "class": "ThemeLogController",
+      "method": "GetThemePlayInfo",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/ThemeLogController.cs",
+      "line": 80,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/ThemeLog/ThemeRankingByDiff",
+      "class": "ThemeLogController",
+      "method": "GetThemeRankingByDiff",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/ThemeLogController.cs",
+      "line": 53,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/ThemeRelationStock",
+      "class": "ThemeLogController",
+      "method": "GetThemeRelationStock",
+      "http": "POST",
+      "file": "FinUp.StockData.Price.Api/Controllers/ThemeLogController.cs",
+      "line": 41,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/tv/config",
+      "class": "TradingViewController",
+      "method": "GetConfig",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/TradingViewController.cs",
+      "line": 21,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/tv/history",
+      "class": "TradingViewController",
+      "method": "GetHistory",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/TradingViewController.cs",
+      "line": 155,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/tv/marks",
+      "class": "TradingViewController",
+      "method": "GetMarks",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/TradingViewController.cs",
+      "line": 115,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/tv/symbol_info",
+      "class": "TradingViewController",
+      "method": "GetSymbolInfo",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/TradingViewController.cs",
+      "line": 45,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/tv/symbols",
+      "class": "TradingViewController",
+      "method": "GetSymbols",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/TradingViewController.cs",
+      "line": 57,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/tv/time",
+      "class": "TradingViewController",
+      "method": "GetTime",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/TradingViewController.cs",
+      "line": 105,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/v2/chart/lw/theme",
+      "class": "ChartController",
+      "method": "GetThemeChartAsync_v2",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/ChartController.cs",
+      "line": 238,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/v2/tv/history",
+      "class": "TradingViewController",
+      "method": "GetHistoryV2",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/TradingViewController.cs",
+      "line": 197,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/v2/tv/marks",
+      "class": "TradingViewController",
+      "method": "GetMarks",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/TradingViewController.cs",
+      "line": 115,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/v2/tv/ticker/history",
+      "class": "TradingViewTickerController",
+      "method": "GetHistoryV2",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/TradingViewTickerController.cs",
+      "line": 32,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/v3/tv/history",
+      "class": "TradingViewController",
+      "method": "GetHistoryV3",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/TradingViewController.cs",
+      "line": 239,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api",
+      "url": "api/v3/tv/marks",
+      "class": "TradingViewController",
+      "method": "GetMarks",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api/Controllers/TradingViewController.cs",
+      "line": 115,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.Channel",
+      "url": "api/check/health",
+      "class": "CheckController",
+      "method": "HealthCheck",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.Channel/Controllers/CheckController.cs",
+      "line": 14,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.Channel",
+      "url": "api/price/connect",
+      "class": "PriceController",
+      "method": "ConnectByGet",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.Channel/Controllers/PriceController.cs",
+      "line": 23,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.RealTime",
+      "url": "api/Cache/price",
+      "class": "CacheController",
+      "method": "GetAll",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.RealTime/Controllers/Legacy/CacheController.cs",
+      "line": 31,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.RealTime",
+      "url": "api/Cache/price/schedule",
+      "class": "CacheController",
+      "method": "SchedulePrice",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.RealTime/Controllers/Legacy/CacheController.cs",
+      "line": 44,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.RealTime",
+      "url": "api/Cache/price/{code}",
+      "class": "CacheController",
+      "method": "Get",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.RealTime/Controllers/Legacy/CacheController.cs",
+      "line": 35,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.RealTime",
+      "url": "api/Policy/reset",
+      "class": "PolicyController",
+      "method": "Reset",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.RealTime/Controllers/Legacy/PolicyController.cs",
+      "line": 27,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.RealTime",
+      "url": "api/Policy/{path?}",
+      "class": "PolicyController",
+      "method": "Get",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.RealTime/Controllers/Legacy/PolicyController.cs",
+      "line": 23,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.RealTime",
+      "url": "api/Scope",
+      "class": "ScopeController",
+      "method": "GetAll",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.RealTime/Controllers/Legacy/ScopeController.cs",
+      "line": 34,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.RealTime",
+      "url": "api/Scope/count",
+      "class": "ScopeController",
+      "method": "GetScopeCount",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.RealTime/Controllers/Legacy/ScopeController.cs",
+      "line": 46,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.RealTime",
+      "url": "api/Scope/count/interval",
+      "class": "ScopeController",
+      "method": "GetScopeCountInterval",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.RealTime/Controllers/Legacy/ScopeController.cs",
+      "line": 50,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.RealTime",
+      "url": "api/Scope/count/realtime",
+      "class": "ScopeController",
+      "method": "GetScopeCountRealtime",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.RealTime/Controllers/Legacy/ScopeController.cs",
+      "line": 54,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.RealTime",
+      "url": "api/Scope/id/{id}",
+      "class": "ScopeController",
+      "method": "GetScope",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.RealTime/Controllers/Legacy/ScopeController.cs",
+      "line": 38,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.RealTime",
+      "url": "api/Scope/ip/{ip}",
+      "class": "ScopeController",
+      "method": "GetScopeIP",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.RealTime/Controllers/Legacy/ScopeController.cs",
+      "line": 42,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.RealTime",
+      "url": "api/Sse",
+      "class": "SseController",
+      "method": "Get",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.RealTime/Controllers/Legacy/SseController.cs",
+      "line": 40,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.RealTime",
+      "url": "api/Sse/test/eventstream",
+      "class": "SseController",
+      "method": "TestEventstream",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.RealTime/Controllers/Legacy/SseController.cs",
+      "line": 159,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.RealTime",
+      "url": "api/v1.0/Cache/price",
+      "class": "CacheController",
+      "method": "GetAll",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.RealTime/Controllers/v1_0/CacheController.cs",
+      "line": 31,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.RealTime",
+      "url": "api/v1.0/Cache/price/schedule",
+      "class": "CacheController",
+      "method": "SchedulePrice",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.RealTime/Controllers/v1_0/CacheController.cs",
+      "line": 65,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.RealTime",
+      "url": "api/v1.0/Cache/price/{code}",
+      "class": "CacheController",
+      "method": "Get",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.RealTime/Controllers/v1_0/CacheController.cs",
+      "line": 35,
+      "source": "attribute"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.RealTime",
+      "url": "api/v1.0/Sse",
+      "class": "SseController",
+      "method": "Get",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.RealTime/Controllers/v1_0/SseController.cs",
+      "line": 63,
+      "source": "conventional"
+    },
+    {
+      "project": "FinUp.StockData.Price.Api.RealTime",
+      "url": "api/v1.0/Sse/price/{code}",
+      "class": "SseController",
+      "method": "Get",
+      "http": "GET",
+      "file": "FinUp.StockData.Price.Api.RealTime/Controllers/v1_0/SseController.cs",
+      "line": 221,
+      "source": "attribute"
+    }
+  ]
+}

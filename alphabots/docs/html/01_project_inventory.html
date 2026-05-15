@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>01. FinUp AlphaBot 프로젝트 인벤토리</title>
+<style>
+:root{--primary:#fcd535;--active:#f0b90b;--ink:#181a20;--body:#eaecef;--muted:#929aa5;--dark:#0b0e11;--card:#1e2329;--elev:#2b3139;--line:#2b3139;--up:#0ecb81;--down:#f6465d;--info:#3b82f6;}
+*{box-sizing:border-box} body{margin:0;background:var(--dark);color:var(--body);font-family:BinanceNova,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.6} a{color:var(--primary);text-decoration:none}.wrap{max-width:1160px;margin:0 auto;padding:28px 24px 72px}.top{position:sticky;top:0;background:rgba(11,14,17,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);z-index:10}.top .inner{max-width:1160px;margin:0 auto;padding:14px 24px;display:flex;gap:12px;align-items:center;justify-content:space-between}.brand{color:var(--primary);font-weight:700}.nav a{margin-left:12px;color:var(--muted);font-size:13px}.hero{padding:42px 0 22px;border-bottom:1px solid var(--line)}.badge{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:999px;color:var(--primary);font-size:12px;font-weight:700;padding:6px 12px}.hero h1{font-size:42px;line-height:1.12;letter-spacing:-.4px;margin:18px 0 8px;color:#fff}.hero p{color:var(--muted)}main{padding-top:20px}h1,h2,h3,h4{color:#fff;line-height:1.25}h1{font-size:38px}h2{font-size:28px;margin-top:36px;padding-top:8px;border-top:1px solid var(--line)}h3{font-size:21px;margin-top:28px}h4{font-size:16px}p{margin:12px 0;color:var(--body)}blockquote{margin:16px 0;padding:14px 16px;border-left:4px solid var(--primary);background:#11151a;border-radius:6px;color:var(--muted)}code{background:#11151a;color:#fff;padding:2px 6px;border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}pre{background:#11151a;border:1px solid var(--line);border-radius:12px;padding:16px;overflow:auto;color:#fff}pre code{background:transparent;padding:0}pre.mermaid{background:#11151a;color:#fff;border:1px solid var(--line);border-radius:12px;padding:18px}table{width:100%;border-collapse:collapse;margin:16px 0 24px;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:table}th,td{padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:top;font-size:14px}th{color:var(--primary);background:#11151a;text-align:left;font-weight:700}tr:last-child td{border-bottom:0}ul,ol{padding-left:24px}li{margin:6px 0}.footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}.pill{display:inline-block;border-radius:999px;padding:2px 9px;background:rgba(252,213,53,.12);color:var(--primary);border:1px solid rgba(252,213,53,.35);font-size:12px;font-weight:700}@media(max-width:800px){.hero h1{font-size:30px}.wrap{padding:20px 16px}.top .inner{padding:12px 16px;display:block}.nav{margin-top:8px}.nav a{margin:0 10px 0 0}table{display:block;overflow-x:auto;white-space:nowrap}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{if(window.mermaid) mermaid.initialize({startOnLoad:true,theme:'dark'});});</script>
+</head>
+<body>
+<header class="top"><div class="inner"><div class="brand">FinUp AlphaBot Analysis</div><nav class="nav"><a href="total_report.html">Total</a><a href="01_project_inventory.html">Inventory</a><a href="02_dependency_map.html">Dependencies</a><a href="03_db_access_map.html">DB</a><a href="04_runtime_flow.html">Runtime</a><a href="05_risk_report.html">Risk</a><a href="06_refactoring_plan.html">Refactor</a></nav></div></header>
+<div class="wrap">
+<section class="hero"><h1>01. FinUp AlphaBot 프로젝트 인벤토리</h1><p>Markdown 원본을 HTML로 변환한 정적 보고서입니다. Mermaid 블록은 브라우저에서 렌더링됩니다.</p></section>
+<main>
+<h1 id="01-FinUp-AlphaBot-프로젝트-인벤토리">01. FinUp AlphaBot 프로젝트 인벤토리</h1>
+<blockquote>분석 범위: <code>/mnt/c/Dev</code> 내 <code>FinUp.*AlphaBot*</code> 경로 중 <code>Test</code> 포함 프로젝트 제외.</blockquote>
+<blockquote>방법: <code>.sln</code>, <code>.csproj</code>, <code>App.xaml</code>, <code>MainWindow</code>, <code>AlphaBotBiz</code>, 정적 코드 검색. 빌드/실행/DB/API 호출 없음.</blockquote>
+<h2 id="대상-프로젝트-요약">대상 프로젝트 요약</h2>
+<table><thead><tr><th>제품군</th><th>프로젝트</th><th>유형</th><th>프레임워크</th><th>역할 요약</th><th>주요 진입점/초기화 근거</th></tr></thead><tbody>
+<tr><td>CollectData</td><td><code>FinUp.CollectData.App.AlphaBot</code></td><td>실행(WPF <code>WinExe</code>)</td><td><code>net6.0-windows7.0</code></td><td>뉴스/시장지표/크롤러 계열 AlphaBot UI 및 스케줄 시작점</td><td><code>FinUp.CollectData.App.AlphaBot.csproj:5-6</code>, <code>App.xaml:5</code>, <code>MainWindow.xaml.cs:23-25</code>, <code>ViewModel/MainViewModel.cs:27-62</code></td></tr>
+<tr><td>CollectData</td><td><code>FinUp.CollectData.App.AlphaBot.Biz</code></td><td>라이브러리</td><td><code>net6.0</code></td><td>CollectData 실제 작업 매핑/스케줄 판정/실행 이력 기록</td><td><code>FinUp.CollectData.App.AlphaBot.Biz.csproj:4</code>, <code>AlphaBotBiz.cs:27-35</code>, <code>AlphaBotBiz.Connect.cs:12-48</code></td></tr>
+<tr><td>Finance</td><td><code>FinUp.Finance.App.Alphabot</code></td><td>실행(WPF <code>WinExe</code>)</td><td><code>net6.0-windows</code></td><td>금융 RSS/랭킹/일정 AlphaBot UI 및 스케줄 시작점</td><td><code>FinUp.Finance.App.Alphabot.csproj:4-5</code>, <code>App.xaml:5</code>, <code>ViewModel/MainViewModel.cs:26-62</code></td></tr>
+<tr><td>Finance</td><td><code>FinUp.Finance.App.Alphabot.Biz</code></td><td>라이브러리</td><td><code>net6.0</code></td><td>Finance 작업 매핑/DB DAO/파일 다운로드 처리</td><td><code>FinUp.Finance.App.Alphabot.Biz.csproj:4</code>, <code>AlphaBotBiz.cs:22-25</code>, <code>AlaphaBotBiz.Connect.cs:17-35</code></td></tr>
+<tr><td>Radar</td><td><code>FinUp.Radar.App.AlphaBot</code></td><td>실행(WPF <code>WinExe</code>)</td><td><code>.NET Framework v4.7</code></td><td>레이더/테마/뉴스/푸시/공시/텔레그램 작업 스케줄러</td><td><code>FinUp.Radar.App.AlphaBot.csproj:8-11</code>, <code>App.xaml:5</code>, <code>MainWindow.xaml.cs:86-145</code></td></tr>
+<tr><td>Stock</td><td><code>FinUp.Stock.App.AlphaBot</code></td><td>실행(WPF <code>WinExe</code>)</td><td><code>.NET Framework v4.7</code></td><td>주식/결제/푸시/API 큐/AWS/외부 업로드/텔레그램 작업 스케줄러</td><td><code>FinUp.Stock.App.AlphaBot.csproj:8-12</code>, <code>App.xaml:5</code>, <code>MainWindow.xaml.cs:60-107</code></td></tr>
+</tbody></table>
+<h2 id="솔루션-프로젝트-파일-발견-결과">솔루션/프로젝트 파일 발견 결과</h2>
+<table><thead><tr><th>경로</th><th>포함 프로젝트</th><th>비고</th></tr></thead><tbody>
+<tr><td><code>FinUp.CollectData.App.AlphaBot/FinUp.CollectData.App.AlphaBot.sln</code></td><td><code>FinUp.CollectData.App.AlphaBot</code>, <code>FinUp.CollectData.App.AlphaBot.Biz</code></td><td><code>.sln</code>의 <code>Project(...)</code> 항목에서 2개 확인 (<code>.sln:6</code>, <code>.sln:8</code>)</td></tr>
+<tr><td><code>FinUp.Finance.App.AlphaBot</code></td><td><code>.sln</code> 미발견, <code>.csproj</code> 2개</td><td>앱→Biz 참조로 관계 확인</td></tr>
+<tr><td><code>FinUp.Radar.App.AlphaBot</code></td><td>단일 <code>.csproj</code></td><td>루트 실행 프로젝트</td></tr>
+<tr><td><code>FinUp.Stock.App.AlphaBot</code></td><td>단일 <code>.csproj</code></td><td>루트 실행 프로젝트</td></tr>
+</tbody></table>
+<h2 id="실행-프로젝트와-라이브러리-프로젝트-분류">실행 프로젝트와 라이브러리 프로젝트 분류</h2>
+<pre class="mermaid">flowchart LR
+  subgraph Executables[실행 프로젝트 / WPF WinExe]
+    CApp[CollectData.App.AlphaBot]
+    FApp[Finance.App.Alphabot]
+    RApp[Radar.App.AlphaBot]
+    SApp[Stock.App.AlphaBot]
+  end
+  subgraph Libraries[범위 내 라이브러리]
+    CBiz[CollectData.App.AlphaBot.Biz]
+    FBiz[Finance.App.Alphabot.Biz]
+  end
+  CApp --&gt; CBiz
+  FApp --&gt; FBiz</pre>
+<h2 id="프로젝트별-주요-작업-매핑">프로젝트별 주요 작업 매핑</h2>
+<table><thead><tr><th>제품군</th><th>OIdx/Case</th><th>매핑된 작업</th><th>근거</th></tr></thead><tbody>
+<tr><td>CollectData</td><td>30010/30011/30012</td><td><code>ProcCrawlerSite</code></td><td><code>AlphaBotBiz.Connect.cs:17-25</code></td></tr>
+<tr><td>CollectData</td><td>30020</td><td><code>ProcCrawlerIndex</code></td><td><code>AlphaBotBiz.Connect.cs:26-28</code></td></tr>
+<tr><td>CollectData</td><td>30030</td><td><code>ProcNaverStockRank</code></td><td><code>AlphaBotBiz.Connect.cs:29-31</code></td></tr>
+<tr><td>CollectData</td><td>30040</td><td><code>ProcCrawlerInfoStock</code></td><td><code>AlphaBotBiz.Connect.cs:32-34</code></td></tr>
+<tr><td>CollectData</td><td>30050</td><td><code>ProcMongoClean</code></td><td><code>AlphaBotBiz.Connect.cs:35-37</code></td></tr>
+<tr><td>CollectData</td><td>30060</td><td><code>ProcCrawlerSiteTheme</code></td><td><code>AlphaBotBiz.Connect.cs:38-40</code></td></tr>
+<tr><td>CollectData</td><td>30070</td><td><code>ProcCrawlerSiteCheck</code></td><td><code>AlphaBotBiz.Connect.cs:41-43</code></td></tr>
+<tr><td>Finance</td><td>40001</td><td><code>ProcRanking</code></td><td><code>AlaphaBotBiz.Connect.cs:22-24</code></td></tr>
+<tr><td>Finance</td><td>40002</td><td><code>ProcInvestRss</code></td><td><code>AlaphaBotBiz.Connect.cs:25-27</code></td></tr>
+<tr><td>Finance</td><td>40003</td><td><code>ProcStockSchedule</code></td><td><code>AlaphaBotBiz.Connect.cs:28-30</code></td></tr>
+<tr><td>Radar</td><td>10010~10530</td><td>공시, 가격, 키워드, 푸시, 주문, 텔레그램, 테마로그 등</td><td><code>MainWindow.xaml.cs:556-685</code>, <code>Operation/Process.cs:51-286</code></td></tr>
+<tr><td>Stock</td><td>1~175, 1000</td><td>AppPush, 결제, StockRadar/Xing 실행, API 큐, AWS, 이메일, 외부 업로드 등</td><td><code>MainWindow.xaml.cs:425-663</code>, <code>Operation/ProcessUnit.cs</code></td></tr>
+</tbody></table>
+<h2 id="설정-비밀값-위치-요약">설정/비밀값 위치 요약</h2>
+<p>값은 출력하지 않았다. 키/위치만 기록한다.</p>
+<table><thead><tr><th>프로젝트</th><th>설정 파일</th><th>민감 가능 키/이름 예시</th><th>위험도</th></tr></thead><tbody>
+<tr><td>CollectData</td><td><code>App.Debug.config</code>, <code>App.Release.config</code>, <code>App.Staging.config</code></td><td><code>DBThemeRadar</code>, <code>MongoConnection*</code>, <code>ConnectionKafka</code>, <code>HtsTelegramBotToken</code>, <code>ChatId*</code>, <code>InfoStockID</code>, <code>InfoStockPassword</code></td><td>높음</td></tr>
+<tr><td>Finance</td><td><code>App.config</code></td><td><code>DBStockData</code>, <code>FileUserID</code>, <code>FileUserPwd</code></td><td>높음</td></tr>
+<tr><td>Radar</td><td><code>App.config</code></td><td><code>DBThemeRadar*</code>, <code>MongoConnection*</code>, <code>RedisConnection</code>, <code>TelegramBotKey</code>, API URL/Log Sender</td><td>높음</td></tr>
+<tr><td>Stock</td><td><code>App.config</code></td><td><code>DBStockPoint</code>, <code>ServerID</code>, <code>ServerPWD</code>, <code>RealExtComm</code>, <code>DBMessageService*</code>, <code>ChatApiKey</code>, <code>AWSAccessKey</code>, <code>AWSSecretKey</code>, <code>Naver*</code>, <code>bitlyToken</code>, <code>YoutubeDataAPIKey</code></td><td>매우 높음</td></tr>
+</tbody></table>
+</main>
+<div class="footer">Source: 01_project_inventory.md · Output: 01_project_inventory.html · No source-code project files modified.</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>프로젝트 설정 분석 - Code Analysis</title>
+  <style>
+:root {
+  --bg: #f6f8fb;
+  --panel: #ffffff;
+  --ink: #1f2937;
+  --muted: #6b7280;
+  --line: #d9e0ea;
+  --accent: #2563eb;
+  --accent-soft: #e8f0ff;
+  --danger: #b91c1c;
+  --code-bg: #0f172a;
+  --code-ink: #e5e7eb;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", "Malgun Gothic", Arial, sans-serif;
+  line-height: 1.65;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); min-height: 100vh; }
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: auto;
+  padding: 24px 18px;
+  background: #111827;
+  color: #f9fafb;
+}
+.sidebar h1 { font-size: 18px; line-height: 1.3; margin: 0 0 14px; }
+.sidebar .meta { color: #cbd5e1; font-size: 12px; margin-bottom: 18px; }
+.nav-section { margin: 18px 0 8px; color: #93c5fd; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.sidebar ul { margin: 0; padding: 0; list-style: none; }
+.sidebar li { margin: 4px 0; }
+.sidebar a { display: block; padding: 7px 9px; border-radius: 8px; color: #e5e7eb; font-size: 13px; }
+.sidebar a:hover, .sidebar a.active { background: rgba(37, 99, 235, .35); text-decoration: none; }
+.content { padding: 36px; }
+.report {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 36px 42px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, .08);
+}
+.report-header {
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--line);
+}
+.report-header h1 { margin: 0 0 6px; font-size: 32px; letter-spacing: -0.04em; }
+.report-header .source { color: var(--muted); font-size: 13px; }
+.toc {
+  margin: 18px 0 28px;
+  padding: 16px 18px;
+  background: var(--accent-soft);
+  border: 1px solid #c7d7fe;
+  border-radius: 12px;
+}
+.toc-title { font-weight: 700; margin-bottom: 8px; }
+.toc ul { margin: 0; padding-left: 20px; }
+h1, h2, h3, h4 { line-height: 1.28; letter-spacing: -0.025em; }
+h1 { font-size: 30px; margin: 24px 0 18px; }
+h2 { font-size: 24px; margin: 34px 0 12px; padding-bottom: 7px; border-bottom: 1px solid var(--line); }
+h3 { font-size: 19px; margin: 26px 0 10px; }
+h4 { font-size: 16px; margin: 20px 0 8px; }
+p { margin: 10px 0; }
+ul, ol { padding-left: 24px; }
+li { margin: 3px 0; }
+.table-wrap { width: 100%; overflow-x: auto; margin: 16px 0 24px; border: 1px solid var(--line); border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; min-width: 680px; background: #fff; }
+th, td { padding: 9px 11px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
+th { position: sticky; top: 0; background: #f1f5f9; color: #0f172a; font-weight: 700; }
+tr:nth-child(even) td { background: #fbfdff; }
+code {
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: #eef2f7;
+  color: #0f172a;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--code-bg);
+  color: var(--code-ink);
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+blockquote { margin: 14px 0; padding: 10px 16px; border-left: 4px solid var(--accent); background: #f8fafc; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 28px 0; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #e5e7eb; color: #374151; font-size: 12px; }
+.redacted { color: var(--danger); font-weight: 700; }
+.report-section { page-break-before: always; margin-top: 42px; padding-top: 16px; border-top: 3px solid var(--line); }
+.report-section:first-of-type { page-break-before: auto; border-top: 0; margin-top: 0; padding-top: 0; }
+.footer { margin-top: 42px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: relative; height: auto; }
+  .content { padding: 18px; }
+  .report { padding: 24px 18px; border-radius: 12px; }
+}
+@media print {
+  .layout { display: block; }
+  .sidebar { display: none; }
+  body { background: #fff; }
+  .content { padding: 0; }
+  .report { max-width: none; border: 0; box-shadow: none; }
+  a { color: inherit; }
+}
+</style>
+</head>
+<body>
+  <div class="layout">
+    
+<aside class="sidebar">
+  <h1>Code Analysis HTML</h1>
+  <div class="meta">생성: 2026-05-15 16:55:17<br>경로: docs/code-analysis/html</div>
+  <div class="nav-section">개별 보고서</div>
+  <ul><li><a href="00_PROJECT_SUMMARY.html">프로젝트 요약</a></li><li><a href="01_FOLDER_STRUCTURE.html">폴더 구조 분석</a></li><li><a class="active" href="02_PROJECT_SETTINGS.html">프로젝트 설정 분석</a></li><li><a href="03_CODE_STRUCTURE.html">코드 구조 분석</a></li><li><a href="04_NAMESPACE_CLASS_METHOD_REPORT.html">네임스페이스/클래스/메소드 분석</a></li><li><a href="05_PROJECT_REFERENCES.html">프로젝트 참조 관계</a></li><li><a href="06_RUNTIME_FLOW.html">런타임 흐름 분석</a></li><li><a href="07_RISKS_AND_REFACTORING_POINTS.html">리스크 및 리팩터링 포인트</a></li></ul>
+  <div class="nav-section">통합 보고서</div>
+  <ul><li><a href="Total_Report.html">Total Report</a></li></ul>
+</aside>
+
+    <main class="content">
+      <article class="report">
+        <header class="report-header">
+          <h1>프로젝트 설정 분석</h1>
+          <div class="source">Source: docs/code-analysis/02_PROJECT_SETTINGS.md · HTML generated from Markdown report</div>
+        </header>
+        <nav class="toc"><div class="toc-title">목차</div><ul><li class="toc-l1"><a href="#02_PROJECT_SETTINGS--프로젝트-설정-분석">프로젝트 설정 분석</a></li><li class="toc-l2"><a href="#02_PROJECT_SETTINGS--.sln">`.sln`</a></li><li class="toc-l2"><a href="#02_PROJECT_SETTINGS--.csproj-기본-설정">`.csproj` 기본 설정</a></li><li class="toc-l2"><a href="#02_PROJECT_SETTINGS--빌드-구성-플랫폼">빌드 구성/플랫폼</a></li><li class="toc-l2"><a href="#02_PROJECT_SETTINGS--app.config">App.config</a></li><li class="toc-l3"><a href="#02_PROJECT_SETTINGS--appsettings-값-마스킹-적용">appSettings (값 마스킹 적용)</a></li><li class="toc-l3"><a href="#02_PROJECT_SETTINGS--assemblybinding-redirects">assemblyBinding redirects</a></li><li class="toc-l2"><a href="#02_PROJECT_SETTINGS--nuget-packages.config">NuGet packages.config</a></li><li class="toc-l2"><a href="#02_PROJECT_SETTINGS--assembly-dll-references">Assembly/DLL References</a></li><li class="toc-l2"><a href="#02_PROJECT_SETTINGS--projectreference">ProjectReference</a></li><li class="toc-l2"><a href="#02_PROJECT_SETTINGS--확인-필요">확인 필요</a></li><li class="toc-l2"><a href="#02_PROJECT_SETTINGS--분석-한계">분석 한계</a></li></ul></nav>
+        <h1 id="02_PROJECT_SETTINGS--프로젝트-설정-분석">프로젝트 설정 분석</h1>
+<h2 id="02_PROJECT_SETTINGS--.sln"><code>.sln</code></h2>
+<div class="table-wrap"><table>
+<thead><tr><th>항목</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>솔루션 파일</td><td>현재 폴더에서 발견되지 않음</td></tr>
+<tr><td>확인 결과</td><td><code>.csproj</code> 단독 또는 상위 솔루션에서 포함될 가능성 <code>확인 필요</code></td></tr>
+</tbody></table></div>
+<h2 id="02_PROJECT_SETTINGS--.csproj-기본-설정"><code>.csproj</code> 기본 설정</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>설정</th><th>값</th><th>근거</th></tr></thead>
+<tbody>
+<tr><td>ProjectGuid</td><td>{C303E817-746D-4E25-AACF-D07066CEA394}</td><td>csproj</td></tr>
+<tr><td>OutputType</td><td>WinExe</td><td>csproj</td></tr>
+<tr><td>RootNamespace</td><td>FinUp.Stock.App.AlphaBot</td><td>csproj</td></tr>
+<tr><td>AssemblyName</td><td>FinUp.Stock.App.AlphaBot</td><td>csproj</td></tr>
+<tr><td>TargetFrameworkVersion</td><td>v4.7</td><td>csproj</td></tr>
+<tr><td>StartupObject</td><td>(명시 없음)</td><td>csproj</td></tr>
+<tr><td>ProjectTypeGuids</td><td>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</td><td>WPF + C# 프로젝트 GUID</td></tr>
+<tr><td>SignManifests</td><td>true</td><td>ClickOnce/매니페스트 서명</td></tr>
+<tr><td>ManifestKeyFile</td><td>FinUp.Stock.App.AlphaBot_TemporaryKey.pfx</td><td>민감 파일명으로 취급</td></tr>
+<tr><td>PublishUrl</td><td>C:\00_배포\publish\FinUp.Stock.App.Alphabot\</td><td>배포 경로 설정</td></tr>
+</tbody></table></div>
+<h2 id="02_PROJECT_SETTINGS--빌드-구성-플랫폼">빌드 구성/플랫폼</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Condition</th><th>PlatformTarget</th><th>OutputPath</th><th>DefineConstants</th><th>Optimize</th><th>Prefer32Bit</th></tr></thead>
+<tbody>
+<tr><td>'$(Configuration)</td><td>$(Platform)' == 'Debug</td><td>AnyCPU'</td><td>AnyCPU</td><td>bin\Debug\</td><td>DEBUG;TRACE</td></tr>
+<tr><td>'$(Configuration)</td><td>$(Platform)' == 'Release</td><td>AnyCPU'</td><td>AnyCPU</td><td>bin\Release\</td><td>TRACE</td></tr>
+<tr><td>'$(Configuration)</td><td>$(Platform)' == 'Debug</td><td>x64'</td><td>x64</td><td>bin\x64\Debug\</td><td>DEBUG;TRACE</td></tr>
+<tr><td>'$(Configuration)</td><td>$(Platform)' == 'Release</td><td>x64'</td><td>x64</td><td>bin\x64\Release\</td><td>TRACE</td></tr>
+</tbody></table></div>
+<h2 id="02_PROJECT_SETTINGS--app.config">App.config</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>항목</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>supportedRuntime</td><td><code>v4.0 .NETFramework,Version=v4.5.2</code></td></tr>
+<tr><td>connectionStrings</td><td><code>없음</code></td></tr>
+</tbody></table></div>
+<h3 id="02_PROJECT_SETTINGS--appsettings-값-마스킹-적용">appSettings (값 마스킹 적용)</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Key</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Server</td><td>REAL</td></tr>
+<tr><td>StockPoint</td><td>http://www.stockpoint.co.kr</td></tr>
+<tr><td>DBStockPoint</td><td><span class="redacted">[REDACTED]</span></td></tr>
+<tr><td>StockRadarPath</td><td>D:\APP\StockPoint.App.StockRadar\StockPoint.App.StockWatch.exe</td></tr>
+<tr><td>XingDataPath</td><td>D:\APP\StockPoint.App.XingData\StockPoint.App.XingData.exe</td></tr>
+<tr><td>ServerID</td><td><span class="redacted">[REDACTED]</span></td></tr>
+<tr><td>ServerPWD</td><td><span class="redacted">[REDACTED]</span></td></tr>
+<tr><td>ObserveStockRadar</td><td>60</td></tr>
+<tr><td>ApiDBStockPoint</td><td><span class="redacted">[REDACTED]</span></td></tr>
+<tr><td>RealExtComm</td><td><span class="redacted">[REDACTED]</span></td></tr>
+<tr><td>DBMessageServiceLgu</td><td><span class="redacted">[REDACTED]</span></td></tr>
+<tr><td>DBMessageServiceDanal</td><td><span class="redacted">[REDACTED]</span></td></tr>
+<tr><td>ChatCacheLoadUrl</td><td>https://pre-chatapi.finup.co.kr/api/v1/cache</td></tr>
+<tr><td>ChatApiKey</td><td><span class="redacted">[REDACTED]</span></td></tr>
+<tr><td>ChatApiUrl</td><td>https://pre-chatapi.finup.co.kr</td></tr>
+<tr><td>ChatApiEnable</td><td>N</td></tr>
+<tr><td>StockDataApi</td><td>https://stockdata.finup.co.kr/api</td></tr>
+<tr><td>StockPointApi</td><td>https://pre-apichat.finup.co.kr/api</td></tr>
+<tr><td>FinUpImgUrl</td><td>https://pre-img.finup.co.kr</td></tr>
+<tr><td>FinUpStockUrl</td><td>https://pre-stock.finup.co.kr</td></tr>
+<tr><td>MentorStockUrl</td><td>https://pre-mentorstock.finup.co.kr</td></tr>
+<tr><td>ThemeRadarApiUrl</td><td>https://apiradar.finup.co.kr</td></tr>
+<tr><td>WiseInvestLguUrl</td><td>http://loc-wiseinvest.danal.co.kr/</td></tr>
+<tr><td>AWSAccessKey</td><td><span class="redacted">[REDACTED]</span></td></tr>
+<tr><td>AWSSecretKey</td><td><span class="redacted">[REDACTED]</span></td></tr>
+<tr><td>NaverApiClientId</td><td><span class="redacted">[REDACTED]</span></td></tr>
+<tr><td>NaverApiClientSecretId</td><td><span class="redacted">[REDACTED]</span></td></tr>
+<tr><td>NaverLoginId</td><td><span class="redacted">[REDACTED]</span></td></tr>
+<tr><td>NaverLoginPw</td><td><span class="redacted">[REDACTED]</span></td></tr>
+<tr><td>NaverApiRedirectUrl</td><td>https://cafe.naver.com/withstock</td></tr>
+<tr><td>NaverCafeId</td><td>12323151</td></tr>
+<tr><td>NaverCafeMenuId</td><td>350</td></tr>
+<tr><td>NaverCafeMentorMarketMenuId</td><td>309</td></tr>
+<tr><td>NaverCafeUploadLimitMB</td><td>2</td></tr>
+<tr><td>NaverCafeAttendBoardMenuId</td><td>384</td></tr>
+<tr><td>bitlyToken</td><td><span class="redacted">[REDACTED]</span></td></tr>
+<tr><td>YoutubeDataAPIKey</td><td><span class="redacted">[REDACTED]</span></td></tr>
+<tr><td>ApiLogUrl</td><td>https://apilog.finup.co.kr/Log/System</td></tr>
+<tr><td>ApiLogSender</td><td>FinUp.Stock.App.AlphaBot</td></tr>
+<tr><td>UseApiLog</td><td>true</td></tr>
+</tbody></table></div>
+<h3 id="02_PROJECT_SETTINGS--assemblybinding-redirects">assemblyBinding redirects</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Assembly</th><th>oldVersion</th><th>newVersion</th></tr></thead>
+<tbody>
+<tr><td>Newtonsoft.Json</td><td>0.0.0.0-13.0.0.0</td><td>13.0.0.0</td></tr>
+<tr><td>NLog</td><td>0.0.0.0-4.0.0.0</td><td>4.0.0.0</td></tr>
+<tr><td>Google.Apis</td><td>0.0.0.0-1.67.0.0</td><td>1.67.0.0</td></tr>
+<tr><td>Google.Apis.Core</td><td>0.0.0.0-1.67.0.0</td><td>1.67.0.0</td></tr>
+<tr><td>System.Runtime.CompilerServices.Unsafe</td><td>0.0.0.0-6.0.0.0</td><td>6.0.0.0</td></tr>
+<tr><td>System.Threading.Tasks.Extensions</td><td>0.0.0.0-4.2.0.1</td><td>4.2.0.1</td></tr>
+<tr><td>System.Memory</td><td>0.0.0.0-4.0.1.2</td><td>4.0.1.2</td></tr>
+<tr><td>System.Buffers</td><td>0.0.0.0-4.0.3.0</td><td>4.0.3.0</td></tr>
+</tbody></table></div>
+<h2 id="02_PROJECT_SETTINGS--nuget-packages.config">NuGet packages.config</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Package</th><th>Version</th><th>TargetFramework</th></tr></thead>
+<tbody>
+<tr><td>AWSSDK.CloudWatch</td><td>3.3.104.3</td><td>net452</td></tr>
+<tr><td>AWSSDK.Core</td><td>3.3.104</td><td>net452</td></tr>
+<tr><td>AWSSDK.EC2</td><td>3.3.142</td><td>net452</td></tr>
+<tr><td>AWSSDK.RDS</td><td>3.3.114</td><td>net452</td></tr>
+<tr><td>FirebaseAdmin</td><td>3.0.0</td><td>net47</td></tr>
+<tr><td>Google.Api.Gax</td><td>4.8.0</td><td>net47</td></tr>
+<tr><td>Google.Api.Gax.Rest</td><td>4.8.0</td><td>net47</td></tr>
+<tr><td>Google.Apis</td><td>1.67.0</td><td>net47</td></tr>
+<tr><td>Google.Apis.Auth</td><td>1.67.0</td><td>net47</td></tr>
+<tr><td>Google.Apis.Core</td><td>1.67.0</td><td>net47</td></tr>
+<tr><td>Google.Apis.YouTube.v3</td><td>1.43.0.1834</td><td>net47</td></tr>
+<tr><td>HtmlAgilityPack</td><td>1.11.17</td><td>net452</td></tr>
+<tr><td>Microsoft.Bcl.AsyncInterfaces</td><td>6.0.0</td><td>net47</td></tr>
+<tr><td>Microsoft.Extensions.DependencyInjection.Abstractions</td><td>6.0.0</td><td>net47</td></tr>
+<tr><td>MoonAPNS</td><td>0.0.4.188</td><td>net452</td></tr>
+<tr><td>Newtonsoft.Json</td><td>13.0.3</td><td>net47</td></tr>
+<tr><td>NLog</td><td>4.4.12</td><td>net452</td></tr>
+<tr><td>System.Buffers</td><td>4.5.1</td><td>net47</td></tr>
+<tr><td>System.CodeDom</td><td>7.0.0</td><td>net47</td></tr>
+<tr><td>System.Collections.Immutable</td><td>8.0.0</td><td>net47</td></tr>
+<tr><td>System.Management</td><td>7.0.2</td><td>net47</td></tr>
+<tr><td>System.Memory</td><td>4.5.5</td><td>net47</td></tr>
+<tr><td>System.Numerics.Vectors</td><td>4.5.0</td><td>net47</td></tr>
+<tr><td>System.Runtime.CompilerServices.Unsafe</td><td>6.0.0</td><td>net47</td></tr>
+<tr><td>System.Threading.Tasks.Extensions</td><td>4.5.4</td><td>net47</td></tr>
+<tr><td>System.ValueTuple</td><td>4.5.0</td><td>net47</td></tr>
+</tbody></table></div>
+<h2 id="02_PROJECT_SETTINGS--assembly-dll-references">Assembly/DLL References</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Reference</th><th>HintPath</th><th>Private</th></tr></thead>
+<tbody>
+<tr><td>AWSSDK.CloudWatch</td><td>..\Solutions\packages\AWSSDK.CloudWatch.3.3.104.3\lib\net45\AWSSDK.CloudWatch.dll</td><td></td></tr>
+<tr><td>AWSSDK.Core</td><td>..\Solutions\packages\AWSSDK.Core.3.3.104\lib\net45\AWSSDK.Core.dll</td><td></td></tr>
+<tr><td>AWSSDK.EC2</td><td>..\Solutions\packages\AWSSDK.EC2.3.3.142\lib\net45\AWSSDK.EC2.dll</td><td></td></tr>
+<tr><td>AWSSDK.RDS</td><td>..\Solutions\packages\AWSSDK.RDS.3.3.114\lib\net45\AWSSDK.RDS.dll</td><td></td></tr>
+<tr><td>FirebaseAdmin</td><td>..\Solutions\packages\FirebaseAdmin.3.0.0\lib\net462\FirebaseAdmin.dll</td><td></td></tr>
+<tr><td>Google.Api.Gax</td><td>..\Solutions\packages\Google.Api.Gax.4.8.0\lib\net462\Google.Api.Gax.dll</td><td></td></tr>
+<tr><td>Google.Api.Gax.Rest</td><td>..\Solutions\packages\Google.Api.Gax.Rest.4.8.0\lib\net462\Google.Api.Gax.Rest.dll</td><td></td></tr>
+<tr><td>Google.Apis</td><td>..\Solutions\packages\Google.Apis.1.67.0\lib\net462\Google.Apis.dll</td><td></td></tr>
+<tr><td>Google.Apis.Auth</td><td>..\Solutions\packages\Google.Apis.Auth.1.67.0\lib\net462\Google.Apis.Auth.dll</td><td></td></tr>
+<tr><td>Google.Apis.Core</td><td>..\Solutions\packages\Google.Apis.Core.1.67.0\lib\net462\Google.Apis.Core.dll</td><td></td></tr>
+<tr><td>Google.Apis.YouTube.v3</td><td>..\Solutions\packages\Google.Apis.YouTube.v3.1.43.0.1834\lib\net45\Google.Apis.YouTube.v3.dll</td><td></td></tr>
+<tr><td>HtmlAgilityPack</td><td>..\Solutions\packages\HtmlAgilityPack.1.11.17\lib\Net45\HtmlAgilityPack.dll</td><td></td></tr>
+<tr><td>Interop.DANALCOMLib</td><td>DLL\Interop.DANALCOMLib.dll</td><td></td></tr>
+<tr><td>M2Mqtt.Net</td><td>DLL\M2Mqtt.Net.dll</td><td></td></tr>
+<tr><td>Microsoft.Bcl.AsyncInterfaces</td><td>..\Solutions\packages\Microsoft.Bcl.AsyncInterfaces.6.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</td><td></td></tr>
+<tr><td>Microsoft.Extensions.DependencyInjection.Abstractions</td><td>..\Solutions\packages\Microsoft.Extensions.DependencyInjection.Abstractions.6.0.0\lib\net461\Microsoft.Extensions.DependencyInjection.Abstractions.dll</td><td></td></tr>
+<tr><td>MoonAPNS</td><td>..\Solutions\packages\MoonAPNS.0.0.4.188\lib\net451\MoonAPNS.dll</td><td>True</td></tr>
+<tr><td>Newtonsoft.Json</td><td>..\Solutions\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</td><td></td></tr>
+<tr><td>NLog</td><td>..\Solutions\packages\NLog.4.4.12\lib\net45\NLog.dll</td><td>True</td></tr>
+<tr><td>System</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>System.Buffers</td><td>..\Solutions\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</td><td></td></tr>
+<tr><td>System.CodeDom</td><td>..\Solutions\packages\System.CodeDom.7.0.0\lib\net462\System.CodeDom.dll</td><td></td></tr>
+<tr><td>System.Collections.Immutable</td><td>..\Solutions\packages\System.Collections.Immutable.8.0.0\lib\net462\System.Collections.Immutable.dll</td><td></td></tr>
+<tr><td>System.ComponentModel.DataAnnotations</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>System.configuration</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>System.Configuration.Install</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>System.Data</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>System.Drawing</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>System.Management</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>System.Memory</td><td>..\Solutions\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</td><td></td></tr>
+<tr><td>System.Numerics</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>System.Numerics.Vectors</td><td>..\Solutions\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</td><td></td></tr>
+<tr><td>System.Runtime.CompilerServices.Unsafe</td><td>..\Solutions\packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</td><td></td></tr>
+<tr><td>System.Threading.Tasks.Extensions</td><td>..\Solutions\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</td><td></td></tr>
+<tr><td>System.Transactions</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>System.ValueTuple</td><td>..\Solutions\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</td><td></td></tr>
+<tr><td>System.Web</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>System.Web.Extensions</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>System.Windows.Forms</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>System.Xml</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>Microsoft.CSharp</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>System.Core</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>System.Xml.Linq</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>System.Data.DataSetExtensions</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>System.Net.Http</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>System.Xaml</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>WindowsBase</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>PresentationCore</td><td>(Framework/GAC)</td><td></td></tr>
+<tr><td>PresentationFramework</td><td>(Framework/GAC)</td><td></td></tr>
+</tbody></table></div>
+<h2 id="02_PROJECT_SETTINGS--projectreference">ProjectReference</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>From</th><th>To</th><th>경로</th></tr></thead>
+<tbody>
+<tr><td>FinUp.Stock.App.AlphaBot</td><td>FinUp.Core.Fundamentals</td><td>..\FinUp.Core.Fundamentals\FinUp.Core.Fundamentals.csproj</td></tr>
+<tr><td>FinUp.Stock.App.AlphaBot</td><td>FinUp.Stock.App</td><td>..\FinUp.Stock.App\FinUp.Stock.App.csproj</td></tr>
+</tbody></table></div>
+<h2 id="02_PROJECT_SETTINGS--확인-필요">확인 필요</h2>
+<ul>
+<li><code>App.config</code>의 supportedRuntime은 .NETFramework v4.5.2로 표시되지만 csproj TargetFrameworkVersion은 v4.7이다. 실제 런타임 바인딩 영향 확인 필요.</li>
+<li><code>ManifestKeyFile</code>, <code>PushCertify</code> 파일, DB/API/토큰 관련 appSettings는 보안 관리 방식 확인 필요.</li>
+</ul>
+<h2 id="02_PROJECT_SETTINGS--분석-한계">분석 한계</h2>
+<ul>
+<li>현재 폴더의 소스와 프로젝트 파일을 기준으로 정적 분석했다. 런타임 DB 데이터, 실제 스케줄 설정값, 외부 API 응답, 배포 서버 상태는 실행 검증하지 않았다.</li>
+<li><code>FinUp.Stock.App</code> 및 <code>FinUp.Core.Fundamentals</code>는 프로젝트 참조로 확인되지만 본 리포트의 세부 클래스/메소드 분석 범위는 현재 폴더의 <code>FinUp.Stock.App.AlphaBot</code> 소스에 한정했다.</li>
+<li><code>DBUtil</code>, <code>SqlSender</code>, <code>LogWriter</code>, <code>NetUtil</code> 등 핵심 구현 일부는 참조 프로젝트에 있어 커넥션 해제/SQL 생성/로그 경로의 최종 동작은 <code>확인 필요</code>로 표시했다.</li>
+<li>민감값은 원문 대신 <code>[REDACTED]</code>로 마스킹했다.</li>
+</ul>
+        <footer class="footer">본 HTML은 docs/code-analysis Markdown 산출물을 읽기 좋게 변환한 문서입니다. 민감값은 원본 Markdown 기준으로 마스킹된 상태를 유지합니다.</footer>
+      </article>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>02. 프로젝트 간 참조 관계 및 의존성 맵</title>
+<style>
+:root{--primary:#fcd535;--active:#f0b90b;--ink:#181a20;--body:#eaecef;--muted:#929aa5;--dark:#0b0e11;--card:#1e2329;--elev:#2b3139;--line:#2b3139;--up:#0ecb81;--down:#f6465d;--info:#3b82f6;}
+*{box-sizing:border-box} body{margin:0;background:var(--dark);color:var(--body);font-family:BinanceNova,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.6} a{color:var(--primary);text-decoration:none}.wrap{max-width:1160px;margin:0 auto;padding:28px 24px 72px}.top{position:sticky;top:0;background:rgba(11,14,17,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);z-index:10}.top .inner{max-width:1160px;margin:0 auto;padding:14px 24px;display:flex;gap:12px;align-items:center;justify-content:space-between}.brand{color:var(--primary);font-weight:700}.nav a{margin-left:12px;color:var(--muted);font-size:13px}.hero{padding:42px 0 22px;border-bottom:1px solid var(--line)}.badge{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:999px;color:var(--primary);font-size:12px;font-weight:700;padding:6px 12px}.hero h1{font-size:42px;line-height:1.12;letter-spacing:-.4px;margin:18px 0 8px;color:#fff}.hero p{color:var(--muted)}main{padding-top:20px}h1,h2,h3,h4{color:#fff;line-height:1.25}h1{font-size:38px}h2{font-size:28px;margin-top:36px;padding-top:8px;border-top:1px solid var(--line)}h3{font-size:21px;margin-top:28px}h4{font-size:16px}p{margin:12px 0;color:var(--body)}blockquote{margin:16px 0;padding:14px 16px;border-left:4px solid var(--primary);background:#11151a;border-radius:6px;color:var(--muted)}code{background:#11151a;color:#fff;padding:2px 6px;border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}pre{background:#11151a;border:1px solid var(--line);border-radius:12px;padding:16px;overflow:auto;color:#fff}pre code{background:transparent;padding:0}pre.mermaid{background:#11151a;color:#fff;border:1px solid var(--line);border-radius:12px;padding:18px}table{width:100%;border-collapse:collapse;margin:16px 0 24px;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:table}th,td{padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:top;font-size:14px}th{color:var(--primary);background:#11151a;text-align:left;font-weight:700}tr:last-child td{border-bottom:0}ul,ol{padding-left:24px}li{margin:6px 0}.footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}.pill{display:inline-block;border-radius:999px;padding:2px 9px;background:rgba(252,213,53,.12);color:var(--primary);border:1px solid rgba(252,213,53,.35);font-size:12px;font-weight:700}@media(max-width:800px){.hero h1{font-size:30px}.wrap{padding:20px 16px}.top .inner{padding:12px 16px;display:block}.nav{margin-top:8px}.nav a{margin:0 10px 0 0}table{display:block;overflow-x:auto;white-space:nowrap}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{if(window.mermaid) mermaid.initialize({startOnLoad:true,theme:'dark'});});</script>
+</head>
+<body>
+<header class="top"><div class="inner"><div class="brand">FinUp AlphaBot Analysis</div><nav class="nav"><a href="total_report.html">Total</a><a href="01_project_inventory.html">Inventory</a><a href="02_dependency_map.html">Dependencies</a><a href="03_db_access_map.html">DB</a><a href="04_runtime_flow.html">Runtime</a><a href="05_risk_report.html">Risk</a><a href="06_refactoring_plan.html">Refactor</a></nav></div></header>
+<div class="wrap">
+<section class="hero"><h1>02. 프로젝트 간 참조 관계 및 의존성 맵</h1><p>Markdown 원본을 HTML로 변환한 정적 보고서입니다. Mermaid 블록은 브라우저에서 렌더링됩니다.</p></section>
+<main>
+<h1 id="02-프로젝트-간-참조-관계-및-의존성-맵">02. 프로젝트 간 참조 관계 및 의존성 맵</h1>
+<h2 id="프로젝트-참조-그래프">프로젝트 참조 그래프</h2>
+<pre class="mermaid">flowchart TD
+  CApp[FinUp.CollectData.App.AlphaBot\nWinExe net6.0-windows7.0]
+  CBiz[FinUp.CollectData.App.AlphaBot.Biz\nlib net6.0]
+  CoreDSApp[FinUp.Core.DS.App]
+  CoreDSDac[FinUp.Core.DS.Dac]
+
+  FApp[FinUp.Finance.App.Alphabot\nWinExe net6.0-windows]
+  FBiz[FinUp.Finance.App.Alphabot.Biz\nlib net6.0]
+  CoreNetData[FinUp.Core.NET.Data]
+  CoreNet[FinUp.Core.NET]
+
+  RApp[FinUp.Radar.App.AlphaBot\nWinExe net47]
+  CoreDataMongo[FinUp.Core.Data.MongoDB]
+  CoreData[FinUp.Core.Data]
+  CoreLog[FinUp.Core.Log]
+  CoreRedis[FinUp.Core.Redis]
+  Core[FinUp.Core]
+  Radar[FinUp.Radar]
+  StockDataRedis[FinUp.StockData.Biz.Redis]
+  StockDataFund[FinUp.StockData.Fundamentals]
+  StockDataModel[FinUp.StockData.Model]
+
+  SApp[FinUp.Stock.App.AlphaBot\nWinExe net47]
+  CoreFund[FinUp.Core.Fundamentals]
+  StockApp[FinUp.Stock.App]
+
+  CApp --&gt; CoreDSApp
+  CApp --&gt; CBiz
+  CBiz --&gt; CoreDSDac
+
+  FApp --&gt; FBiz
+  FBiz --&gt; CoreNetData
+  FBiz --&gt; CoreNet
+
+  RApp --&gt; CoreDataMongo
+  RApp --&gt; CoreData
+  RApp --&gt; CoreLog
+  RApp --&gt; CoreRedis
+  RApp --&gt; Core
+  RApp --&gt; Radar
+  RApp --&gt; StockDataRedis
+  RApp --&gt; StockDataFund
+  RApp --&gt; StockDataModel
+
+  SApp --&gt; CoreFund
+  SApp --&gt; StockApp</pre>
+<h2 id="직접-프로젝트-참조">직접 프로젝트 참조</h2>
+<table><thead><tr><th>프로젝트</th><th>직접 참조</th><th>근거</th></tr></thead><tbody>
+<tr><td><code>FinUp.CollectData.App.AlphaBot</code></td><td><code>FinUp.Core.DS.App</code>, <code>FinUp.CollectData.App.AlphaBot.Biz</code></td><td><code>FinUp.CollectData.App.AlphaBot.csproj:12-13</code></td></tr>
+<tr><td><code>FinUp.CollectData.App.AlphaBot.Biz</code></td><td><code>FinUp.Core.DS.Dac</code></td><td><code>FinUp.CollectData.App.AlphaBot.Biz.csproj:15</code></td></tr>
+<tr><td><code>FinUp.Finance.App.Alphabot</code></td><td><code>FinUp.Finance.App.Alphabot.Biz</code></td><td><code>FinUp.Finance.App.Alphabot.csproj:10</code></td></tr>
+<tr><td><code>FinUp.Finance.App.Alphabot.Biz</code></td><td><code>FinUp.Core.NET.Data</code>, <code>FinUp.Core.NET</code></td><td><code>FinUp.Finance.App.Alphabot.Biz.csproj:19-20</code></td></tr>
+<tr><td><code>FinUp.Radar.App.AlphaBot</code></td><td><code>FinUp.Core.Data.MongoDB</code>, <code>FinUp.Core.Data</code>, <code>FinUp.Core.Log</code>, <code>FinUp.Core.Redis</code>, <code>FinUp.Core</code>, <code>FinUp.Radar</code>, <code>FinUp.StockData.*</code></td><td><code>FinUp.Radar.App.AlphaBot.csproj</code> <code>ProjectReference</code> 항목</td></tr>
+<tr><td><code>FinUp.Stock.App.AlphaBot</code></td><td><code>FinUp.Core.Fundamentals</code>, <code>FinUp.Stock.App</code></td><td><code>FinUp.Stock.App.AlphaBot.csproj:283-287</code></td></tr>
+</tbody></table>
+<h2 id="외부-패키지-어셈블리-의존성-성격">외부 패키지/어셈블리 의존성 성격</h2>
+<table><thead><tr><th>제품군</th><th>주요 외부 의존성</th><th>사용 성격/위험</th></tr></thead><tbody>
+<tr><td>CollectData</td><td><code>CefSharp.OffScreen.NETCore</code>, <code>NLog</code>, <code>WebDriverManager</code>, Telegram/Kafka 관련 코드</td><td>웹 크롤링/브라우저 자동화, 파일 로그, 외부 메시징. 크롤러 차단·브라우저 버전·토큰 노출 리스크</td></tr>
+<tr><td>Finance</td><td><code>HtmlAgilityPack</code>, <code>SimpleImpersonation</code>, <code>System.Configuration.ConfigurationManager</code>, Syndication</td><td>RSS/HTML 파싱, 파일 경로/계정 설정 사용. 파일 권한·외부 RSS 변화 리스크</td></tr>
+<tr><td>Radar</td><td>MongoDB, Redis, Google API, StackExchange.Redis, Interop.DANALCOMLib, NLog/Trace</td><td>DB/캐시/외부 결제/텔레그램/공시 API 혼합. 단일 UI 앱에 다양한 운영 의존성이 집중됨</td></tr>
+<tr><td>Stock</td><td>AWS SDK, FirebaseAdmin, Google/YouTube API, NLog, MQTT, MoonAPNS, DANAL COM</td><td>운영 API·결제·푸시·AWS 모니터링·외부 업로드가 한 실행 파일에 집중. 설정 비밀값과 장애 전파 리스크 큼</td></tr>
+</tbody></table>
+<h2 id="공통-라이브러리-의존성-관찰">공통 라이브러리 의존성 관찰</h2>
+<table><thead><tr><th>공통 계층</th><th>사용 프로젝트</th><th>역할 추정</th><th>근거</th></tr></thead><tbody>
+<tr><td><code>FinUp.Core.*</code></td><td>Radar, Stock, Finance</td><td>DB 유틸, 확장 메서드, Redis/Mongo/로그 공통</td><td>각 <code>.csproj</code> <code>ProjectReference</code>, <code>using FinUp.Core.*</code></td></tr>
+<tr><td><code>FinUp.Core.DS.*</code></td><td>CollectData</td><td>DS 계열 설정/모델/DAC</td><td><code>ViewModel/MainViewModel.cs:2-7</code>, <code>AlphaBotBiz.cs:1-6</code></td></tr>
+<tr><td><code>FinUp.Stock.App</code></td><td>Stock AlphaBot</td><td>SQL/Entity/Util 재사용</td><td><code>FinUp.Stock.App.AlphaBot.csproj:287</code>, <code>MainWindow.xaml.cs:9,12</code></td></tr>
+<tr><td><code>FinUp.Radar</code></td><td>Radar AlphaBot</td><td>Radar 모델/SQL/서버 타입</td><td><code>MainWindow.xaml.cs:27-29</code>, <code>.csproj ProjectReference</code></td></tr>
+</tbody></table>
+<h2 id="의존성-리스크">의존성 리스크</h2>
+<table><thead><tr><th>등급</th><th>항목</th><th>설명</th><th>근거</th></tr></thead><tbody>
+<tr><td>높음</td><td>실행 프로젝트가 DB/외부 API/스케줄/화면을 동시에 담당</td><td>WPF UI 스레드와 백그라운드 Thread/DispatcherTimer가 섞여 장애 격리가 약함</td><td><code>Radar MainWindow.xaml.cs:64-68</code>, <code>Stock MainWindow.xaml.cs:47-50</code></td></tr>
+<tr><td>높음</td><td>Stock AlphaBot의 외부 SDK 집중</td><td>AWS, Firebase, Google, 결제/문자/외부 업로드까지 단일 프로세스</td><td><code>FinUp.Stock.App.AlphaBot.csproj</code> References, <code>Operation/ProcessBase.cs:72-95</code></td></tr>
+<tr><td>중간</td><td>레거시 <code>packages.config</code>/어셈블리 참조</td><td>Radar/Stock은 .NET Framework 4.7과 직접 assembly reference 혼합</td><td><code>packages.config</code>, <code>.csproj:60-190</code> 계열</td></tr>
+<tr><td>중간</td><td>Core/SQL 계층이 프로젝트 외부</td><td>실제 SQL 생성/실행 세부는 참조 프로젝트에 분산되어 영향 범위 추적 난이도 상승</td><td><code>ProjectReference</code> 그래프</td></tr>
+</tbody></table>
+</main>
+<div class="footer">Source: 02_dependency_map.md · Output: 02_dependency_map.html · No source-code project files modified.</div>
+</div>
+</body>
+</html>
